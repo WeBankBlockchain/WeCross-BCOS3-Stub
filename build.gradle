@@ -1,0 +1,326 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'eclipse'
+    id 'maven'
+    id 'jacoco'
+    id 'maven-publish'
+
+    id 'org.ajoberstar.grgit' version '4.0.1'
+    id 'com.github.sherter.google-java-format' version '0.8'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+group 'com.webank.wecross'
+version '1.2.3'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    // Use jcenter for resolving your dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+    maven { url "https://maven.aliyun.com/nexus/content/groups/public/" }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+
+googleJavaFormat {
+    options style: 'AOSP'
+    source = sourceSets*.allJava
+    include '**/*.java'
+    exclude '**/temp/*.java'
+}
+
+verifyGoogleJavaFormat {
+    source = sourceSets*.allJava
+    include '**/*.java'
+    exclude '**/temp/*.java'
+}
+
+configurations {
+    all*.exclude group: 'org.java-websocket', module: 'Java-WebSocket'
+    all*.exclude group: 'org.antlr', module: '*'
+    all*.exclude group: 'de.vandermeer', module: '*'
+    all*.exclude group: 'com.alibaba', module: 'druid'
+    all*.exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+    all*.exclude group: 'io.reactivex', module: 'rxjava'
+    all*.exclude group: 'org.ethereum', module: 'solcJ-all'
+    all*.exclude group: 'ch.qos.logback', module: 'logback-classic'
+    all*.exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
+    all*.exclude group: 'com.alibaba', module: 'fastjson'
+
+    integTestImplementation.extendsFrom implementation
+    integTestTestImplementation.extendsFrom testImplementation
+}
+
+//configurations.all {
+//    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+//}
+
+def log4j_version="2.17.2"
+List logger = [
+        "org.apache.logging.log4j:log4j-api:$log4j_version",
+        "org.apache.logging.log4j:log4j-core:$log4j_version",
+        "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version",
+        //"org.apache.logging.log4j:log4j-to-slf4j:$log4j_version",
+        "org.apache.logging.log4j:log4j-web:$log4j_version",
+        "org.apache.logging.log4j:log4j-jul:$log4j_version"
+]
+
+dependencies {
+    compile logger
+    implementation ('com.webank:wecross-java-stub:1.2.1') {
+        exclude group: "io.netty"
+    }
+
+    implementation 'com.moandjiezana.toml:toml4j:0.7.2'
+    implementation ('org.fisco-bcos.java-sdk:fisco-bcos-java-sdk:3.0.1')
+
+    // Use JUnit test framework
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.slf4j:slf4j-log4j12:1.7.36'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.7'
+
+    integTestImplementation 'junit:junit:4.12'
+    integTestImplementation 'org.slf4j:slf4j-log4j12:1.7.36'
+}
+
+sourceSets {
+
+    main {
+        resources {
+            exclude '**/*.toml'
+            exclude '**/*.xml'
+            exclude '**/*.properties'
+            exclude '**/*.yml'
+            exclude '**/*.crt'
+            exclude '**/*.key'
+            include 'WeCrossProxy.sol'
+            include 'WeCrossHub.sol'
+        }
+    }
+
+    // Add the integration test directory
+    integTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+        }
+
+//        resources {
+//            srcDir file('src/integTest/resources')
+//        }
+    }
+}
+
+shadowJar {
+    mergeServiceFiles()
+    minimize()
+}
+
+
+task makeJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar, dependsOn: shadowJar) {
+
+    destinationDir file('dist/apps')
+    archiveName project.name + "-" + project.version + '.jar'
+    exclude '**/*.xml'
+    exclude '**/*.toml'
+    exclude '**/*.properties'
+    exclude '**/*.yml'
+    exclude '**/BCOSGMStubFactory.*'
+    exclude '**/performance/guomi/*'
+
+    manifest {
+        attributes(
+                'Main-Class': 'com.webank.wecross.stub.bcos3.normal.BCOSStubFactory',
+                'version': project.version,
+        )
+
+        try {
+            def repo = grgit.open(dir: file('.').canonicalPath)
+            if (repo != null) {
+                def date = new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                def branch = repo.branch.getCurrent().getName()
+                def commit = repo.head().getAbbreviatedId(40)
+
+                attributes(["Implementation-Timestamp": date,
+                            "Git-Branch"              : branch,
+                            "Git-Commit"              : commit
+                ])
+
+                logger.info("  Commit : ")
+                logger.info("  => date: {}", date)
+                logger.info("  => branch: {}", branch)
+                logger.info("  => commit: {}", commit)
+            }
+        } catch (Exception e) {
+            // logger.warn(' .git not exist, cannot found commit info')
+        }
+    }
+
+    dependencies {
+        exclude(dependency('io.netty:.*'))
+    }
+
+    relocate 'org.fisco.bcos', 'org.fisco.bcos3.wecross.normal'
+    relocate 'com.webank.wecross.stub.bcos3', 'com.webank.wecross.stub.bcos3.normal'
+
+    from zipTree(shadowJar.archivePath)
+}
+
+task makeGMJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar, dependsOn: shadowJar) {
+
+    destinationDir file('dist/apps')
+    archiveName project.name + "-gm-" + project.version + '.jar'
+    exclude '**/*.xml'
+    exclude '**/*.toml'
+    exclude '**/*.properties'
+    exclude '**/*.yml'
+    exclude '**/BCOSStubFactory.*'
+    exclude '**/performance/normal/*'
+
+    manifest {
+        attributes(
+                'Main-Class': 'com.webank.wecross.stub.bcos3.guomi.BCOSGMStubFactory',
+                'version': project.version,
+        )
+
+        try {
+            def repo = grgit.open(dir: file('.').canonicalPath)
+            if (repo != null) {
+                def date = new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                def branch = repo.branch.getCurrent().getName()
+                def commit = repo.head().getAbbreviatedId(40)
+
+                attributes(["Implementation-Timestamp": date,
+                            "Git-Branch"              : branch,
+                            "Git-Commit"              : commit
+                ])
+
+                logger.info("  Commit : ")
+                logger.info("  => date: {}", date)
+                logger.info("  => branch: {}", branch)
+                logger.info("  => commit: {}", commit)
+            }
+        } catch (Exception e) {
+            // logger.warn(' .git not exist, cannot found commit info')
+        }
+    }
+
+    dependencies {
+        exclude(dependency('io.netty:.*'))
+    }
+
+    relocate 'org.fisco.bcos', 'org.fisco.bcos3.wecross.guomi'
+    relocate 'com.webank.wecross.stub.bcos3', 'com.webank.wecross.stub.bcos3.guomi'
+
+    from zipTree(shadowJar.archivePath)
+}
+
+jar.enabled = false
+project.tasks.assemble.dependsOn(makeJar)
+project.tasks.assemble.dependsOn(makeGMJar)
+
+task integTest(type: Test) {
+    description = 'Runs integration tests.'
+
+    testClassesDirs = sourceSets.integTest.output.classesDirs
+    classpath = sourceSets.integTest.runtimeClasspath
+    mustRunAfter test
+}
+
+// clean dist and log dir
+task cleanDistAndLogDir(type: Delete) {
+    delete 'dist'
+    delete 'log'
+    delete 'out'
+}
+
+tasks.clean.dependsOn(tasks.cleanDistAndLogDir)
+
+test {
+    testLogging {
+        showStandardStreams = true
+        events 'passed', 'skipped', 'failed'
+    }
+
+}
+
+integTest {
+    testLogging {
+        showStandardStreams = true
+        events 'passed', 'skipped', 'failed'
+    }
+
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+        //html.destination file("${buildDir}/jacocoHtml")
+    }
+}
+
+ext {
+    if (!project.hasProperty("NEXUS_USERNAME")) {
+        NEXUS_USERNAME="xxx"
+    }
+
+    if (!project.hasProperty("NEXUS_PASSWORD")) {
+        NEXUS_PASSWORD="xxx"
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'com.webank'
+            artifactId = 'wecross-bcos3-stub'
+            from components.java
+            artifacts = [shadowJar]
+
+            // https://docs.gradle.org/current/dsl/org.gradle.api.publish.maven.MavenPublication.html
+            pom {
+                name = "WeCross-BCOS3-Stub"
+                description = "Stub interface for WeCross"
+                url = "https://github.com/WeBankBlockchain/WeCross"
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "Shareong"
+                        name = "Shareong"
+                        email = "740310627@qq.com"
+                    }
+                }
+                scm {
+                    connection = "scm:git:git://github.com/WeBankBlockchain/WeCross.git"
+                    developerConnection = "scm:git:ssh://github.com/WeBankBlockchain/WeCross.git"
+                    url = "https://github.com/WeBankBlockchain/WeCross"
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+            credentials {
+                username = NEXUS_USERNAME
+                password = NEXUS_PASSWORD
+            }
+
+        }
+    }
+}

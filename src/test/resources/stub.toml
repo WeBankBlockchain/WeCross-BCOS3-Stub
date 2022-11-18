@@ -1,0 +1,29 @@
+[common]
+    name = 'bcos' # stub must be same with directory name
+    type = 'BCOS3.0' # BCOS or GM_BCOS2.0
+
+[chain]
+    groupId = 'group0' # default 1
+    chainId = 'chain0' # default 'chain0'
+
+[channelService]
+    caCert = 'ca.crt'
+    sslCert = 'sdk.crt'
+    sslKey = 'sdk.key'
+    gmConnectEnable = false #ssl gm or not
+    gmCaCert = 'gm/gmca.crt'
+    gmSslCert = 'gm/gmsdk.crt'
+    gmSslKey = 'gm/gmsdk.key'
+    gmEnSslCert = 'gm/gmensdk.crt'
+    gmEnSslKey = 'gm/gmensdk.key'
+    timeout = 300000  # ms, default 60000ms
+    connectionsStr = ['127.0.0.1:20200']
+    threadNum = 18
+    threadQueueCapacity = 5000
+
+# resources is a list
+[[resources]]
+    # name cannot be repeated
+    name = 'HelloWeCross'
+    type = 'BCOS_CONTRACT'
+    contractAddress = '0x8827cca7f0f38b861b62dae6d711efe92a1e3602'
