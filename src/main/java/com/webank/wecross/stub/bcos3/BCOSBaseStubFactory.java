@@ -31,10 +31,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 public class BCOSBaseStubFactory implements StubFactory {
+    public static final String BCOS3_ECDSA_EVM_STUB_TYPE  = "BCOS3.0_ECDSA_EVM";
+    public static final String BCOS3_ECDSA_WASM_STUB_TYPE  = "BCOS3.0_ECDSA_WASM";
+    public static final String BCOS3_GM_EVM_STUB_TYPE  = "BCOS3.0_GM_EVM";
+    public static final String BCOS3_GM_WASM_STUB_TYPE  = "BCOS3.0_GM_WASM";
+    private static final String WASM = "WASM";
+
     private Logger logger = LoggerFactory.getLogger(BCOSBaseStubFactory.class);
 
     private String alg = null;
     private String stubType = null;
+
     private CryptoSuite cryptoSuite;
     private BCOSAccountFactory bcosAccountFactory;
 
@@ -53,6 +60,10 @@ public class BCOSBaseStubFactory implements StubFactory {
     @Override
     public void init(WeCrossContext context) {}
 
+
+    public boolean isWASM() {
+        return stubType.contains(WASM);
+    }
     /**
      * The algorithm name, secp256k1 or sm2p256v1
      *

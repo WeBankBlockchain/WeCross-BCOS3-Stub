@@ -131,7 +131,6 @@ task makeJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar, d
     exclude '**/*.toml'
     exclude '**/*.properties'
     exclude '**/*.yml'
-    exclude '**/BCOSGMStubFactory.*'
     exclude '**/performance/guomi/*'
 
     manifest {
@@ -165,65 +164,10 @@ task makeJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar, d
     dependencies {
         exclude(dependency('io.netty:.*'))
     }
-
-    relocate 'org.fisco.bcos', 'org.fisco.bcos3.wecross.normal'
-    relocate 'com.webank.wecross.stub.bcos3', 'com.webank.wecross.stub.bcos3.normal'
-
-    from zipTree(shadowJar.archivePath)
-}
-
-task makeGMJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar, dependsOn: shadowJar) {
-
-    destinationDir file('dist/apps')
-    archiveName project.name + "-gm-" + project.version + '.jar'
-    exclude '**/*.xml'
-    exclude '**/*.toml'
-    exclude '**/*.properties'
-    exclude '**/*.yml'
-    exclude '**/BCOSStubFactory.*'
-    exclude '**/performance/normal/*'
-
-    manifest {
-        attributes(
-                'Main-Class': 'com.webank.wecross.stub.bcos3.guomi.BCOSGMStubFactory',
-                'version': project.version,
-        )
-
-        try {
-            def repo = grgit.open(dir: file('.').canonicalPath)
-            if (repo != null) {
-                def date = new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-                def branch = repo.branch.getCurrent().getName()
-                def commit = repo.head().getAbbreviatedId(40)
-
-                attributes(["Implementation-Timestamp": date,
-                            "Git-Branch"              : branch,
-                            "Git-Commit"              : commit
-                ])
-
-                logger.info("  Commit : ")
-                logger.info("  => date: {}", date)
-                logger.info("  => branch: {}", branch)
-                logger.info("  => commit: {}", commit)
-            }
-        } catch (Exception e) {
-            // logger.warn(' .git not exist, cannot found commit info')
-        }
-    }
-
-    dependencies {
-        exclude(dependency('io.netty:.*'))
-    }
-
-    relocate 'org.fisco.bcos', 'org.fisco.bcos3.wecross.guomi'
-    relocate 'com.webank.wecross.stub.bcos3', 'com.webank.wecross.stub.bcos3.guomi'
-
-    from zipTree(shadowJar.archivePath)
 }
 
 jar.enabled = false
 project.tasks.assemble.dependsOn(makeJar)
-project.tasks.assemble.dependsOn(makeGMJar)
 
 task integTest(type: Test) {
     description = 'Runs integration tests.'

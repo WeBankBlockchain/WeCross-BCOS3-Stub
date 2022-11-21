@@ -12,7 +12,7 @@ import org.junit.Test;
 
 public class BCOSStubFactoryTest {
 
-    private BCOSStubFactory bcosSubFactory = new BCOSStubFactory();
+    private BCOS3EcdsaEvmStubFactory bcosSubFactory = new BCOS3EcdsaEvmStubFactory();
     // private BCOSGMStubFactory bcosgmStubFactory = new BCOSGMStubFactory();
 
     @Test

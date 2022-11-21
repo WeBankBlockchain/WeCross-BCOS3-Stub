@@ -84,7 +84,7 @@ public class BCOSDriverTest {
 
     @Before
     public void initializer() throws Exception {
-        BCOSStubFactory bcosSubFactory = new BCOSStubFactory();
+        BCOS3EcdsaEvmStubFactory bcosSubFactory = new BCOS3EcdsaEvmStubFactory();
         Path path = Path.decode("a.b.c");
         driver = bcosSubFactory.newDriver();
 

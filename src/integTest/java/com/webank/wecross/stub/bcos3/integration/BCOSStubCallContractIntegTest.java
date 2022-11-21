@@ -18,8 +18,8 @@ import com.webank.wecross.stub.bcos3.BCOSBaseStubFactory;
 import com.webank.wecross.stub.bcos3.BCOSConnection;
 import com.webank.wecross.stub.bcos3.BCOSConnectionFactory;
 import com.webank.wecross.stub.bcos3.BCOSDriver;
-import com.webank.wecross.stub.bcos3.BCOSGMStubFactory;
-import com.webank.wecross.stub.bcos3.BCOSStubFactory;
+import com.webank.wecross.stub.bcos3.BCOS3GMEvmStubFactory;
+import com.webank.wecross.stub.bcos3.BCOS3EcdsaEvmStubFactory;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
 import com.webank.wecross.stub.bcos3.client.AbstractClientWrapper;
 import com.webank.wecross.stub.bcos3.client.ClientBlockManager;
@@ -145,7 +145,7 @@ public class BCOSStubCallContractIntegTest {
         boolean isGM = bcosStubConfig.isGMStub();
         logger.info(" === >> initial type is GM:  {}", isGM);
 
-        BCOSBaseStubFactory stubFactory = isGM ? new BCOSGMStubFactory() : new BCOSStubFactory();
+        BCOSBaseStubFactory stubFactory = isGM ? new BCOS3GMEvmStubFactory() : new BCOS3EcdsaEvmStubFactory();
         driver = stubFactory.newDriver();
         account = stubFactory.newAccount("IntegBCOSAccount", isGM ? "classpath:/accounts/gm_bcos" : "classpath:/accounts/bcos");
 
