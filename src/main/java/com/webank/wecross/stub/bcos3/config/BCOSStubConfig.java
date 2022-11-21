@@ -5,8 +5,8 @@ import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.fisco.bcos.sdk.crypto.hash.Hash;
-import org.fisco.bcos.sdk.crypto.hash.Keccak256;
+import org.fisco.bcos.sdk.v3.crypto.hash.Hash;
+import org.fisco.bcos.sdk.v3.crypto.hash.Keccak256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,22 +27,22 @@ public class BCOSStubConfig {
     }
 
     public static class Chain {
-        private int groupID;
-        private int chainID;
+        private String groupID;
+        private String chainID;
 
-        public int getGroupID() {
+        public String getGroupID() {
             return groupID;
         }
 
-        public void setGroupID(int groupID) {
+        public void setGroupID(String groupID) {
             this.groupID = groupID;
         }
 
-        public int getChainID() {
+        public String getChainID() {
             return chainID;
         }
 
-        public void setChainID(int chainID) {
+        public void setChainID(String chainID) {
             this.chainID = chainID;
         }
 
@@ -53,28 +53,37 @@ public class BCOSStubConfig {
     }
 
     public static class ChannelService {
-        private int timeout;
+
         private String caCert;
         private String sslCert;
         private String sslKey;
-        private boolean gmConnectEnable;
 
         private String gmCaCert;
         private String gmSslCert;
         private String gmSslKey;
         private String gmEnSslCert;
         private String gmEnSslKey;
-        private List<String> connectionsStr;
-        private Chain chain;
-        private int threadNum;
-        private int queueCapacity;
 
-        public int getTimeout() {
-            return timeout;
+        private boolean disableSsl;
+        private int messageTimeout;
+        private List<String> connectionsStr;
+
+        private int threadPoolSize;
+
+        public boolean isDisableSsl() {
+            return disableSsl;
         }
 
-        public void setTimeout(int timeout) {
-            this.timeout = timeout;
+        public void setDisableSsl(boolean disableSsl) {
+            this.disableSsl = disableSsl;
+        }
+
+        public int getMessageTimeout() {
+            return messageTimeout;
+        }
+
+        public void setMessageTimeout(int messageTimeout) {
+            this.messageTimeout = messageTimeout;
         }
 
         public String getCaCert() {
@@ -99,14 +108,6 @@ public class BCOSStubConfig {
 
         public void setSslKey(String sslKey) {
             this.sslKey = sslKey;
-        }
-
-        public boolean isGmConnectEnable() {
-            return gmConnectEnable;
-        }
-
-        public void setGmConnectEnable(boolean gmConnectEnable) {
-            this.gmConnectEnable = gmConnectEnable;
         }
 
         public String getGmCaCert() {
@@ -157,35 +158,19 @@ public class BCOSStubConfig {
             this.connectionsStr = connectionsStr;
         }
 
-        public Chain getChain() {
-            return chain;
+        public int getThreadPoolSize() {
+            return threadPoolSize;
         }
 
-        public void setChain(Chain chain) {
-            this.chain = chain;
-        }
-
-        public int getThreadNum() {
-            return threadNum;
-        }
-
-        public void setThreadNum(int threadNum) {
-            this.threadNum = threadNum;
-        }
-
-        public int getQueueCapacity() {
-            return queueCapacity;
-        }
-
-        public void setQueueCapacity(int queueCapacity) {
-            this.queueCapacity = queueCapacity;
+        public void setThreadPoolSize(int threadPoolSize) {
+            this.threadPoolSize = threadPoolSize;
         }
 
         @Override
         public String toString() {
             return "ChannelService{"
-                    + "timeout="
-                    + timeout
+                    + "messageTimeout="
+                    + messageTimeout
                     + ", caCert='"
                     + caCert
                     + '\''
@@ -197,12 +182,8 @@ public class BCOSStubConfig {
                     + '\''
                     + ", connectionsStr="
                     + connectionsStr
-                    + ", chain="
-                    + chain
-                    + ", threadNum="
-                    + threadNum
-                    + ", queueCapacity="
-                    + queueCapacity
+                    + ", threadPoolSize="
+                    + threadPoolSize
                     + '}';
         }
     }

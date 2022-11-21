@@ -11,7 +11,6 @@ import com.webank.wecross.stub.TransactionRequest;
 import com.webank.wecross.stub.bcos3.AsyncCnsService;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
-import com.webank.wecross.stub.bcos3.preparation.CnsService;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;

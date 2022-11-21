@@ -5,11 +5,10 @@ import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.fisco.bcos.sdk.BcosSDK;
-import org.fisco.bcos.sdk.client.Client;
-import org.fisco.bcos.sdk.config.ConfigOption;
-import org.fisco.bcos.sdk.config.model.ConfigProperty;
-import org.fisco.bcos.sdk.model.CryptoType;
+import org.fisco.bcos.sdk.v3.BcosSDK;
+import org.fisco.bcos.sdk.v3.client.Client;
+import org.fisco.bcos.sdk.v3.config.ConfigOption;
+import org.fisco.bcos.sdk.v3.config.model.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -21,30 +20,21 @@ public class ClientUtility {
 
     public static Client initClient(BCOSStubConfig bcosStubConfig) throws Exception {
         BCOSStubConfig.ChannelService channelServiceConfig = bcosStubConfig.getChannelService();
-
         // groupID
-        int groupID = channelServiceConfig.getChain().getGroupID();
-        // ssl connect type
-        int cryptoType =
-                bcosStubConfig.getChannelService().isGmConnectEnable()
-                        ? CryptoType.SM_TYPE
-                        : CryptoType.ECDSA_TYPE;
+        String groupID = bcosStubConfig.getChain().getGroupID();
 
         // cryptoMaterial
-        Map<String, Object> cryptoMaterial = buildCryptoMaterial(channelServiceConfig);
+        Map<String, Object> cryptoMaterial = buildCryptoMaterial(bcosStubConfig);
 
         // network
         Map<String, Object> network = new HashMap<>();
         network.put("peers", channelServiceConfig.getConnectionsStr());
+        network.put("defaultGroup", ClientDefaultConfig.DEFAULT_GROUP_ID);
+        network.put("messageTimeout", channelServiceConfig.getMessageTimeout());
 
         // threadPool
         Map<String, Object> threadPool = new HashMap<>();
-        threadPool.put(
-                "channelProcessorThreadSize", String.valueOf(channelServiceConfig.getThreadNum()));
-        threadPool.put(
-                "receiptProcessorThreadSize", String.valueOf(channelServiceConfig.getThreadNum()));
-        threadPool.put(
-                "maxBlockingQueueSize", String.valueOf(channelServiceConfig.getQueueCapacity()));
+        threadPool.put("threadPoolSize", String.valueOf(channelServiceConfig.getThreadPoolSize()));
 
         // configProperty
         ConfigProperty configProperty = new ConfigProperty();
@@ -53,20 +43,25 @@ public class ClientUtility {
         configProperty.setThreadPool(threadPool);
 
         // configOption
-        ConfigOption configOption = new ConfigOption(configProperty, cryptoType);
+        ConfigOption configOption = new ConfigOption(configProperty);
 
         // bcosSDK
         BcosSDK bcosSDK = new BcosSDK(configOption);
         return bcosSDK.getClient(groupID);
     }
 
-    private static Map<String, Object> buildCryptoMaterial(
-            BCOSStubConfig.ChannelService channelServiceConfig)
+    private static Map<String, Object> buildCryptoMaterial(BCOSStubConfig bcosStubConfig)
             throws WeCrossException, IOException {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        BCOSStubConfig.ChannelService channelServiceConfig = bcosStubConfig.getChannelService();
         Map<String, Object> cryptoMaterial = new HashMap<>();
-        if (channelServiceConfig.isGmConnectEnable()) {
-            // gm ssl
+        cryptoMaterial.put("useSMCrypto", bcosStubConfig.isGMStub());
+        cryptoMaterial.put("disableSsl", channelServiceConfig.isDisableSsl());
+        if (channelServiceConfig.isDisableSsl()) {
+            return cryptoMaterial;
+        }
+        if (bcosStubConfig.isGMStub()) {
+            // gm
             checkCertExistAndPut(
                     resolver, cryptoMaterial, channelServiceConfig.getGmCaCert(), "caCert");
             checkCertExistAndPut(
@@ -78,7 +73,7 @@ public class ClientUtility {
             checkCertExistAndPut(
                     resolver, cryptoMaterial, channelServiceConfig.getGmEnSslKey(), "enSslKey");
         } else {
-            // not gm ssl
+            // not gm
             checkCertExistAndPut(
                     resolver, cryptoMaterial, channelServiceConfig.getCaCert(), "caCert");
             checkCertExistAndPut(

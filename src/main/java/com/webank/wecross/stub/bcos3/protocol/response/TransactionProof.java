@@ -1,36 +1,35 @@
 package com.webank.wecross.stub.bcos3.protocol.response;
 
-import org.fisco.bcos.sdk.client.protocol.response.TransactionReceiptWithProof;
-import org.fisco.bcos.sdk.client.protocol.response.TransactionWithProof;
+import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 
 public class TransactionProof {
 
-    private TransactionWithProof.TransactionAndProof transAndProof;
-    private TransactionReceiptWithProof.ReceiptAndProof receiptAndProof;
+    private JsonTransactionResponse transAndProof;
+    private TransactionReceipt receiptAndProof;
 
     public TransactionProof() {}
 
     public TransactionProof(
-            TransactionWithProof.TransactionAndProof transAndProof,
-            TransactionReceiptWithProof.ReceiptAndProof receiptAndProof) {
+            JsonTransactionResponse transAndProof, TransactionReceipt receiptAndProof) {
         this.transAndProof = transAndProof;
         this.receiptAndProof = receiptAndProof;
     }
 
-    public void setTransAndProof(TransactionWithProof.TransactionAndProof transAndProof) {
-        this.transAndProof = transAndProof;
-    }
-
-    public void setReceiptAndProof(TransactionReceiptWithProof.ReceiptAndProof receiptAndProof) {
-        this.receiptAndProof = receiptAndProof;
-    }
-
-    public TransactionWithProof.TransactionAndProof getTransAndProof() {
+    public JsonTransactionResponse getTransAndProof() {
         return transAndProof;
     }
 
-    public TransactionReceiptWithProof.ReceiptAndProof getReceiptAndProof() {
+    public void setTransAndProof(JsonTransactionResponse transAndProof) {
+        this.transAndProof = transAndProof;
+    }
+
+    public TransactionReceipt getReceiptAndProof() {
         return receiptAndProof;
+    }
+
+    public void setReceiptAndProof(TransactionReceipt receiptAndProof) {
+        this.receiptAndProof = receiptAndProof;
     }
 
     @Override

@@ -1,9 +1,7 @@
 package com.webank.wecross.stub.bcos3.performance.hellowecross.proxy;
 
-import com.webank.wecross.stub.bcos3.client.ClientWrapperImplV26;
 import com.webank.wecross.stub.bcos3.performance.hellowecross.HelloWeCross;
 import com.webank.wecross.stub.bcos3.performance.hellowecross.PureBCOSSuite;
-import com.webank.wecross.stub.bcos3.preparation.CnsService;
 import java.util.Objects;
 import org.fisco.bcos.sdk.abi.wrapper.ABICodecJsonWrapper;
 import org.fisco.bcos.sdk.abi.wrapper.ABIDefinitionFactory;

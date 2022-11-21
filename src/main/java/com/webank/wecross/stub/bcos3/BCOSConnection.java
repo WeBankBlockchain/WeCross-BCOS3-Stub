@@ -12,7 +12,6 @@ import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSRequestType;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import com.webank.wecross.stub.bcos3.common.ObjectMapperFactory;
-import com.webank.wecross.stub.bcos3.common.StatusCode;
 import com.webank.wecross.stub.bcos3.contract.FunctionUtility;
 import com.webank.wecross.stub.bcos3.protocol.request.TransactionParams;
 import com.webank.wecross.stub.bcos3.protocol.response.TransactionPair;
@@ -28,17 +27,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.fisco.bcos.sdk.abi.FunctionEncoder;
-import org.fisco.bcos.sdk.abi.datatypes.Function;
-import org.fisco.bcos.sdk.client.protocol.model.JsonTransactionResponse;
-import org.fisco.bcos.sdk.client.protocol.response.BcosBlock;
-import org.fisco.bcos.sdk.client.protocol.response.BcosBlockHeader;
-import org.fisco.bcos.sdk.client.protocol.response.Call;
-import org.fisco.bcos.sdk.client.protocol.response.TransactionReceiptWithProof;
-import org.fisco.bcos.sdk.client.protocol.response.TransactionWithProof;
-import org.fisco.bcos.sdk.crypto.CryptoSuite;
-import org.fisco.bcos.sdk.model.TransactionReceipt;
-import org.fisco.bcos.sdk.model.callback.TransactionCallback;
+import org.fisco.bcos.sdk.v3.client.exceptions.ClientException;
+import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlockHeader;
+import org.fisco.bcos.sdk.v3.client.protocol.response.Call;
+import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
+import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
+import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
+import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
+import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,27 +177,26 @@ public class BCOSConnection implements Connection {
                 logger.debug(
                         " listPaths, status: {}, blk: {}, output: {}",
                         callOutput.getStatus(),
-                        callOutput.getCurrentBlockNumber(),
+                        callOutput.getBlockNumber(),
                         callOutput.getOutput());
             }
 
-            if (StatusCode.Success.equals(callOutput.getStatus())) {
+            if (Objects.equals(
+                    TransactionReceiptStatus.Success.getCode(), callOutput.getStatus())) {
                 String[] paths = FunctionUtility.decodeDefaultOutput(callOutput.getOutput());
+                Set<String> set = new LinkedHashSet<>();
                 if (Objects.nonNull(paths) && paths.length != 0) {
-                    Set<String> set = new LinkedHashSet<>();
                     for (int i = paths.length - 1; i >= 0; i--) {
                         set.add(paths[i]);
                     }
                     set.add("a.b." + BCOSConstant.BCOS_PROXY_NAME);
                     set.add("a.b." + BCOSConstant.BCOS_HUB_NAME);
-                    return set.toArray(new String[0]);
                 } else {
-                    Set<String> set = new LinkedHashSet<>();
                     set.add("a.b." + BCOSConstant.BCOS_PROXY_NAME);
                     set.add("a.b." + BCOSConstant.BCOS_HUB_NAME);
                     logger.debug("No path found and add system resources");
-                    return set.toArray(new String[0]);
                 }
+                return set.toArray(new String[0]);
             } else {
                 logger.warn(" listPaths failed, status {}", callOutput.getStatus());
                 return null;
@@ -249,7 +248,9 @@ public class BCOSConnection implements Connection {
 
             Call.CallOutput callOutput =
                     clientWrapper.call(
-                            transaction.getFrom(), transaction.getTo(), transaction.getData());
+                            transaction.getFrom(),
+                            transaction.getTo(),
+                            Hex.decode(transaction.getData()));
 
             if (logger.isDebugEnabled()) {
                 logger.debug(
@@ -258,7 +259,7 @@ public class BCOSConnection implements Connection {
                         transaction.getTo(),
                         transaction.getData(),
                         callOutput.getStatus(),
-                        callOutput.getCurrentBlockNumber(),
+                        callOutput.getBlockNumber(),
                         callOutput.getOutput());
             }
 
@@ -375,28 +376,20 @@ public class BCOSConnection implements Connection {
         Response response = new Response();
         try {
             // get transaction and transaction merkle proof
-            TransactionWithProof.TransactionAndProof transAndProof =
+            JsonTransactionResponse transAndProof =
                     clientWrapper.getTransactionByHashWithProof(txHash);
 
-            if (Objects.isNull(transAndProof)
-                    || Objects.isNull(transAndProof.getTransaction())
-                    || Objects.isNull(transAndProof.getTransaction().getHash())
-                    || transAndProof
-                            .getTransaction()
-                            .getHash()
-                            .equals(
-                                    "0x0000000000000000000000000000000000000000000000000000000000000000")) {
+            if (Objects.isNull(transAndProof) || Objects.isNull(transAndProof.getHash())) {
                 response.setErrorCode(BCOSStatusCode.TransactionReceiptProofNotExist);
                 response.setErrorMessage("Transaction proof not found, tx hash: " + txHash);
                 callback.onResponse(response);
                 return;
             }
 
-            TransactionReceiptWithProof.ReceiptAndProof receiptAndProof =
+            TransactionReceipt receiptAndProof =
                     clientWrapper.getTransactionReceiptByHashWithProof(txHash);
             if (Objects.isNull(receiptAndProof)
-                    || Objects.isNull(receiptAndProof.getReceipt())
-                    || Objects.isNull(receiptAndProof.getReceipt().getTransactionHash())) {
+                    || Objects.isNull(receiptAndProof.getTransactionHash())) {
                 response.setErrorCode(BCOSStatusCode.TransactionReceiptProofNotExist);
                 response.setErrorMessage("Transaction proof not found, tx hash: " + txHash);
                 callback.onResponse(response);
@@ -419,9 +412,13 @@ public class BCOSConnection implements Connection {
             response.setErrorCode(BCOSStatusCode.UnsupportedRPC);
             response.setErrorMessage(e.getMessage());
             callback.onResponse(response);
+        } catch (ClientException e) {
+            response.setErrorCode(BCOSStatusCode.TransactionReceiptProofNotExist);
+            response.setErrorMessage("transaction proof not found, tx hash: " + txHash);
+            callback.onResponse(response);
         } catch (Exception e) {
-            response.setErrorMessage(e.getMessage());
             response.setErrorCode(BCOSStatusCode.UnclassifiedError);
+            response.setErrorMessage(e.getMessage());
             callback.onResponse(response);
         }
     }
@@ -479,17 +476,14 @@ public class BCOSConnection implements Connection {
             try {
                 BcosBlockHeader.BlockHeader blockHeader =
                         clientWrapper.getBlockHeaderByNumber(blockNumber.longValue());
-                List<String> headerData = new ArrayList<>();
-                headerData.add(objectMapper.writeValueAsString(blockHeader));
+                String headerData = objectMapper.writeValueAsString(blockHeader);
                 block.setExtraData(headerData);
 
                 if (logger.isDebugEnabled()) {
                     logger.debug("handleAsyncGetBlockRequest: block.Ext: {}", headerData);
                 }
             } catch (UnsupportedOperationException e) {
-                logger.debug(
-                        " UnsupportedOperationException getBlockHeaderByNumber, version: "
-                                + clientWrapper.getVersion());
+                logger.debug(" UnsupportedOperationException getBlockHeaderByNumber");
             }
 
             response.setErrorCode(BCOSStatusCode.Success);

@@ -5,11 +5,11 @@ import com.webank.wecross.stub.bcos3.client.ClientWrapperFactory;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
-import com.webank.wecross.stub.bcos3.preparation.CnsService;
+import com.webank.wecross.stub.bcos3.preparation.BfsServiceWrapper;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import org.fisco.bcos.sdk.contract.precompiled.cns.CnsInfo;
+import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -29,8 +29,7 @@ public class BCOSConnectionFactory {
             AbstractClientWrapper clientWrapper,
             ScheduledExecutorService executorService) {
 
-        logger.info(
-                " bcosStubConfig: {}, version: {} ", bcosStubConfig, clientWrapper.getVersion());
+        logger.info("bcosStubConfig: {}", bcosStubConfig);
         BCOSConnection bcosConnection = new BCOSConnection(clientWrapper, executorService);
         bcosConnection.setResourceInfoList(bcosStubConfig.convertToResourceInfos());
 
@@ -40,19 +39,16 @@ public class BCOSConnectionFactory {
                 BCOSConstant.BCOS_CHAIN_ID, String.valueOf(bcosStubConfig.getChain().getChainID()));
         bcosConnection.addProperty(
                 BCOSConstant.BCOS_STUB_TYPE, String.valueOf(bcosStubConfig.getType()));
-        if (clientWrapper.getVersion() != null) {
-            bcosConnection.addProperty(BCOSConstant.BCOS_NODE_VERSION, clientWrapper.getVersion());
+
+        BFSInfo proxyBFSInfo = BfsServiceWrapper.queryProxyBFSInfo(clientWrapper);
+        if (Objects.nonNull(proxyBFSInfo)) {
+            bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_NAME, proxyBFSInfo.getAddress());
+            bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_ABI, proxyBFSInfo.getAbi());
         }
 
-        CnsInfo proxyCnsInfo = CnsService.queryProxyCnsInfo(clientWrapper);
-        if (Objects.nonNull(proxyCnsInfo)) {
-            bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_NAME, proxyCnsInfo.getAddress());
-            bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_ABI, proxyCnsInfo.getAbi());
-        }
-
-        CnsInfo hubCnsInfo = CnsService.queryHubCnsInfo(clientWrapper);
-        if (Objects.nonNull(hubCnsInfo)) {
-            bcosConnection.addProperty(BCOSConstant.BCOS_HUB_NAME, hubCnsInfo.getAddress());
+        BFSInfo hubBFSInfo = BfsServiceWrapper.queryHubBFSInfo(clientWrapper);
+        if (Objects.nonNull(hubBFSInfo)) {
+            bcosConnection.addProperty(BCOSConstant.BCOS_HUB_NAME, hubBFSInfo.getAddress());
         }
         return bcosConnection;
     }

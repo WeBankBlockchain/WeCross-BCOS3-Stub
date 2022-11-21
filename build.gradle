@@ -78,7 +78,7 @@ dependencies {
     }
 
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'
-    implementation ('org.fisco-bcos.java-sdk:fisco-bcos-java-sdk:3.0.1')
+    implementation ('org.fisco-bcos.java-sdk:fisco-bcos-java-sdk:3.1.0-SNAPSHOT')
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
