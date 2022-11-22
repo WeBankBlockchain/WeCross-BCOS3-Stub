@@ -12,15 +12,8 @@ import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
 import com.webank.wecross.stub.bcos3.custom.RegisterCnsHandler;
 import com.webank.wecross.stub.bcos3.preparation.HubContractDeployment;
 import com.webank.wecross.stub.bcos3.preparation.ProxyContractDeployment;
-import java.io.File;
-import java.io.FileWriter;
-import java.net.URL;
-import java.security.PrivateKey;
-import java.security.Security;
-import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
@@ -28,25 +21,22 @@ import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.net.URL;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.util.Map;
 
 public class BCOSBaseStubFactory implements StubFactory {
-    public static final String BCOS3_ECDSA_EVM_STUB_TYPE  = "BCOS3.0_ECDSA_EVM";
-    public static final String BCOS3_ECDSA_WASM_STUB_TYPE  = "BCOS3.0_ECDSA_WASM";
-    public static final String BCOS3_GM_EVM_STUB_TYPE  = "BCOS3.0_GM_EVM";
-    public static final String BCOS3_GM_WASM_STUB_TYPE  = "BCOS3.0_GM_WASM";
-    private static final String WASM = "WASM";
+    private final Logger logger = LoggerFactory.getLogger(BCOSBaseStubFactory.class);
 
-    private Logger logger = LoggerFactory.getLogger(BCOSBaseStubFactory.class);
+    private final String alg;
+    private final String stubType;
 
-    private String alg = null;
-    private String stubType = null;
-
-    private CryptoSuite cryptoSuite;
-    private BCOSAccountFactory bcosAccountFactory;
-
-    private ScheduledExecutorService connectionScheduledExecutorService =
-            new ScheduledThreadPoolExecutor(16, new CustomizableThreadFactory("BCOSConnection-"));
+    private final CryptoSuite cryptoSuite;
+    private final BCOSAccountFactory bcosAccountFactory;
 
     public BCOSBaseStubFactory(int encryptType, String alg, String stubType) {
         this.alg = alg;
@@ -58,26 +48,23 @@ public class BCOSBaseStubFactory implements StubFactory {
     }
 
     @Override
-    public void init(WeCrossContext context) {}
-
-
-    public boolean isWASM() {
-        return stubType.contains(WASM);
+    public void init(WeCrossContext context) {
     }
-    /**
-     * The algorithm name, secp256k1 or sm2p256v1
-     *
-     * @return
-     */
+
+    public boolean isGMStub() {
+        return StringUtils.containsIgnoreCase(stubType, BCOSConstant.GM);
+    }
+
+    public boolean isWASMStub() {
+        return StringUtils.containsIgnoreCase(stubType, BCOSConstant.WASM);
+    }
+
+
     public String getAlg() {
         return alg;
     }
 
-    /**
-     * The stub type, BCOS2.0 or GM_BCOS2.0
-     *
-     * @return
-     */
+
     public String getStubType() {
         return stubType;
     }
@@ -103,7 +90,7 @@ public class BCOSBaseStubFactory implements StubFactory {
                 BCOSConstant.CUSTOM_COMMAND_DEPLOY, deployContractHandler);
 
         /** Initializes the bcos driver */
-        BCOSDriver driver = new BCOSDriver(this.cryptoSuite);
+        BCOSDriver driver = new BCOSDriver(this.cryptoSuite, isWASMStub());
         driver.setAsyncCnsService(asyncCnsService);
         driver.setCommandHandlerDispatcher(commandHandlerDispatcher);
 
@@ -254,8 +241,8 @@ public class BCOSBaseStubFactory implements StubFactory {
                             + "    sslCert = 'sdk.crt'\n"
                             + "    sslKey = 'sdk.key'\n"
                             + (("BCOS3.0".equals(getStubType()))
-                                    ? "    gmConnectEnable = false\n"
-                                    : "    gmConnectEnable = true\n")
+                            ? "    gmConnectEnable = false\n"
+                            : "    gmConnectEnable = true\n")
                             + "    gmCaCert = 'gm/gmca.crt'\n"
                             + "    gmSslCert = 'gm/gmsdk.crt'\n"
                             + "    gmSslKey = 'gm/gmsdk.key'\n"

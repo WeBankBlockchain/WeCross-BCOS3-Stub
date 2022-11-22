@@ -1,9 +1,5 @@
 package com.webank.wecross.stub.bcos3;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
-
 import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
 import com.webank.wecross.stub.ResourceInfo;
@@ -12,8 +8,12 @@ import com.webank.wecross.stub.bcos3.client.ClientWrapperImplMock;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
-import java.util.List;
 import org.junit.Test;
+
+import java.util.List;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
 
 public class BCOSConnectionFactoryTest {
     @Test
@@ -26,17 +26,17 @@ public class BCOSConnectionFactoryTest {
             AbstractClientWrapper clientWrapper = new ClientWrapperImplMock();
             Connection connection = BCOSConnectionFactory.build(bcosStubConfig, clientWrapper);
 
-            Driver driver = new BCOSDriver(clientWrapper.getCryptoSuite());
+            Driver driver = new BCOSDriver(clientWrapper.getCryptoSuite(), bcosStubConfig.isWASMStub());
             List<ResourceInfo> resources = driver.getResources(connection);
-            assertTrue(resources.size() == 4);
+            assertEquals(resources.size(), 4);
             ResourceInfo resourceInfo = resources.get(0);
             assertEquals(resourceInfo.getName(), "HelloWeCross");
             assertEquals(resourceInfo.getStubType(), "BCOS-UT");
             assertEquals(
                     resourceInfo.getProperties().get(resourceInfo.getName()),
                     "0x8827cca7f0f38b861b62dae6d711efe92a1e3602");
-            assertEquals(resourceInfo.getProperties().get(BCOSConstant.BCOS_GROUP_ID), 111);
-            assertEquals(resourceInfo.getProperties().get(BCOSConstant.BCOS_CHAIN_ID), 123);
+            assertEquals(resourceInfo.getProperties().get(BCOSConstant.BCOS_GROUP_ID), "group0");
+            assertEquals(resourceInfo.getProperties().get(BCOSConstant.BCOS_CHAIN_ID), "chain0");
 
             ResourceInfo resourceInfo0 = resources.get(1);
             assertEquals(resourceInfo0.getName(), "Hello");
@@ -44,10 +44,10 @@ public class BCOSConnectionFactoryTest {
             assertEquals(
                     resourceInfo0.getProperties().get(resourceInfo0.getName()),
                     "0x8827cca7f0f38b861b62dae6d711efe92a1e3603");
-            assertEquals(resourceInfo0.getProperties().get(BCOSConstant.BCOS_GROUP_ID), 111);
-            assertEquals(resourceInfo0.getProperties().get(BCOSConstant.BCOS_CHAIN_ID), 123);
+            assertEquals(resourceInfo0.getProperties().get(BCOSConstant.BCOS_GROUP_ID), "group0");
+            assertEquals(resourceInfo0.getProperties().get(BCOSConstant.BCOS_CHAIN_ID), "chain0");
         } catch (Exception e) {
-            assertFalse(true);
+            fail();
         }
     }
 }

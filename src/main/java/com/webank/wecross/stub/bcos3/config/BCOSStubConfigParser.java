@@ -4,17 +4,20 @@ import com.moandjiezana.toml.Toml;
 import com.webank.wecross.stub.bcos3.client.ClientDefaultConfig;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSToml;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-/** Load and parser stub.toml configuration file for BCOS */
+/**
+ * Load and parser stub.toml configuration file for BCOS
+ */
 public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
 
     private static final Logger logger = LoggerFactory.getLogger(BCOSStubConfigParser.class);
@@ -39,40 +42,36 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
 
         Map<String, Object> stubConfig = toml.toMap();
 
+        // common
         Map<String, Object> commonConfigValue = (Map<String, Object>) stubConfig.get("common");
         requireItemNotNull(commonConfigValue, "common", getConfigPath());
-
         String stubName = (String) commonConfigValue.get("name");
         requireFieldNotNull(stubName, "common", "name", getConfigPath());
-
         String stubType = (String) commonConfigValue.get("type");
         requireFieldNotNull(stubType, "common", "type", getConfigPath());
 
+        // chain
         Map<String, Object> chainConfigValue = (Map<String, Object>) stubConfig.get("chain");
         requireItemNotNull(chainConfigValue, "chain", getConfigPath());
-        BCOSStubConfig.Chain chain = getChainConfig(chainConfigValue);
+        BCOSStubConfig.Chain chainConfig = getChainConfig(chainConfigValue);
 
-        Map<String, Object> channelServiceConfigValue =
-                (Map<String, Object>) stubConfig.get("channelService");
+        // channelService
+        Map<String, Object> channelServiceConfigValue = (Map<String, Object>) stubConfig.get("channelService");
         requireItemNotNull(channelServiceConfigValue, "channelService", getConfigPath());
-        BCOSStubConfig.ChannelService channelServiceConfig =
-                getChannelServiceConfig(getConfigPath(), channelServiceConfigValue, stubType);
+        BCOSStubConfig.ChannelService channelServiceConfig = getChannelServiceConfig(getConfigPath(), channelServiceConfigValue, stubType);
 
-        List<Map<String, String>> resourcesConfigValue =
-                (List<Map<String, String>>) stubConfig.get("resources");
-
+        // resources
+        List<Map<String, String>> resourcesConfigValue = (List<Map<String, String>>) stubConfig.get("resources");
         if (resourcesConfigValue == null) {
             resourcesConfigValue = new ArrayList<>();
         }
-
-        List<BCOSStubConfig.Resource> bcosResources =
-                getBCOSResourceConfig(getConfigPath(), chain, resourcesConfigValue);
+        List<BCOSStubConfig.Resource> resourcesConfig = getBCOSResourceConfig(getConfigPath(), chainConfig, resourcesConfigValue);
 
         BCOSStubConfig bcosStubConfig = new BCOSStubConfig();
         bcosStubConfig.setType(stubType);
+        bcosStubConfig.setChain(chainConfig);
         bcosStubConfig.setChannelService(channelServiceConfig);
-        bcosStubConfig.setResources(bcosResources);
-        bcosStubConfig.setChain(chain);
+        bcosStubConfig.setResources(resourcesConfig);
 
         return bcosStubConfig;
     }
@@ -111,7 +110,7 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
         channelServiceConfig.setSslKey(sslKey);
 
         // stubType
-        boolean isGmStub = StringUtils.startsWithIgnoreCase(stubType, "gm");
+        boolean isGmStub = StringUtils.containsIgnoreCase(stubType, BCOSConstant.GM);
         if (isGmStub) {
             String gmCaCert = stubDir + File.separator + channelServiceConfigValue.get("gmCaCert");
             requireFieldNotNull(gmCaCert, "channelService", "gmCaCert", configFile);
@@ -138,12 +137,6 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
             channelServiceConfig.setGmEnSslKey(gmEnSslKey);
         }
 
-        // connectionsStr field
-        List<String> connectionsStr =
-                (List<String>) channelServiceConfigValue.get("connectionsStr");
-        requireFieldNotNull(connectionsStr, "channelService", "connectionsStr", configFile);
-        channelServiceConfig.setConnectionsStr(connectionsStr);
-
         // disableSsl
         Boolean disableSsl = (Boolean) channelServiceConfigValue.get("disableSsl");
         channelServiceConfig.setDisableSsl(
@@ -157,6 +150,11 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
                 Objects.isNull(messageTimeout)
                         ? ClientDefaultConfig.CHANNEL_SERVICE_DEFAULT_TIMEOUT
                         : messageTimeout.intValue());
+
+        // connectionsStr field
+        List<String> connectionsStr = (List<String>) channelServiceConfigValue.get("connectionsStr");
+        requireFieldNotNull(connectionsStr, "channelService", "connectionsStr", configFile);
+        channelServiceConfig.setConnectionsStr(connectionsStr);
 
         // thread num
         Long threadPoolSize = (Long) channelServiceConfigValue.get("threadPoolSize");
@@ -176,9 +174,11 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
         List<BCOSStubConfig.Resource> resourceList = new ArrayList<>();
 
         for (Map<String, String> stringStringMap : resourcesConfigValue) {
+            // name
             String name = stringStringMap.get("name");
             requireFieldNotNull(name, "resources", "name", configFile);
 
+            // type
             String type = stringStringMap.get("type");
             requireFieldNotNull(type, "resources", "type", configFile);
             // check type invalid
@@ -187,6 +187,7 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
                 continue;
             }
 
+            // contractAddress
             String address = stringStringMap.get("contractAddress");
             requireFieldNotNull(address, "resources", "contractAddress", configFile);
 
@@ -194,13 +195,10 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
             resource.setName(name);
             resource.setType(type);
             resource.setValue(address);
-            resource.setChain(chain);
-
             resourceList.add(resource);
         }
 
         logger.debug("resources: {}", resourceList);
-
         return resourceList;
     }
 }

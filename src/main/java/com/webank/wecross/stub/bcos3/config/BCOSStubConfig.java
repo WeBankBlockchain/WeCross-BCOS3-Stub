@@ -2,28 +2,43 @@ package com.webank.wecross.stub.bcos3.config;
 
 import com.webank.wecross.stub.ResourceInfo;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.fisco.bcos.sdk.v3.crypto.hash.Hash;
 import org.fisco.bcos.sdk.v3.crypto.hash.Keccak256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Resolve the BCOS stub.toml to get BCOSConfig object */
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Resolve the BCOS stub.toml to get BCOSConfig object
+ */
 public class BCOSStubConfig {
     private static Logger logger = LoggerFactory.getLogger(BCOSStubConfig.class);
-    /** stub type, BCOS */
+    /**
+     * stub type, BCOS3_ECDSA_EVM、BCOS3_ECDSA_WASM、BCOS3_GM_EVM、BCOS3_GM_WASM
+     */
     private String type;
-    /** */
+    /**
+     * chain
+     */
     private Chain chain;
-    /** ChannelServiceConfig, used for JavaSDK initialize */
+    /**
+     * channelService, used for JavaSDK initialize
+     */
     private ChannelService channelService;
-    /** BCOS resource list */
+    /**
+     * BCOS resource list
+     */
     private List<Resource> resources;
 
     public boolean isGMStub() {
-        return StringUtils.startsWithIgnoreCase(type, "gm");
+        return StringUtils.containsIgnoreCase(type, BCOSConstant.GM);
+    }
+
+    public boolean isWASMStub() {
+        return StringUtils.containsIgnoreCase(type, BCOSConstant.WASM);
     }
 
     public static class Chain {
@@ -192,7 +207,6 @@ public class BCOSStubConfig {
         private String name;
         private String type;
         private String value;
-        private Chain chain;
 
         public String getName() {
             return name;
@@ -216,14 +230,6 @@ public class BCOSStubConfig {
 
         public void setValue(String value) {
             this.value = value;
-        }
-
-        public Chain getChain() {
-            return chain;
-        }
-
-        public void setChain(Chain chain) {
-            this.chain = chain;
         }
 
         @Override
@@ -290,22 +296,18 @@ public class BCOSStubConfig {
     public List<ResourceInfo> convertToResourceInfos() {
         List<ResourceInfo> resourceInfos = new ArrayList<>();
         Hash hash = new Keccak256();
-        for (int i = 0; i < resources.size(); ++i) {
+        for (Resource resource : resources) {
             ResourceInfo resourceInfo = new ResourceInfo();
-            BCOSStubConfig.Resource resource = resources.get(i);
-
             resourceInfo.setName(resource.getName());
             resourceInfo.setStubType(this.type);
             resourceInfo.setChecksum(hash.hash(resource.getValue()));
-
             resourceInfo.getProperties().put(resource.getName(), resource.getValue());
             resourceInfo
                     .getProperties()
-                    .put(BCOSConstant.BCOS_GROUP_ID, resources.get(i).getChain().getGroupID());
+                    .put(BCOSConstant.BCOS_GROUP_ID, this.chain.getGroupID());
             resourceInfo
                     .getProperties()
-                    .put(BCOSConstant.BCOS_CHAIN_ID, resources.get(i).getChain().getChainID());
-
+                    .put(BCOSConstant.BCOS_CHAIN_ID, this.chain.getChainID());
             resourceInfos.add(resourceInfo);
         }
 

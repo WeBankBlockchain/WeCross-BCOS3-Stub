@@ -3,7 +3,7 @@ package com.webank.wecross.stub.bcos3;
 import com.webank.wecross.stub.Stub;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 
-import static com.webank.wecross.stub.bcos3.BCOSBaseStubFactory.BCOS3_ECDSA_EVM_STUB_TYPE;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_EVM_STUB_TYPE;
 
 @Stub(BCOS3_ECDSA_EVM_STUB_TYPE)
 public class BCOS3EcdsaEvmStubFactory extends BCOSBaseStubFactory {

@@ -3,17 +3,17 @@ package com.webank.wecross.stub.bcos3;
 import com.webank.wecross.stub.Stub;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 
-import static com.webank.wecross.stub.bcos3.BCOSBaseStubFactory.BCOS3_ECDSA_EVM_STUB_TYPE;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE;
 
-@Stub(BCOS3_ECDSA_EVM_STUB_TYPE)
+@Stub(BCOS3_ECDSA_WASM_STUB_TYPE)
 public class BCOS3EcdsaWasmStubFactory extends BCOSBaseStubFactory {
 
     public BCOS3EcdsaWasmStubFactory() {
-        super(CryptoType.ECDSA_TYPE, "secp256k1", BCOS3_ECDSA_EVM_STUB_TYPE);
+        super(CryptoType.ECDSA_TYPE, "secp256k1", BCOS3_ECDSA_WASM_STUB_TYPE);
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println(String.format("This is %s Stub Plugin. Please copy this file to router/plugin/", BCOS3_ECDSA_EVM_STUB_TYPE));
+        System.out.println(String.format("This is %s Stub Plugin. Please copy this file to router/plugin/", BCOS3_ECDSA_WASM_STUB_TYPE));
         System.out.println("For deploy WeCrossProxy:");
         System.out.println(
                 "    java -cp conf/:lib/*:plugin/* com.webank.wecross.stub.bcos.normal.preparation.ProxyContractDeployment");

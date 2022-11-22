@@ -17,57 +17,5 @@ public class ClientWrapperImpl extends AbstractClientWrapper {
         super(client);
     }
 
-    @Override
-    public BcosBlock.Block getBlockByNumber(long blockNumber) throws IOException {
-        BcosBlock blockByNumber =
-                getClient().getBlockByNumber(BigInteger.valueOf(blockNumber), false, true);
-        return blockByNumber.getBlock();
-    }
 
-    @Override
-    public BcosBlockHeader.BlockHeader getBlockHeaderByNumber(long blockNumber) throws IOException {
-        BcosBlock blockByNumber =
-                getClient().getBlockByNumber(BigInteger.valueOf(blockNumber), true, false);
-        return blockByNumber.getBlock();
-    }
-
-    @Override
-    public BigInteger getBlockNumber() throws IOException {
-        return getClient().getBlockNumber().getBlockNumber();
-    }
-
-    @Override
-    public void sendTransaction(String signedTransactionData, TransactionCallback callback)
-            throws IOException {
-        getClient().sendTransactionAsync(signedTransactionData, false, callback);
-    }
-
-    @Override
-    public TransactionReceipt getTransactionReceiptByHashWithProof(String transactionHash)
-            throws IOException {
-        return getClient().getTransactionReceipt(transactionHash, true).getResult();
-    }
-
-    @Override
-    public JsonTransactionResponse getTransactionByHashWithProof(String transactionHash)
-            throws IOException {
-        return getClient().getTransaction(transactionHash, true).getResult();
-    }
-
-    @Override
-    public TransactionReceipt getTransactionReceipt(String transactionHash) {
-        return getClient().getTransactionReceipt(transactionHash, false).getResult();
-    }
-
-    @Override
-    public JsonTransactionResponse getTransaction(String transactionHash) {
-        return getClient().getTransaction(transactionHash, false).getResult();
-    }
-
-    @Override
-    public Call.CallOutput call(String accountAddress, String contractAddress, byte[] data)
-            throws IOException {
-        Transaction transaction = new Transaction(accountAddress, contractAddress, data);
-        return getClient().call(transaction).getCallResult();
-    }
 }

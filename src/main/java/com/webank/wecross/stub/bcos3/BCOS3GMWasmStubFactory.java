@@ -3,8 +3,7 @@ package com.webank.wecross.stub.bcos3;
 import com.webank.wecross.stub.Stub;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 
-import static com.webank.wecross.stub.bcos3.BCOSBaseStubFactory.BCOS3_GM_EVM_STUB_TYPE;
-import static com.webank.wecross.stub.bcos3.BCOSBaseStubFactory.BCOS3_GM_WASM_STUB_TYPE;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_GM_WASM_STUB_TYPE;
 
 @Stub(BCOS3_GM_WASM_STUB_TYPE)
 public class BCOS3GMWasmStubFactory extends BCOSBaseStubFactory {
@@ -26,10 +25,10 @@ public class BCOS3GMWasmStubFactory extends BCOSBaseStubFactory {
         System.out.println(
                 "    Pure:    java -cp conf/:lib/*:plugin/* "
                         + com.webank.wecross.stub.bcos3.performance.hellowecross.PerformanceTest
-                                .class.getName());
+                        .class.getName());
         System.out.println(
                 "    Proxy:   java -cp conf/:lib/*:plugin/* "
                         + com.webank.wecross.stub.bcos3.performance.hellowecross.proxy
-                                .PerformanceTest.class.getName());
+                        .PerformanceTest.class.getName());
     }
 }

@@ -1,17 +1,17 @@
 package com.webank.wecross.stub.bcos3.contract;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
-
 import com.webank.wecross.stub.bcos3.common.ObjectMapperFactory;
 import com.webank.wecross.stub.bcos3.protocol.response.TransactionProof;
+import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.Objects;
-import org.fisco.bcos.sdk.client.protocol.response.BcosBlock;
-import org.fisco.bcos.sdk.client.protocol.response.TransactionReceiptWithProof;
-import org.fisco.bcos.sdk.client.protocol.response.TransactionWithProof;
-import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
-import org.junit.Test;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 public class TransactionProofTest {
     @Test
@@ -33,27 +33,27 @@ public class TransactionProofTest {
 
         BcosBlock.Block block0 =
                 ObjectMapperFactory.getObjectMapper().readValue(blockJson0, BcosBlock.Block.class);
-        TransactionWithProof.TransactionAndProof transAndProof0 =
+        JsonTransactionResponse transAndProof0 =
                 ObjectMapperFactory.getObjectMapper()
                         .readValue(
                                 transactionAndProofJson0,
-                                TransactionWithProof.TransactionAndProof.class);
-        TransactionReceiptWithProof.ReceiptAndProof receiptAndProof0 =
+                                JsonTransactionResponse.class);
+        TransactionReceipt receiptAndProof0 =
                 ObjectMapperFactory.getObjectMapper()
                         .readValue(
                                 transactionReceiptAndProofJson0,
-                                TransactionReceiptWithProof.ReceiptAndProof.class);
+                                TransactionReceipt.class);
         TransactionProof transactionProof = new TransactionProof(transAndProof0, receiptAndProof0);
         assertTrue(
                 Objects.nonNull(transactionProof.toString())
                         && !transactionProof.toString().isEmpty());
         assertTrue(Objects.nonNull(transactionProof.getReceiptAndProof()));
         assertEquals(
-                transactionProof.getReceiptAndProof().getReceipt().getTransactionHash(),
+                transactionProof.getReceiptAndProof().getTransactionHash(),
                 "0x633a3386a189455354c058af6606d705697f3b216ad555958dc680f68cc4e99d");
         assertTrue(Objects.nonNull(transactionProof.getTransAndProof()));
         assertEquals(
-                transactionProof.getTransAndProof().getTransaction().getHash(),
+                transactionProof.getTransAndProof().getHash(),
                 "0x633a3386a189455354c058af6606d705697f3b216ad555958dc680f68cc4e99d");
     }
 }

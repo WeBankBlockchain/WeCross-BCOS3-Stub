@@ -1,6 +1,6 @@
 [common]
     name = 'bcos' # stub must be same with directory name
-    type = 'BCOS3.0' # BCOS or GM_BCOS2.0
+    type = 'BCOS3_ECDSA_EVM' # BCOS3_ECDSA_EVM、BCOS3_ECDSA_WASM、BCOS3_GM_EVM、BCOS3_GM_WASM
 
 [chain]
     groupId = 'group0' # default group0

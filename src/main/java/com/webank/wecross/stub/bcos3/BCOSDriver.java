@@ -51,6 +51,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.bouncycastle.util.encoders.Hex;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.response.Call;
+import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
 import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple2;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple3;
@@ -76,24 +77,24 @@ public class BCOSDriver implements Driver {
 
     private static final Logger logger = LoggerFactory.getLogger(BCOSDriver.class);
 
-    private ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
+    private final ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
 
     private CommandHandlerDispatcher commandHandlerDispatcher;
 
     private AsyncCnsService asyncCnsService = null;
-    private ContractCodecJsonWrapper abiCodecJsonWrapper = new ContractCodecJsonWrapper();
+    private ContractCodecJsonWrapper contractCodecJsonWrapper = new ContractCodecJsonWrapper();
 
-    private CryptoSuite cryptoSuite;
-    private TransactionDecoderService transactionDecoderService;
-    private ABIDefinitionFactory abiDefinitionFactory;
-    private FunctionEncoder functionEncoder;
-    private TransactionEncoderService transactionEncoderService;
-    private Signer signer;
+    private final CryptoSuite cryptoSuite;
+    private final ABIDefinitionFactory abiDefinitionFactory;
+    private final FunctionEncoder functionEncoder;
+    private final TransactionEncoderService transactionEncoderService;
+    private final Signer signer;
+    private final boolean isWasm;
 
-    public BCOSDriver(CryptoSuite cryptoSuite) {
+    public BCOSDriver(CryptoSuite cryptoSuite,boolean isWasm) {
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         this.cryptoSuite = cryptoSuite;
-        this.transactionDecoderService = new TransactionDecoderService(cryptoSuite);
+        this.isWasm = isWasm;
         this.abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
         this.functionEncoder = new FunctionEncoder(cryptoSuite);
         this.transactionEncoderService = new TransactionEncoderService(cryptoSuite);
@@ -108,12 +109,12 @@ public class BCOSDriver implements Driver {
         this.asyncCnsService = asyncCnsService;
     }
 
-    public ABICodecJsonWrapper getAbiCodecJsonWrapper() {
-        return abiCodecJsonWrapper;
+    public ContractCodecJsonWrapper getContractCodecJsonWrapper() {
+        return contractCodecJsonWrapper;
     }
 
-    public void setAbiCodecJsonWrapper(ABICodecJsonWrapper abiCodecJsonWrapper) {
-        this.abiCodecJsonWrapper = abiCodecJsonWrapper;
+    public void setContractCodecJsonWrapper(ContractCodecJsonWrapper contractCodecJsonWrapper) {
+        this.contractCodecJsonWrapper = contractCodecJsonWrapper;
     }
 
     @Override
@@ -211,7 +212,7 @@ public class BCOSDriver implements Driver {
                         }
 
                         encodeAbi =
-                                abiCodecJsonWrapper
+                                contractCodecJsonWrapper
                                         .encode(
                                                 ABIObjectFactory.createInputObject(
                                                         abiDefinitions.get(0)),
@@ -369,7 +370,7 @@ public class BCOSDriver implements Driver {
                             String encodedArgs = "";
                             if (!Objects.isNull(args)) {
                                 ABIObject encodedObj =
-                                        abiCodecJsonWrapper.encode(inputObj, Arrays.asList(args));
+                                        contractCodecJsonWrapper.encode(inputObj, Arrays.asList(args));
                                 encodedArgs = encodedObj.encode();
                             }
 
@@ -466,7 +467,7 @@ public class BCOSDriver implements Driver {
                                                 String output =
                                                         callOutput.getOutput().substring(130);
                                                 transactionResponse.setResult(
-                                                        abiCodecJsonWrapper
+                                                        contractCodecJsonWrapper
                                                                 .decode(outputObj, output)
                                                                 .toArray(new String[0]));
                                             } else if (String.valueOf(
@@ -627,7 +628,7 @@ public class BCOSDriver implements Driver {
                                                 String encodedArgs = "";
                                                 if (!Objects.isNull(args)) {
                                                     ABIObject encodedObj =
-                                                            abiCodecJsonWrapper.encode(
+                                                            contractCodecJsonWrapper.encode(
                                                                     inputObj, Arrays.asList(args));
                                                     encodedArgs = encodedObj.encode();
                                                 }
@@ -828,7 +829,7 @@ public class BCOSDriver implements Driver {
                                                                                                                                     0));
                                                                                     transactionResponse
                                                                                             .setResult(
-                                                                                                    abiCodecJsonWrapper
+                                                                                                    contractCodecJsonWrapper
                                                                                                             .decode(
                                                                                                                     outputObj,
                                                                                                                     output)
@@ -1237,7 +1238,7 @@ public class BCOSDriver implements Driver {
                         ABIObject inputObject = ABIObjectFactory.createInputObject(function);
 
                         List<String> inputParams =
-                                abiCodecJsonWrapper.decode(inputObject, finalInput);
+                                contractCodecJsonWrapper.decode(inputObject, finalInput);
 
                         transaction.getTransactionRequest().setMethod(function.getName());
                         /** decode input args from input */
@@ -1253,7 +1254,7 @@ public class BCOSDriver implements Driver {
                         if (StatusCode.Success.equals(receipt.getStatus())) {
                             ABIObject outputObject = ABIObjectFactory.createOutputObject(function);
                             List<String> outputParams =
-                                    abiCodecJsonWrapper.decode(
+                                    contractCodecJsonWrapper.decode(
                                             outputObject, proxyOutput.substring(130));
                             /** decode output from output */
                             transaction
