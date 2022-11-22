@@ -5,13 +5,11 @@ import static junit.framework.TestCase.assertEquals;
 import com.webank.wecross.stub.bcos3.common.ExtendedTransactionDecoder;
 import java.io.IOException;
 import java.math.BigInteger;
-import org.fisco.bcos.sdk.abi.FunctionEncoder;
-import org.fisco.bcos.sdk.abi.datatypes.Function;
-import org.fisco.bcos.sdk.crypto.CryptoSuite;
-import org.fisco.bcos.sdk.crypto.keypair.CryptoKeyPair;
-import org.fisco.bcos.sdk.model.CryptoType;
-import org.fisco.bcos.sdk.transaction.codec.encode.TransactionEncoderService;
-import org.fisco.bcos.sdk.transaction.model.po.RawTransaction;
+
+import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
+import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
+import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
+import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.junit.Test;
 
 public class TransactionSignTest {
@@ -25,7 +23,7 @@ public class TransactionSignTest {
         String[] params = new String[] {"aaa", "bbbb", "ccc"};
         FunctionEncoder functionEncoder = new FunctionEncoder(cryptoSuite);
         Function function = FunctionUtility.newDefaultFunction(funcName, params);
-        String abiData = functionEncoder.encode(function);
+        String abiData = functionEncoder.encode(function).toString();
 
         String to = "0xb3c223fc0bf6646959f254ac4e4a7e355b50a355";
         String extraData = "extraData";

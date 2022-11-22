@@ -1,11 +1,8 @@
 package com.webank.wecross.stub.bcos3.common;
 
+import org.fisco.bcos.sdk.v3.utils.Numeric;
+
 import java.math.BigInteger;
-import org.fisco.bcos.sdk.rlp.RlpDecoder;
-import org.fisco.bcos.sdk.rlp.RlpList;
-import org.fisco.bcos.sdk.rlp.RlpString;
-import org.fisco.bcos.sdk.transaction.model.po.RawTransaction;
-import org.fisco.bcos.sdk.utils.Numeric;
 
 public class ExtendedTransactionDecoder {
     public static RawTransaction decode(String hexTransaction) {

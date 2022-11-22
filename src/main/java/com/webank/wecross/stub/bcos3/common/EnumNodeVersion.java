@@ -1,7 +1,5 @@
 package com.webank.wecross.stub.bcos3.common;
 
-import org.fisco.bcos.sdk.channel.model.ChannelPrococolExceiption;
-
 /**
  * @projectName: bcos2-stub
  * @package: com.webank.wecross.stub.bcos.common
@@ -84,7 +82,7 @@ public enum EnumNodeVersion {
         }
     }
 
-    public static Version getClassVersion(String version) throws ChannelPrococolExceiption {
+    public static Version getClassVersion(String version) throws Exception {
         try {
             // node version str format : "a.b.c" or "a.b.c-rcx"
             String[] s0 = version.trim().split("-");
@@ -101,19 +99,19 @@ public enum EnumNodeVersion {
                 v.setMinor(Integer.parseInt(s1[1].trim()));
                 v.setPatch(Integer.parseInt(s1[2].trim()));
             } else { // invaid format
-                throw new ChannelPrococolExceiption(
+                throw new Exception(
                         " invalid node version format, version: " + version);
             }
 
             return v;
         } catch (Exception e) {
-            throw new ChannelPrococolExceiption(
+            throw new Exception(
                     " invalid node version format, version: " + version);
         }
     }
 
     public static boolean channelProtocolHandleShakeSupport(String version)
-            throws ChannelPrococolExceiption {
+            throws Exception {
         Version v = getClassVersion(version);
         // 2.1.0 and above
         return (v.getMajor() == 2) && (v.getMinor() >= 1);

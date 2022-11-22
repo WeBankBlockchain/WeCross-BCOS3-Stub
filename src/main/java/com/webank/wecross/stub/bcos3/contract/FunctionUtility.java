@@ -6,23 +6,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import org.fisco.bcos.sdk.abi.FunctionEncoder;
-import org.fisco.bcos.sdk.abi.FunctionReturnDecoder;
-import org.fisco.bcos.sdk.abi.TypeReference;
-import org.fisco.bcos.sdk.abi.Utils;
-import org.fisco.bcos.sdk.abi.datatypes.DynamicArray;
-import org.fisco.bcos.sdk.abi.datatypes.DynamicBytes;
-import org.fisco.bcos.sdk.abi.datatypes.Function;
-import org.fisco.bcos.sdk.abi.datatypes.Type;
-import org.fisco.bcos.sdk.abi.datatypes.Utf8String;
-import org.fisco.bcos.sdk.abi.datatypes.generated.Uint256;
-import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple2;
-import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple3;
-import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple4;
-import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple6;
-import org.fisco.bcos.sdk.model.TransactionReceipt;
-import org.fisco.bcos.sdk.utils.Numeric;
-import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
+import org.fisco.bcos.sdk.v3.codec.Utils;
+import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
+import org.fisco.bcos.sdk.v3.codec.abi.FunctionReturnDecoder;
+import org.fisco.bcos.sdk.v3.codec.datatypes.*;
+import org.fisco.bcos.sdk.v3.codec.datatypes.generated.Uint256;
+import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple2;
+import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple3;
+import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple4;
+import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple6;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+import org.fisco.bcos.sdk.v3.utils.Numeric;
 
 /**
  * Function object used across blockchain chain. Wecross requires that a cross-chain contract
@@ -114,7 +108,7 @@ public class FunctionUtility {
      */
     public static Function newConstantCallProxyFunction(
             FunctionEncoder functionEncoder, String name, String methodSignature, String abi) {
-        String methodId = functionEncoder.buildMethodId(methodSignature);
+        String methodId = functionEncoder.buildMethodId(methodSignature).toString();
         Function function =
                 new Function(
                         "constantCall",
@@ -170,7 +164,7 @@ public class FunctionUtility {
             String name,
             String methodSignature,
             String abi) {
-        String methodId = functionEncoder.buildMethodId(methodSignature);
+        String methodId = functionEncoder.buildMethodId(methodSignature).toString();
         Function function =
                 new Function(
                         "sendTransaction",
@@ -200,7 +194,8 @@ public class FunctionUtility {
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<DynamicBytes>() {}));
-        List<Type> results = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
         return new Tuple4<String, String, String, byte[]>(
                 (String) results.get(0).getValue(),
@@ -224,7 +219,8 @@ public class FunctionUtility {
                         Arrays.<TypeReference<?>>asList(
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<DynamicBytes>() {}));
-        List<Type> results = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
         return new Tuple2<String, byte[]>(
                 (String) results.get(0).getValue(), (byte[]) results.get(1).getValue());
@@ -251,7 +247,8 @@ public class FunctionUtility {
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<DynamicBytes>() {}));
-        List<Type> results = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
         return new Tuple6<>(
                 (String) results.get(0).getValue(),
@@ -280,7 +277,8 @@ public class FunctionUtility {
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<DynamicBytes>() {}));
-        List<Type> results = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
         return new Tuple3<>(
                 (String) results.get(0).getValue(),
@@ -356,8 +354,9 @@ public class FunctionUtility {
             return null;
         }
 
+        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> outputTypes =
-                FunctionReturnDecoder.decode(
+                functionReturnDecoder.decode(
                         output, Utils.convert(FunctionUtility.abiTypeReferenceOutputs));
         List<String> outputArgs = FunctionUtility.convertToStringList(outputTypes);
         return outputArgs.toArray(new String[0]);
@@ -368,8 +367,9 @@ public class FunctionUtility {
             return null;
         }
 
+        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> outputTypes =
-                FunctionReturnDecoder.decode(
+                functionReturnDecoder.decode(
                         output,
                         Utils.convert(
                                 Collections.singletonList(new TypeReference<Utf8String>() {})));

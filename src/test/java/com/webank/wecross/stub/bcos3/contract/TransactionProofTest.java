@@ -10,6 +10,7 @@ import java.util.Objects;
 import org.fisco.bcos.sdk.client.protocol.response.BcosBlock;
 import org.fisco.bcos.sdk.client.protocol.response.TransactionReceiptWithProof;
 import org.fisco.bcos.sdk.client.protocol.response.TransactionWithProof;
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 import org.junit.Test;
 
 public class TransactionProofTest {

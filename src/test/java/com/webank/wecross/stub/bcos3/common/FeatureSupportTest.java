@@ -2,13 +2,11 @@ package com.webank.wecross.stub.bcos3.common;
 
 import static junit.framework.TestCase.assertTrue;
 
-import org.fisco.bcos.sdk.channel.model.ChannelPrococolExceiption;
-import org.fisco.bcos.sdk.channel.model.EnumNodeVersion;
 import org.junit.Test;
 
 public class FeatureSupportTest {
     @Test
-    public void featSupport_271() throws ChannelPrococolExceiption {
+    public void featSupport_271() throws Exception {
         String nodeVersion = "2.7.1";
         EnumNodeVersion.Version version = EnumNodeVersion.getClassVersion(nodeVersion);
 
@@ -22,7 +20,7 @@ public class FeatureSupportTest {
     }
 
     @Test
-    public void featSupport_240() throws ChannelPrococolExceiption {
+    public void featSupport_240() throws Exception {
         String nodeVersion = "2.4.0";
         EnumNodeVersion.Version version = EnumNodeVersion.getClassVersion(nodeVersion);
 
@@ -36,7 +34,7 @@ public class FeatureSupportTest {
     }
 
     @Test
-    public void featSupport_210() throws ChannelPrococolExceiption {
+    public void featSupport_210() throws Exception {
 
         String nodeVersion = "2.1.0";
         EnumNodeVersion.Version version = EnumNodeVersion.getClassVersion(nodeVersion);
@@ -51,7 +49,7 @@ public class FeatureSupportTest {
     }
 
     @Test
-    public void featSupport_200() throws ChannelPrococolExceiption {
+    public void featSupport_200() throws Exception {
         String nodeVersion = "2.0.0";
         EnumNodeVersion.Version version = EnumNodeVersion.getClassVersion(nodeVersion);
         assertTrue(!FeatureSupport.isSupportVersion(version));

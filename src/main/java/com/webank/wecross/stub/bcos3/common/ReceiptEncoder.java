@@ -8,6 +8,7 @@ import org.fisco.bcos.sdk.rlp.RlpList;
 import org.fisco.bcos.sdk.rlp.RlpString;
 import org.fisco.bcos.sdk.rlp.RlpType;
 import org.fisco.bcos.sdk.utils.Numeric;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 
 public class ReceiptEncoder {
     public static String encode(

@@ -1,7 +1,5 @@
 package com.webank.wecross.stub.bcos3.common;
 
-import org.fisco.bcos.sdk.channel.model.ChannelPrococolExceiption;
-import org.fisco.bcos.sdk.channel.model.EnumNodeVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +22,7 @@ public class FeatureSupport {
         try {
             EnumNodeVersion.Version v = EnumNodeVersion.getClassVersion(version);
             return isSupportGetBlockHeader(v);
-        } catch (ChannelPrococolExceiption e) {
+        } catch (Exception e) {
             logger.info("version: {}, e: ", version, e);
             return true;
         }
@@ -45,7 +43,7 @@ public class FeatureSupport {
         try {
             EnumNodeVersion.Version v = EnumNodeVersion.getClassVersion(version);
             return isSupportGetTxProof(v);
-        } catch (ChannelPrococolExceiption e) {
+        } catch (Exception e) {
             logger.info("version: {}, e: ", version, e);
             return true;
         }
@@ -83,7 +81,7 @@ public class FeatureSupport {
      * @param version
      * @return
      */
-    public static boolean isSupportVersion(String version) throws ChannelPrococolExceiption {
+    public static boolean isSupportVersion(String version) throws Exception {
         EnumNodeVersion.Version v = EnumNodeVersion.getClassVersion(version);
         return isSupportVersion(v);
     }

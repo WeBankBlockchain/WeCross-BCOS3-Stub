@@ -12,6 +12,11 @@ import org.fisco.bcos.sdk.model.TransactionReceipt;
 import org.fisco.bcos.sdk.rlp.RlpEncoder;
 import org.fisco.bcos.sdk.rlp.RlpString;
 import org.fisco.bcos.sdk.utils.Numeric;
+import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
+import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
+import org.fisco.bcos.sdk.v3.model.MerkleProofUnit;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+import org.fisco.bcos.sdk.v3.utils.Numeric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,7 +165,7 @@ public class MerkleProofUtility {
         EnumNodeVersion.Version classVersion = null;
         try {
             classVersion = EnumNodeVersion.getClassVersion(supportedVersion);
-        } catch (ChannelPrococolExceiption e) {
+        } catch (Exception e) {
         }
 
         if (classVersion != null && classVersion.getMinor() >= 9) {
