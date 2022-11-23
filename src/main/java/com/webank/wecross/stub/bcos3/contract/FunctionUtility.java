@@ -1,15 +1,14 @@
 package com.webank.wecross.stub.bcos3.contract;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import org.fisco.bcos.sdk.v3.codec.Utils;
 import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
 import org.fisco.bcos.sdk.v3.codec.abi.FunctionReturnDecoder;
-import org.fisco.bcos.sdk.v3.codec.datatypes.*;
+import org.fisco.bcos.sdk.v3.codec.datatypes.DynamicArray;
+import org.fisco.bcos.sdk.v3.codec.datatypes.DynamicBytes;
+import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
+import org.fisco.bcos.sdk.v3.codec.datatypes.Type;
+import org.fisco.bcos.sdk.v3.codec.datatypes.TypeReference;
+import org.fisco.bcos.sdk.v3.codec.datatypes.Utf8String;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.Uint256;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple2;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple3;
@@ -17,6 +16,15 @@ import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple4;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple6;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.utils.Numeric;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Function object used across blockchain chain. Wecross requires that a cross-chain contract
@@ -45,7 +53,8 @@ public class FunctionUtility {
     public static final String ProxyCallMethod = "constantCall(string,bytes)";
 
     public static final List<TypeReference<?>> abiTypeReferenceOutputs =
-            Collections.singletonList(new TypeReference<DynamicArray<Utf8String>>() {});
+            Collections.singletonList(new TypeReference<DynamicArray<Utf8String>>() {
+            });
 
     /**
      * Get the function object used to encode and decode the abi parameters
@@ -68,7 +77,7 @@ public class FunctionUtility {
                         (0 == params.length)
                                 ? DynamicArray.empty("string[]")
                                 : new DynamicArray<>(
-                                        Utils.typeMap(Arrays.asList(params), Utf8String.class))),
+                                Utils.typeMap(Arrays.asList(params), Utf8String.class))),
                 abiTypeReferenceOutputs);
     }
 
@@ -98,6 +107,29 @@ public class FunctionUtility {
     }
 
     /**
+     * WeCrossProxy constantCall function <br>
+     * </>function sendTransaction(string memory _name, bytes memory _argsWithMethodId) public
+     * returns(bytes memory)
+     *
+     * @param id
+     * @param path
+     * @param methodSignature
+     * @param abi
+     * @return
+     */
+    public static Function newConstantCallProxyFunction(
+            String id, String path, String methodSignature, byte[] abi) {
+        return new Function(
+                "constantCall",
+                Arrays.asList(
+                        new Utf8String(id),
+                        new Utf8String(path),
+                        new Utf8String(methodSignature),
+                        new DynamicBytes(abi)),
+                Collections.emptyList());
+    }
+
+    /**
      * WeCrossProxy constantCall function function sendTransaction(string memory _name, bytes memory
      * _argsWithMethodId) public returns(bytes memory)
      *
@@ -117,6 +149,30 @@ public class FunctionUtility {
                                 new DynamicBytes(Numeric.hexStringToByteArray(methodId + abi))),
                         Collections.<TypeReference<?>>emptyList());
         return function;
+    }
+
+    /**
+     * WeCrossProxy constantCall function function sendTransaction(string memory _name, bytes memory
+     * _argsWithMethodId) public returns(bytes memory)
+     *
+     * @param name
+     * @param methodSignature
+     * @param abi
+     * @return
+     */
+    public static Function newConstantCallProxyFunction(
+            FunctionEncoder functionEncoder, String name, String methodSignature, byte[] abi)
+            throws IOException {
+        byte[] methodId = functionEncoder.buildMethodId(methodSignature);
+        ByteArrayOutputStream params = new ByteArrayOutputStream();
+        params.write(methodId);
+        if (abi != null && abi.length != 0) {
+            params.write(abi);
+        }
+        return new Function(
+                "constantCall",
+                Arrays.<Type>asList(new Utf8String(name), new DynamicBytes(params.toByteArray())),
+                Collections.emptyList());
     }
 
     /**
@@ -149,6 +205,33 @@ public class FunctionUtility {
     }
 
     /**
+     * WeCrossProxy sendTransaction function function sendTransaction(string memory _transactionID,
+     * uint256 _seq, string memory _path, string memory _func, bytes memory _args) public
+     * returns(bytes memory)
+     *
+     * @param uid
+     * @param tid
+     * @param seq
+     * @param path
+     * @param methodSignature
+     * @param abi
+     * @return
+     */
+    public static Function newSendTransactionProxyFunction(
+            String uid, String tid, long seq, String path, String methodSignature, byte[] abi) {
+        return new Function(
+                "sendTransaction",
+                Arrays.asList(
+                        new Utf8String(uid),
+                        new Utf8String(tid),
+                        new Uint256(seq),
+                        new Utf8String(path),
+                        new Utf8String(methodSignature),
+                        new DynamicBytes(abi)),
+                Collections.emptyList());
+    }
+
+    /**
      * WeCrossProxy sendTransaction function function sendTransaction(string memory _name, bytes
      * memory _argsWithMethodId) public returns(bytes memory)
      *
@@ -177,6 +260,38 @@ public class FunctionUtility {
     }
 
     /**
+     * WeCrossProxy sendTransaction function function sendTransaction(string memory _name, bytes
+     * memory _argsWithMethodId) public returns(bytes memory)
+     *
+     * @param uid
+     * @param name
+     * @param methodSignature
+     * @param abi
+     * @return
+     */
+    public static Function newSendTransactionProxyFunction(
+            FunctionEncoder functionEncoder,
+            String uid,
+            String name,
+            String methodSignature,
+            byte[] abi)
+            throws IOException {
+        byte[] methodId = functionEncoder.buildMethodId(methodSignature);
+        ByteArrayOutputStream params = new ByteArrayOutputStream();
+        params.write(methodId);
+        if (abi != null && abi.length != 0) {
+            params.write(abi);
+        }
+        return new Function(
+                "sendTransaction",
+                Arrays.asList(
+                        new Utf8String(uid),
+                        new Utf8String(name),
+                        new DynamicBytes(params.toByteArray())),
+                Collections.emptyList());
+    }
+
+    /**
      * decode WeCrossProxy constantCall input
      *
      * @param input
@@ -190,10 +305,14 @@ public class FunctionUtility {
                         "constantCall",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<DynamicBytes>() {}));
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<DynamicBytes>() {
+                                }));
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
@@ -217,8 +336,10 @@ public class FunctionUtility {
                         "constantCall",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<DynamicBytes>() {}));
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<DynamicBytes>() {
+                                }));
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
@@ -233,7 +354,7 @@ public class FunctionUtility {
      * @return
      */
     public static Tuple6<String, String, BigInteger, String, String, byte[]>
-            getSendTransactionProxyFunctionInput(String input) {
+    getSendTransactionProxyFunctionInput(String input) {
         String data = input.substring(Numeric.containsHexPrefix(input) ? 10 : 8);
 
         final Function function =
@@ -241,12 +362,18 @@ public class FunctionUtility {
                         "sendTransaction",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<Uint256>() {},
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<DynamicBytes>() {}));
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<Uint256>() {
+                                },
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<DynamicBytes>() {
+                                }));
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
@@ -274,9 +401,12 @@ public class FunctionUtility {
                         "sendTransaction",
                         Arrays.<Type>asList(),
                         Arrays.<TypeReference<?>>asList(
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<Utf8String>() {},
-                                new TypeReference<DynamicBytes>() {}));
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<Utf8String>() {
+                                },
+                                new TypeReference<DynamicBytes>() {
+                                }));
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
@@ -372,7 +502,8 @@ public class FunctionUtility {
                 functionReturnDecoder.decode(
                         output,
                         Utils.convert(
-                                Collections.singletonList(new TypeReference<Utf8String>() {})));
+                                Collections.singletonList(new TypeReference<Utf8String>() {
+                                })));
         if (Objects.isNull(outputTypes) || outputTypes.isEmpty()) {
             return null;
         }

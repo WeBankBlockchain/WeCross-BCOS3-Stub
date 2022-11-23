@@ -8,6 +8,8 @@ import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
 import java.util.Objects;
+
+import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import org.junit.Test;
 
 public class BCOSStubFactoryTest {
@@ -51,9 +53,9 @@ public class BCOSStubFactoryTest {
     public void BCOSSubFactoryTypeTest() {
         System.out.println(bcosSubFactory.getStubType());
         assertTrue(bcosSubFactory.getStubType().equals("BCOS2.0"));
-        assertTrue(bcosSubFactory.getAlg().equals("secp256k1"));
+        assertTrue(bcosSubFactory.getAlg().equals(BCOSConstant.SECP256K1));
 
         // assertTrue(bcosgmStubFactory.getStubType().equals("GM_BCOS2.0"));
-        // assertTrue(bcosgmStubFactory.getAlg().equals("sm2p256v1"));
+        // assertTrue(bcosgmStubFactory.getAlg().equals(BCOSConstant.SM2P256V1));
     }
 }

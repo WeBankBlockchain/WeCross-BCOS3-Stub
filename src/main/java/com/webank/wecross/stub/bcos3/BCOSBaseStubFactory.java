@@ -5,11 +5,11 @@ import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
 import com.webank.wecross.stub.StubFactory;
 import com.webank.wecross.stub.WeCrossContext;
+import com.webank.wecross.stub.bcos.custom.DeployContractHandler;
 import com.webank.wecross.stub.bcos3.account.BCOSAccountFactory;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.custom.CommandHandlerDispatcher;
-import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
-import com.webank.wecross.stub.bcos3.custom.RegisterCnsHandler;
+import com.webank.wecross.stub.bcos3.custom.LinkBfsHandler;
 import com.webank.wecross.stub.bcos3.preparation.HubContractDeployment;
 import com.webank.wecross.stub.bcos3.preparation.ProxyContractDeployment;
 import org.apache.commons.io.FileUtils;
@@ -74,27 +74,27 @@ public class BCOSBaseStubFactory implements StubFactory {
         logger.info("New driver type:{}", this.cryptoSuite.getCryptoTypeConfig());
 
         /** Initializes the cns service */
-        AsyncCnsService asyncCnsService = new AsyncCnsService();
+        AsyncBfsService asyncBfsService = new AsyncBfsService();
 
         /** Initializes the custom command dispatcher */
-        RegisterCnsHandler registerCnsHandler = new RegisterCnsHandler();
-        registerCnsHandler.setAsyncCnsService(asyncCnsService);
+        LinkBfsHandler linkBfsHandler = new LinkBfsHandler();
+        linkBfsHandler.setAsyncBfsService(asyncBfsService);
 
         DeployContractHandler deployContractHandler = new DeployContractHandler();
-        deployContractHandler.setAsyncCnsService(asyncCnsService);
+        deployContractHandler.setAsyncBfsService(asyncBfsService);
 
         CommandHandlerDispatcher commandHandlerDispatcher = new CommandHandlerDispatcher();
         commandHandlerDispatcher.registerCommandHandler(
-                BCOSConstant.CUSTOM_COMMAND_REGISTER, registerCnsHandler);
+                BCOSConstant.CUSTOM_COMMAND_REGISTER, linkBfsHandler);
         commandHandlerDispatcher.registerCommandHandler(
                 BCOSConstant.CUSTOM_COMMAND_DEPLOY, deployContractHandler);
 
         /** Initializes the bcos driver */
         BCOSDriver driver = new BCOSDriver(this.cryptoSuite, isWASMStub());
-        driver.setAsyncCnsService(asyncCnsService);
+        driver.setAsyncBfsService(asyncBfsService);
         driver.setCommandHandlerDispatcher(commandHandlerDispatcher);
 
-        asyncCnsService.setBcosDriver(driver);
+        asyncBfsService.setBcosDriver(driver);
 
         return driver;
     }

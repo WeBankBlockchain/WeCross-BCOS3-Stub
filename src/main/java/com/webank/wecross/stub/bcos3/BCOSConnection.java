@@ -334,7 +334,7 @@ public class BCOSConnection implements Connection {
                                     || transaction
                                     .getTransactionRequest()
                                     .getMethod()
-                                    .equals(BCOSConstant.PPROXY_METHOD_REGISTER))) {
+                                    .equals(BCOSConstant.PROXY_METHOD_REGISTER))) {
 
                                 scheduledExecutorService.schedule(
                                         () -> noteOnResourcesChange(), 1, TimeUnit.MILLISECONDS);

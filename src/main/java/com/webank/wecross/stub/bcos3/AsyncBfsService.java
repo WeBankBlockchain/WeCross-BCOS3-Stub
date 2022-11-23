@@ -5,13 +5,18 @@ import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.BlockManager;
 import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
+import com.webank.wecross.stub.ObjectMapperFactory;
 import com.webank.wecross.stub.Path;
 import com.webank.wecross.stub.TransactionContext;
 import com.webank.wecross.stub.TransactionRequest;
+
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import com.webank.wecross.stub.bcos3.common.LRUCache;
-import com.webank.wecross.stub.bcos3.common.ObjectMapperFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -19,19 +24,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import org.fisco.bcos.sdk.contract.precompiled.cns.CnsInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
-public class AsyncCnsService {
-    private static final Logger logger = LoggerFactory.getLogger(AsyncCnsService.class);
+public class AsyncBfsService {
+    private static final Logger logger = LoggerFactory.getLogger(AsyncBfsService.class);
 
     private ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
 
     private LRUCache<String, String> abiCache = new LRUCache<>(32);
     private ScheduledExecutorService scheduledExecutorService =
-            new ScheduledThreadPoolExecutor(1, new CustomizableThreadFactory("AsyncCnsService-"));
+            new ScheduledThreadPoolExecutor(1, new CustomizableThreadFactory("AsyncBfsService-"));
     private static final long CLEAR_EXPIRES = 30L * 60L; // 30 min
     private Semaphore queryABISemaphore = new Semaphore(1, true);
 
@@ -45,7 +46,7 @@ public class AsyncCnsService {
         this.bcosDriver = bcosDriver;
     }
 
-    public AsyncCnsService() {
+    public AsyncBfsService() {
         this.scheduledExecutorService.scheduleAtFixedRate(
                 () -> abiCache.clear(), CLEAR_EXPIRES, CLEAR_EXPIRES, TimeUnit.SECONDS);
     }
@@ -82,7 +83,7 @@ public class AsyncCnsService {
                 return;
             }
 
-            selectByName(
+            readlink(
                     name,
                     connection,
                     driver,
@@ -98,7 +99,7 @@ public class AsyncCnsService {
                             callback.onResponse(null, null);
                         } else {
                             int size = infoList.size();
-                            String currentAbi = infoList.get(size - 1).getAbi();
+                            String currentAbi = infoList.get(size - 1);
 
                             addAbiToCache(name, currentAbi);
 
@@ -115,39 +116,16 @@ public class AsyncCnsService {
         }
     }
 
-    public interface SelectCallback {
-        void onResponse(Exception e, List<CnsInfo> infoList);
+    public interface ReadlinkCallback {
+        void onResponse(Exception e, List<String> bfsInfoList);
     }
 
-    public void selectByNameAndVersion(
-            String name,
-            String version,
-            Connection connection,
-            Driver driver,
-            SelectCallback callback) {
-        select(name, version, connection, driver, callback);
-    }
-
-    public void selectByName(
-            String name, Connection connection, Driver driver, SelectCallback callback) {
-        select(name, null, connection, driver, callback);
-    }
-
-    private void select(
-            String name,
-            String version,
-            Connection connection,
-            Driver driver,
-            SelectCallback callback) {
+    public void readlink(
+            String name, Connection connection, Driver driver, ReadlinkCallback callback) {
 
         TransactionRequest transactionRequest = new TransactionRequest();
-        if (Objects.isNull(version)) {
-            transactionRequest.setArgs(new String[] {name});
-            transactionRequest.setMethod("selectByName");
-        } else {
-            transactionRequest.setArgs(new String[] {name});
-            transactionRequest.setMethod("selectByNameAndVersion");
-        }
+        transactionRequest.setArgs(new String[] {name});
+        transactionRequest.setMethod(BCOSConstant.PROXY_METHOD_READLINK);
 
         Path path = new Path();
         path.setResource(BCOSConstant.BCOS_PROXY_NAME);
@@ -172,15 +150,9 @@ public class AsyncCnsService {
                                     new Exception(connectionResponse.getMessage()), null);
                             return;
                         }
+                        List<String> bfsInfoList = Arrays.asList(connectionResponse.getResult());
 
-                        List<CnsInfo> infoList =
-                                objectMapper.readValue(
-                                        connectionResponse.getResult()[0],
-                                        objectMapper
-                                                .getTypeFactory()
-                                                .constructCollectionType(
-                                                        List.class, CnsInfo.class));
-                        callback.onResponse(null, infoList);
+                        callback.onResponse(null, bfsInfoList);
 
                     } catch (Exception e) {
                         logger.warn("exception occurs", e);
@@ -193,7 +165,7 @@ public class AsyncCnsService {
         void onResponse(Exception e);
     }
 
-    public void registerCNSByProxy(
+    public void linkBFSByProxy(
             Path path,
             String address,
             String version,
@@ -208,7 +180,7 @@ public class AsyncCnsService {
 
         TransactionRequest transactionRequest =
                 new TransactionRequest(
-                        BCOSConstant.PPROXY_METHOD_REGISTER,
+                        BCOSConstant.PROXY_METHOD_REGISTER,
                         Arrays.asList(path.toString(), version, address, abi)
                                 .toArray(new String[0]));
 

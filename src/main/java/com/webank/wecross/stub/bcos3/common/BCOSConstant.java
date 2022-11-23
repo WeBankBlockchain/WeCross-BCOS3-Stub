@@ -8,6 +8,9 @@ import com.webank.wecross.stub.StubConstant;
 public interface BCOSConstant {
     String ADMIN_ACCOUNT = "admin";
 
+    String SECP256K1 = "secp256k1";
+    String SM2P256V1 = "sm2p256v1";
+
     String RESOURCE_TYPE_BCOS_CONTRACT = "BCOS_CONTRACT";
 
     String WASM = "WASM";
@@ -35,6 +38,7 @@ public interface BCOSConstant {
     String CNS_PRECOMPILED_ADDRESS = "0x0000000000000000000000000000000000001004";
     String DEFAULT_ADDRESS = "0x1111111111111111111111111111111111111111";
     String PROXY_METHOD_DEPLOY = "deployContractWithRegisterCNS";
-    String PPROXY_METHOD_REGISTER = "registerCNS";
+    String PROXY_METHOD_REGISTER = "linkBFS";
     String PROXY_METHOD_GETPATHS = "getPaths";
+    String PROXY_METHOD_READLINK = "readlink";
 }

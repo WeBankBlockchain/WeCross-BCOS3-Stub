@@ -1,6 +1,5 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
-import com.webank.wecross.stub.bcos3.AsyncCnsService;
 import com.webank.wecross.stub.bcos3.client.AbstractClientWrapper;
 import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
 import java.io.File;

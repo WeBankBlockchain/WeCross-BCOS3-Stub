@@ -1,6 +1,7 @@
 package com.webank.wecross.stub.bcos3;
 
 import com.webank.wecross.stub.Stub;
+import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 
 import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE;
@@ -9,7 +10,7 @@ import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_WASM
 public class BCOS3EcdsaWasmStubFactory extends BCOSBaseStubFactory {
 
     public BCOS3EcdsaWasmStubFactory() {
-        super(CryptoType.ECDSA_TYPE, "secp256k1", BCOS3_ECDSA_WASM_STUB_TYPE);
+        super(CryptoType.ECDSA_TYPE, BCOSConstant.SECP256K1, BCOS3_ECDSA_WASM_STUB_TYPE);
     }
 
     public static void main(String[] args) throws Exception {

@@ -12,7 +12,6 @@ import com.webank.wecross.stub.TransactionContext;
 import com.webank.wecross.stub.TransactionException;
 import com.webank.wecross.stub.TransactionRequest;
 import com.webank.wecross.stub.TransactionResponse;
-import com.webank.wecross.stub.bcos3.AsyncCnsService;
 import com.webank.wecross.stub.bcos3.AsyncToSync;
 import com.webank.wecross.stub.bcos3.BCOSBaseStubFactory;
 import com.webank.wecross.stub.bcos3.BCOSConnection;

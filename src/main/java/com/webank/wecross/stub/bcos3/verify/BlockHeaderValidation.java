@@ -15,6 +15,7 @@ import java.util.Set;
 import org.fisco.bcos.sdk.client.protocol.response.BcosBlockHeader;
 import org.fisco.bcos.sdk.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.utils.Numeric;
+import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

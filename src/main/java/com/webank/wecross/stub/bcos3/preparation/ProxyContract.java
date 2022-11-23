@@ -29,6 +29,7 @@ import org.fisco.bcos.sdk.model.TransactionReceipt;
 import org.fisco.bcos.sdk.model.callback.TransactionCallback;
 import org.fisco.bcos.sdk.transaction.codec.encode.TransactionEncoderService;
 import org.fisco.bcos.sdk.transaction.model.po.RawTransaction;
+import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.solc.compiler.CompilationResult;
 import org.fisco.solc.compiler.SolidityCompiler;
 import org.slf4j.Logger;
@@ -60,8 +61,8 @@ public class ProxyContract {
 
         BCOSBaseStubFactory bcosBaseStubFactory =
                 isGMStub
-                        ? new BCOSBaseStubFactory(CryptoType.SM_TYPE, "sm2p256v1", "GM_BCOS2.0")
-                        : new BCOSBaseStubFactory(CryptoType.ECDSA_TYPE, "secp256k1", "BCOS2.0");
+                        ? new BCOSBaseStubFactory(CryptoType.SM_TYPE, BCOSConstant.SM2P256V1, "GM_BCOS2.0")
+                        : new BCOSBaseStubFactory(CryptoType.ECDSA_TYPE, BCOSConstant.SECP256K1, "BCOS2.0");
 
         account =
                 (BCOSAccount)
