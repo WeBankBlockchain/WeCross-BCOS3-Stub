@@ -2,9 +2,9 @@ package com.webank.wecross.stub.bcos3.common;
 
 import java.util.Arrays;
 import java.util.List;
-import org.fisco.bcos.sdk.crypto.CryptoSuite;
-import org.fisco.bcos.sdk.model.MerkleProofUnit;
-import org.fisco.bcos.sdk.utils.Numeric;
+import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
+import org.fisco.bcos.sdk.v3.model.MerkleProofUnit;
+import org.fisco.bcos.sdk.v3.utils.Numeric;
 
 public class Merkle {
     public static String calculateMerkleRoot(

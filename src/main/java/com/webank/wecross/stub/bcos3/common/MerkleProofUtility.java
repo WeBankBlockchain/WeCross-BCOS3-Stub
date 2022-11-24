@@ -2,6 +2,8 @@ package com.webank.wecross.stub.bcos3.common;
 
 import java.math.BigInteger;
 import java.util.List;
+
+import com.webank.wecross.stub.bcos3.protocol.response.TransactionProof;
 import org.fisco.bcos.sdk.channel.model.ChannelPrococolExceiption;
 import org.fisco.bcos.sdk.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.client.protocol.response.TransactionReceiptWithProof;
@@ -32,10 +34,10 @@ public class MerkleProofUtility {
      */
     public static boolean verifyTransaction(
             String transactionRoot,
-            TransactionWithProof.TransactionAndProof transAndProof,
+            TransactionProof transAndProof,
             CryptoSuite cryptoSuite) {
         // transaction index
-        JsonTransactionResponse transaction = transAndProof.getTransaction();
+        JsonTransactionResponse transaction = transAndProof.getTransAndProof().;
         BigInteger index = Numeric.decodeQuantity(transaction.getTransactionIndex());
         String input =
                 Numeric.toHexString(RlpEncoder.encode(RlpString.create(index)))
@@ -69,7 +71,7 @@ public class MerkleProofUtility {
         EnumNodeVersion.Version classVersion = null;
         try {
             classVersion = EnumNodeVersion.getClassVersion(supportedVersion);
-        } catch (ChannelPrococolExceiption e) {
+        } catch (Exception e) {
         }
 
         TransactionReceipt transactionReceipt = receiptAndProof.getReceipt();
