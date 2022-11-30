@@ -1,7 +1,9 @@
 package com.webank.wecross.stub.bcos3.account;
 
-import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS_ACCOUNT;
-import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS_SM_ACCOUNT;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_EVM_STUB_TYPE;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_GM_EVM_STUB_TYPE;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_GM_WASM_STUB_TYPE;
 
 import com.webank.wecross.stub.bcos3.config.BCOSAccountConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSAccountConfigParser;
@@ -45,14 +47,14 @@ public class BCOSAccountFactory {
         String address = (String) properties.get("ext0");
 
         if (cryptoSuite.getCryptoTypeConfig() == CryptoType.ECDSA_TYPE) {
-            if (!type.equals(BCOS_ACCOUNT)) {
+            if (!type.equals(BCOS3_ECDSA_EVM_STUB_TYPE) && !type.equals(BCOS3_ECDSA_WASM_STUB_TYPE)) {
                 logger.error("Invalid stub type: " + type);
                 return null;
             }
         }
 
         if (cryptoSuite.getCryptoTypeConfig() == CryptoType.SM_TYPE) {
-            if (!type.equals(BCOS_SM_ACCOUNT)) {
+            if (!type.equals(BCOS3_GM_EVM_STUB_TYPE) && !type.equals(BCOS3_GM_WASM_STUB_TYPE) ) {
                 logger.error("Invalid stub type: " + type);
                 return null;
             }
