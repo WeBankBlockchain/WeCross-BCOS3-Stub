@@ -5,6 +5,7 @@ import com.webank.wedpr.crypto.NativeInterface;
 import java.security.InvalidParameterException;
 import org.bouncycastle.util.encoders.Hex;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
+import org.fisco.bcos.sdk.v3.crypto.exceptions.SignatureException;
 import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.crypto.signature.ECDSASignatureResult;
 import org.fisco.bcos.sdk.v3.crypto.signature.SM2SignatureResult;

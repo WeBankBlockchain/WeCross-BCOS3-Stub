@@ -2,32 +2,31 @@ package com.webank.wecross.stub.bcos3.verify;
 
 import com.webank.wecross.stub.BlockHeader;
 import com.webank.wecross.stub.BlockManager;
+import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import com.webank.wecross.stub.bcos3.common.BCOSStubException;
 import com.webank.wecross.stub.bcos3.protocol.response.TransactionProof;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
-import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+import org.fisco.bcos.sdk.v3.utils.MerkleProofUtility;
+
+import java.util.Objects;
 
 public class MerkleValidation {
 
     /**
      * @param hash transaction hash
-     * @param transactionReceipt
+     * @param transactionProof
      * @throws BCOSStubException
      */
     public static void verifyTransactionReceiptProof(
             String hash,
             BlockHeader blockHeader,
-            TransactionReceipt transactionReceipt,
+            TransactionProof transactionProof,
             CryptoSuite cryptoSuite)
             throws BCOSStubException {
 
-        // FIXME: return true by default
-        return;
-        /*
-
         // verify transaction
         if (!MerkleProofUtility.verifyTransactionReceipt(
-                blockHeader.getReceiptRoot(), transactionReceipt, cryptoSuite)) {
+                blockHeader.getReceiptRoot(), transactionProof.getReceiptWithProof(), cryptoSuite)) {
             throw new BCOSStubException(
                     BCOSStatusCode.TransactionReceiptProofVerifyFailed,
                     BCOSStatusCode.getStatusMessage(
@@ -37,10 +36,9 @@ public class MerkleValidation {
         }
 
         // verify transaction
-        if (!MerkleProofUtility.verifyMerkle(
+        if (!MerkleProofUtility.verifyTransaction(
                 blockHeader.getTransactionRoot(),
-                transactionReceipt.getTransactionProof(),
-                transactionReceipt.getTransactionHash(),
+                transactionProof.getTransWithProof(),
                 cryptoSuite)) {
             throw new BCOSStubException(
                     BCOSStatusCode.TransactionProofVerifyFailed,
@@ -48,7 +46,6 @@ public class MerkleValidation {
                             + ", hash="
                             + hash);
         }
-         */
     }
 
     public interface VerifyCallback {
@@ -69,9 +66,6 @@ public class MerkleValidation {
             TransactionProof transactionProof,
             VerifyCallback callback,
             CryptoSuite cryptoSuite) {
-        // FIXME: callback true by default
-        callback.onResponse(null);
-        /*
         blockManager.asyncGetBlock(
                 blockNumber,
                 (blockHeaderException, block) -> {
@@ -120,6 +114,5 @@ public class MerkleValidation {
 
                     callback.onResponse(null);
                 });
-         */
     }
 }

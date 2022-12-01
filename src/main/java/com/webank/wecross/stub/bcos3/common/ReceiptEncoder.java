@@ -1,11 +1,17 @@
-package com.webank.wecross.stub.bcos3.common;
-
-import java.util.ArrayList;
-import java.util.List;
-import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
-import org.fisco.bcos.sdk.v3.utils.Numeric;
-
-public class ReceiptEncoder {
+//package com.webank.wecross.stub.bcos3.common;
+//
+//import java.util.ArrayList;
+//import java.util.List;
+//import org.fisco.bcos.sdk.model.TransactionReceipt;
+//import org.fisco.bcos.sdk.rlp.RlpEncoder;
+//import org.fisco.bcos.sdk.rlp.RlpList;
+//import org.fisco.bcos.sdk.rlp.RlpString;
+//import org.fisco.bcos.sdk.rlp.RlpType;
+//import org.fisco.bcos.sdk.utils.Numeric;
+//import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+//import org.fisco.bcos.sdk.v3.utils.Numeric;
+//
+//public class ReceiptEncoder {
 //    public static String encode(
 //            TransactionReceipt transactionReceipt, EnumNodeVersion.Version version) {
 //        List<RlpType> values = asRlpValues(transactionReceipt, version);
@@ -13,9 +19,9 @@ public class ReceiptEncoder {
 //        byte[] rlpBytes = RlpEncoder.encode(rlpList);
 //        return Numeric.toHexString(rlpBytes);
 //    }
-
+//
 //    private static List<RlpType> asRlpValues(
-//            TransactionReceipt transactionReceipt, EnumNodeVersion.Version version) {
+//            TransactionReceipt transactionReceipt) {
 //        List<RlpType> result = new ArrayList<>();
 //        // bytes
 //        result.add(RlpString.create(Numeric.hexStringToByteArray(transactionReceipt.getRoot())));
@@ -33,10 +39,7 @@ public class ReceiptEncoder {
 //        result.add(RlpString.create(Numeric.toBigInt(transactionReceipt.getStatus())));
 //
 //        result.add(RlpString.create(Numeric.hexStringToByteArray(transactionReceipt.getOutput())));
-//        // gas used
-//        if (version != null && version.getMinor() >= 9) {
-//            result.add(RlpString.create(Numeric.toBigInt(transactionReceipt.getRemainGas())));
-//        }
+//
 //        // List
 //        List<TransactionReceipt.Logs> logs = transactionReceipt.getLogs();
 //        List<RlpType> logList = new ArrayList<>();
@@ -58,4 +61,4 @@ public class ReceiptEncoder {
 //        result.add(logRlpList);
 //        return result;
 //    }
-}
+//}

@@ -5,40 +5,39 @@ import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 
 public class TransactionProof {
 
-    private JsonTransactionResponse transAndProof;
-    private TransactionReceipt receiptAndProof;
+    private JsonTransactionResponse transWithProof;
+    private TransactionReceipt receiptWithProof;
 
     public TransactionProof() {}
 
-    public TransactionProof(
-            JsonTransactionResponse transAndProof, TransactionReceipt receiptAndProof) {
-        this.transAndProof = transAndProof;
-        this.receiptAndProof = receiptAndProof;
+    public TransactionProof(JsonTransactionResponse transWithProof, TransactionReceipt receiptWithProof) {
+        this.transWithProof = transWithProof;
+        this.receiptWithProof = receiptWithProof;
     }
 
-    public JsonTransactionResponse getTransAndProof() {
-        return transAndProof;
+    public JsonTransactionResponse getTransWithProof() {
+        return transWithProof;
     }
 
-    public void setTransAndProof(JsonTransactionResponse transAndProof) {
-        this.transAndProof = transAndProof;
+    public void setTransWithProof(JsonTransactionResponse transWithProof) {
+        this.transWithProof = transWithProof;
     }
 
-    public TransactionReceipt getReceiptAndProof() {
-        return receiptAndProof;
+    public TransactionReceipt getReceiptWithProof() {
+        return receiptWithProof;
     }
 
-    public void setReceiptAndProof(TransactionReceipt receiptAndProof) {
-        this.receiptAndProof = receiptAndProof;
+    public void setReceiptWithProof(TransactionReceipt receiptWithProof) {
+        this.receiptWithProof = receiptWithProof;
     }
 
     @Override
     public String toString() {
         return "TransactionProof{"
-                + "transAndProof="
-                + transAndProof
-                + ", receiptAndProof="
-                + receiptAndProof
+                + "transWithProof="
+                + transWithProof
+                + ", receiptWithProof="
+                + receiptWithProof
                 + '}';
     }
 }
