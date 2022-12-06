@@ -6,11 +6,13 @@ import com.webank.wecross.stub.bcos3.BCOSConnection;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
 import com.webank.wecross.stub.bcos3.client.ClientBlockManager;
 import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
-import java.util.Objects;
-import java.util.concurrent.Semaphore;
-import org.fisco.bcos.sdk.crypto.CryptoSuite;
+import com.webank.wecross.stub.bcos3.custom.DeployContractWasmHandler;
+import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
+import java.util.concurrent.Semaphore;
 
 public class TwoPCContract {
 
@@ -26,6 +28,7 @@ public class TwoPCContract {
     private BCOSConnection connection;
     private BlockManager blockManager;
     private DeployContractHandler deployContractHandler;
+    private DeployContractWasmHandler deployContractWasmHandler;
 
     public BlockManager getBlockManager() {
         return blockManager;
@@ -41,6 +44,14 @@ public class TwoPCContract {
 
     public void setDeployContractHandler(DeployContractHandler deployContractHandler) {
         this.deployContractHandler = deployContractHandler;
+    }
+
+    public DeployContractWasmHandler getDeployContractWasmHandler() {
+        return deployContractWasmHandler;
+    }
+
+    public void setDeployContractWasmHandler(DeployContractWasmHandler deployContractWasmHandler) {
+        this.deployContractWasmHandler = deployContractWasmHandler;
     }
 
     public BCOSAccount getAccount() {
@@ -66,7 +77,8 @@ public class TwoPCContract {
             int tps,
             int from,
             int to,
-            CryptoSuite cryptoSuite)
+            CryptoSuite cryptoSuite,
+            boolean isWasm)
             throws Exception {
 
         logger.info(
@@ -88,31 +100,57 @@ public class TwoPCContract {
             Object[] params = new Object[] {resource, contractContent, contractName, version};
 
             Thread.sleep(1000 / tps);
-
-            deployContractHandler.handle(
-                    null,
-                    params,
-                    account,
-                    blockManager,
-                    connection,
-                    (Driver.CustomCommandCallback)
-                            (error, response) -> {
-                                semaphore.release(1);
-                                if (Objects.nonNull(error)) {
-                                    System.err.println(
-                                            " Unable deploy resource: "
-                                                    + resource
-                                                    + " ,e: "
-                                                    + error.getMessage());
-                                } else {
-                                    System.err.println(
-                                            " Deploy resource: "
-                                                    + resource
-                                                    + " successfully, address: "
-                                                    + (String) response);
-                                }
-                            },
-                    cryptoSuite);
+            if (isWasm) {
+                deployContractWasmHandler.handle(
+                        null,
+                        params,
+                        account,
+                        blockManager,
+                        connection,
+                        (Driver.CustomCommandCallback)
+                                (error, response) -> {
+                                    semaphore.release(1);
+                                    if (Objects.nonNull(error)) {
+                                        System.err.println(
+                                                " Unable deploy resource: "
+                                                        + resource
+                                                        + " ,e: "
+                                                        + error.getMessage());
+                                    } else {
+                                        System.err.println(
+                                                " Deploy resource: "
+                                                        + resource
+                                                        + " successfully, address: "
+                                                        + (String) response);
+                                    }
+                                },
+                        cryptoSuite);
+            } else {
+                deployContractHandler.handle(
+                        null,
+                        params,
+                        account,
+                        blockManager,
+                        connection,
+                        (Driver.CustomCommandCallback)
+                                (error, response) -> {
+                                    semaphore.release(1);
+                                    if (Objects.nonNull(error)) {
+                                        System.err.println(
+                                                " Unable deploy resource: "
+                                                        + resource
+                                                        + " ,e: "
+                                                        + error.getMessage());
+                                    } else {
+                                        System.err.println(
+                                                " Deploy resource: "
+                                                        + resource
+                                                        + " successfully, address: "
+                                                        + (String) response);
+                                    }
+                                },
+                        cryptoSuite);
+            }
         }
 
         semaphore.acquire(to - from + 1);

@@ -1,12 +1,15 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
+import com.webank.wecross.stub.bcos3.AsyncBfsService;
 import com.webank.wecross.stub.bcos3.client.AbstractClientWrapper;
 import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
-import java.io.File;
-import java.nio.file.Files;
+import com.webank.wecross.stub.bcos3.custom.DeployContractWasmHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import java.io.File;
+import java.nio.file.Files;
 
 public class TwoPCContractDeployment {
     private static final Logger logger = LoggerFactory.getLogger(TwoPCContractDeployment.class);
@@ -51,6 +54,7 @@ public class TwoPCContractDeployment {
         String version = args[4];
         String contractPath = args[5];
         int tps = Integer.parseInt(args[6]);
+        boolean isWasm = Boolean.parseBoolean(args[7]);
 
         int fromIndex = 0;
         int toIndex = 0;
@@ -80,6 +84,8 @@ public class TwoPCContractDeployment {
                         + contractPath
                         + " ,TPS: "
                         + tps
+                        + " ,isWasm: "
+                        + isWasm
                         + " ,version: "
                         + version
                         + " ,fromIndex: "
@@ -95,7 +101,8 @@ public class TwoPCContractDeployment {
                 contractPath,
                 tps,
                 fromIndex,
-                toIndex);
+                toIndex,
+                isWasm);
 
         System.out.println(" ## 2PC contract deployment complete. ");
         System.exit(0);
@@ -109,16 +116,14 @@ public class TwoPCContractDeployment {
             String contractPath,
             int tps,
             int fromIndex,
-            int toIndex) {
+            int toIndex,
+            boolean isWasm) {
         try {
-            AsyncCnsService asyncCnsService = new AsyncCnsService();
-            DeployContractHandler deployContractHandler = new DeployContractHandler();
-            deployContractHandler.setAsyncCnsService(asyncCnsService);
+            AsyncBfsService asyncBfsService = new AsyncBfsService();
 
             ProxyContract proxyContract = new ProxyContract(null, chainName, accountName);
             TwoPCContract twoPCContract =
                     new TwoPCContract(proxyContract.getAccount(), proxyContract.getConnection());
-            twoPCContract.setDeployContractHandler(deployContractHandler);
 
             PathMatchingResourcePatternResolver resolver =
                     new PathMatchingResourcePatternResolver();
@@ -129,6 +134,16 @@ public class TwoPCContractDeployment {
 
             File file = resolver.getResource(contractPath).getFile();
             AbstractClientWrapper clientWrapper = proxyContract.getConnection().getClientWrapper();
+
+            if (isWasm) {
+                DeployContractWasmHandler deployContractWasmHandler = new DeployContractWasmHandler();
+                deployContractWasmHandler.setAsyncBfsService(asyncBfsService);
+                twoPCContract.setDeployContractWasmHandler(deployContractWasmHandler);
+            } else {
+                DeployContractHandler deployContractHandler = new DeployContractHandler();
+                deployContractHandler.setAsyncBfsService(asyncBfsService);
+                twoPCContract.setDeployContractHandler(deployContractHandler);
+            }
             twoPCContract.deploy2PCContract(
                     contractName,
                     version,
@@ -136,7 +151,8 @@ public class TwoPCContractDeployment {
                     tps,
                     fromIndex,
                     toIndex,
-                    clientWrapper.getCryptoSuite());
+                    clientWrapper.getCryptoSuite(),
+                    isWasm);
 
         } catch (Exception e) {
             logger.error("e: ", e);

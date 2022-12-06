@@ -1,21 +1,23 @@
 package com.webank.wecross.stub.bcos3;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
-
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
-import java.util.Objects;
-
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import org.junit.Test;
 
+import java.util.Objects;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
+
 public class BCOSStubFactoryTest {
 
-    private BCOS3EcdsaEvmStubFactory bcosSubFactory = new BCOS3EcdsaEvmStubFactory();
-    // private BCOSGMStubFactory bcosgmStubFactory = new BCOSGMStubFactory();
+    private final BCOS3EcdsaEvmStubFactory bcosSubFactory = new BCOS3EcdsaEvmStubFactory();
+    //private final BCOS3GMEvmStubFactory bcosSubFactory = new BCOS3GMEvmStubFactory();
+    //private final BCOS3EcdsaWasmStubFactory bcosSubFactory = new BCOS3EcdsaWasmStubFactory();
+    //private final BCOS3GMWasmStubFactory bcosSubFactory = new BCOS3GMWasmStubFactory();
 
     @Test
     public void newConnectionTest() {
@@ -39,8 +41,8 @@ public class BCOSStubFactoryTest {
         assertEquals(
                 bcosAccount.getCredentials().getAddress(),
                 "0x4c9e341a015ce8200060a028ce45dfea8bf33e15");
-        assertEquals(bcosAccount.getType(), "BCOS2.0");
         assertEquals(bcosAccount.getName(), "bcos");
+        assertEquals(bcosAccount.getType(), "BCOS3_ECDSA_EVM");
     }
 
     @Test
@@ -52,10 +54,16 @@ public class BCOSStubFactoryTest {
     @Test
     public void BCOSSubFactoryTypeTest() {
         System.out.println(bcosSubFactory.getStubType());
-        assertTrue(bcosSubFactory.getStubType().equals("BCOS2.0"));
-        assertTrue(bcosSubFactory.getAlg().equals(BCOSConstant.SECP256K1));
+        assertEquals(BCOSConstant.BCOS3_ECDSA_EVM_STUB_TYPE, bcosSubFactory.getStubType());
+        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SECP256K1);
 
-        // assertTrue(bcosgmStubFactory.getStubType().equals("GM_BCOS2.0"));
-        // assertTrue(bcosgmStubFactory.getAlg().equals(BCOSConstant.SM2P256V1));
+//        assertEquals(BCOSConstant.BCOS3_GM_EVM_STUB_TYPE, bcosSubFactory.getStubType());
+//        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SM2P256V1);
+//
+//        assertEquals(BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE, bcosSubFactory.getStubType());
+//        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SECP256K1);
+//
+//        assertEquals(BCOSConstant.BCOS3_GM_WASM_STUB_TYPE, bcosSubFactory.getStubType());
+//        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SM2P256V1);
     }
 }
