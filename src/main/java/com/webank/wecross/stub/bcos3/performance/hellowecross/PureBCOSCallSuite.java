@@ -1,11 +1,12 @@
 package com.webank.wecross.stub.bcos3.performance.hellowecross;
 
 import com.webank.wecross.stub.bcos3.performance.PerformanceSuiteCallback;
-import java.util.ArrayList;
-import java.util.List;
-import org.fisco.bcos.sdk.model.TransactionReceipt;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PureBCOSCallSuite extends PureBCOSSuite {
 

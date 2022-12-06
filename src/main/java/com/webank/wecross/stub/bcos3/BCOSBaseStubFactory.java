@@ -5,10 +5,11 @@ import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
 import com.webank.wecross.stub.StubFactory;
 import com.webank.wecross.stub.WeCrossContext;
-import com.webank.wecross.stub.bcos.custom.DeployContractHandler;
 import com.webank.wecross.stub.bcos3.account.BCOSAccountFactory;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.custom.CommandHandlerDispatcher;
+import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
+import com.webank.wecross.stub.bcos3.custom.DeployContractWasmHandler;
 import com.webank.wecross.stub.bcos3.custom.LinkBfsHandler;
 import com.webank.wecross.stub.bcos3.preparation.HubContractDeployment;
 import com.webank.wecross.stub.bcos3.preparation.ProxyContractDeployment;
@@ -73,7 +74,7 @@ public class BCOSBaseStubFactory implements StubFactory {
     public Driver newDriver() {
         logger.info("New driver type:{}", this.cryptoSuite.getCryptoTypeConfig());
 
-        /** Initializes the cns service */
+        /** Initializes the bfs service */
         AsyncBfsService asyncBfsService = new AsyncBfsService();
 
         /** Initializes the custom command dispatcher */
@@ -83,11 +84,16 @@ public class BCOSBaseStubFactory implements StubFactory {
         DeployContractHandler deployContractHandler = new DeployContractHandler();
         deployContractHandler.setAsyncBfsService(asyncBfsService);
 
+        DeployContractWasmHandler deployContractWasmHandler = new DeployContractWasmHandler();
+        deployContractWasmHandler.setAsyncBfsService(asyncBfsService);
+
         CommandHandlerDispatcher commandHandlerDispatcher = new CommandHandlerDispatcher();
         commandHandlerDispatcher.registerCommandHandler(
                 BCOSConstant.CUSTOM_COMMAND_REGISTER, linkBfsHandler);
         commandHandlerDispatcher.registerCommandHandler(
                 BCOSConstant.CUSTOM_COMMAND_DEPLOY, deployContractHandler);
+        commandHandlerDispatcher.registerCommandHandler(
+                BCOSConstant.CUSTOM_COMMAND_DEPLOY_WASM, deployContractWasmHandler);
 
         /** Initializes the bcos driver */
         BCOSDriver driver = new BCOSDriver(this.cryptoSuite, isWASMStub());

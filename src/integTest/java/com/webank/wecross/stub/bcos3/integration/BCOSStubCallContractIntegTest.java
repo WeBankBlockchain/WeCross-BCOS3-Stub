@@ -13,8 +13,6 @@ import com.webank.wecross.stub.TransactionException;
 import com.webank.wecross.stub.TransactionRequest;
 import com.webank.wecross.stub.TransactionResponse;
 
-import com.webank.wecross.stub.bcos.custom.DeployContractHandler;
-
 import com.webank.wecross.stub.bcos3.AsyncBfsService;
 import com.webank.wecross.stub.bcos3.AsyncToSync;
 import com.webank.wecross.stub.bcos3.BCOSBaseStubFactory;
@@ -29,8 +27,9 @@ import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import com.webank.wecross.stub.bcos3.common.BCOSStubException;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
-import com.webank.wecross.stub.bcos3.integration.ConnectionEventHandlerImplMock;
-import com.webank.wecross.stub.bcos3.integration.HelloWorld;
+import com.webank.wecross.stub.bcos3.custom.CommandHandler;
+import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
+import com.webank.wecross.stub.bcos3.custom.DeployContractWasmHandler;
 import com.webank.wecross.stub.bcos3.preparation.ProxyContract;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ContractCodecJsonWrapper;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
@@ -69,6 +68,7 @@ public class BCOSStubCallContractIntegTest {
     private Connection connection = null;
     private ResourceInfo resourceInfo = null;
     private BlockManager blockManager = null;
+    private boolean isWasm;
     private ConnectionEventHandlerImplMock connectionEventHandlerImplMock = new ConnectionEventHandlerImplMock();
 
     private CryptoSuite cryptoSuite = null;
@@ -160,6 +160,9 @@ public class BCOSStubCallContractIntegTest {
         blockManager = new ClientBlockManager(clientWrapper);
         asyncBfsService = ((BCOSDriver) driver).getAsyncBfsService();
         cryptoSuite = clientWrapper.getCryptoSuite();
+        isWasm = bcosStubConfig.isWASMStub();
+        logger.info(" === >> initial type is is Wasm:  {}", isWasm);
+
 
         helloWeCross =
                 HelloWorld
@@ -192,7 +195,7 @@ public class BCOSStubCallContractIntegTest {
 
         ProxyContract proxyContract = new ProxyContract();
         proxyContract.setAccount((BCOSAccount) account);
-        proxyContract.setConnection((BCOSConnection) connection);
+        proxyContract.setConnection((BCOSConnection)connection);
         BFSInfo bfsInfo = proxyContract.deployContractAndLinkBFS(file, "WeCrossProxy", "WeCrossProxy");
         connection.getProperties().put(BCOSConstant.BCOS_PROXY_NAME, bfsInfo.getAddress());
         connection.getProperties().put(BCOSConstant.BCOS_PROXY_ABI, bfsInfo.getAbi());
@@ -493,8 +496,14 @@ public class BCOSStubCallContractIntegTest {
 
         AsyncToSync asyncToSync = new AsyncToSync();
 
-        DeployContractHandler commandHandler = new DeployContractHandler();
-        commandHandler.setAsyncCnsService(asyncBfsService);
+        CommandHandler commandHandler;
+        if (isWasm) {
+            commandHandler = new DeployContractWasmHandler();
+            ((DeployContractWasmHandler)commandHandler).setAsyncBfsService(asyncBfsService);
+        } else {
+            commandHandler = new DeployContractHandler();
+            ((DeployContractHandler)commandHandler).setAsyncBfsService(asyncBfsService);
+        }
 
         commandHandler.handle(Path.decode("a.b.HelloWorld"),
                 args,
@@ -536,7 +545,7 @@ public class BCOSStubCallContractIntegTest {
         AsyncToSync asyncToSync = new AsyncToSync();
 
         DeployContractHandler commandHandler = new DeployContractHandler();
-        commandHandler.setAsyncCnsService(asyncBfsService);
+        commandHandler.setAsyncBfsService(asyncBfsService);
 
         commandHandler.handle(Path.decode("a.b.TupleTest"), args, account, blockManager, connection, (error, response) -> {
             assertNull(error);
@@ -562,7 +571,7 @@ public class BCOSStubCallContractIntegTest {
     }
 
     @Test
-    public void cnsServiceLoopTest() throws Exception {
+    public void bfsServiceLoopTest() throws Exception {
         PathMatchingResourcePatternResolver resolver =
                 new PathMatchingResourcePatternResolver();
         String path =
@@ -575,7 +584,7 @@ public class BCOSStubCallContractIntegTest {
         contractBytes = Files.readAllBytes(file.toPath());
 
         DeployContractHandler commandHandler = new DeployContractHandler();
-        commandHandler.setAsyncCnsService(asyncBfsService);
+        commandHandler.setAsyncBfsService(asyncBfsService);
 
         for (int i = 0; i < 3; i++) {
             String constructorParams = "constructor params";

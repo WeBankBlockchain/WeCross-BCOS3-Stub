@@ -1,11 +1,12 @@
 package com.webank.wecross.stub.bcos3.performance.hellowecross.proxy;
 
 import com.webank.wecross.stub.bcos3.performance.PerformanceManager;
-import java.math.BigInteger;
-import java.util.Objects;
-import org.fisco.bcos.sdk.contract.precompiled.cns.CnsInfo;
+import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.math.BigInteger;
+import java.util.Objects;
 
 public class PerformanceTest {
 
@@ -17,11 +18,11 @@ public class PerformanceTest {
         System.err.println(
                 " \t java -cp conf/:lib/*:plugin/* "
                         + PerformanceTest.class.getName()
-                        + " [chainName] [accountName] [contractName] call [count] [qps] [enableGM]");
+                        + " [chainName] [accountName] [contractName] call [count] [qps] [enableGM] [isWasm]");
         System.err.println(
                 " \t java -cp conf/:lib/*:plugin/* "
                         + PerformanceTest.class.getName()
-                        + " [chainName] [accountName] [contractName] sendTransaction [count] [qps] [enableGM]");
+                        + " [chainName] [accountName] [contractName] sendTransaction [count] [qps] [enableGM] [isWasm]");
         System.err.println("Example:");
         System.err.println(
                 " \t java -cp conf/:lib/*:plugin/* "
@@ -36,7 +37,7 @@ public class PerformanceTest {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 6) {
+        if (args.length < 7) {
             usage();
         }
 
@@ -47,7 +48,8 @@ public class PerformanceTest {
         BigInteger count = new BigInteger(args[4]);
         BigInteger qps = new BigInteger(args[5]);
         boolean sm = false;
-        if (args.length > 6) {
+        boolean isWasm = Boolean.parseBoolean(args[7]);
+        if (args.length > 7) {
             sm = Boolean.valueOf(args[6]);
         }
 
@@ -66,24 +68,24 @@ public class PerformanceTest {
                         + ", qps: "
                         + qps
                         + ", enableGM: "
-                        + sm);
+                        + sm
+                        + ", isWasm: "
+                        + isWasm);
 
         try {
             PureBCOSProxySuite suite =
-                    command.equals("sendTransaction")
+                    "sendTransaction".equals(command)
                             ? new PureBCOSProxySendTransactionSuite(
-                                    contractName, chainName, accountName, sm)
+                                    contractName, chainName, accountName, sm, isWasm)
                             : new PureBCOSProxyCallSuite(contractName, chainName, accountName, sm);
-            CnsInfo cnsInfo = suite.getCnsInfo();
-            if (Objects.isNull(cnsInfo)) {
+            BFSInfo bfsInfo = suite.getBfsInfo();
+            if (Objects.isNull(bfsInfo)) {
                 System.err.println(" ## Error: unable to fetch proxy contract address. ");
                 System.exit(0);
             }
             System.err.println(
                     " ## Proxy contract address: "
-                            + cnsInfo.getAddress()
-                            + " ,version: "
-                            + cnsInfo.getVersion());
+                            + bfsInfo.getAddress());
 
             PerformanceManager performanceManager = new PerformanceManager(suite, count, qps);
             performanceManager.run();
