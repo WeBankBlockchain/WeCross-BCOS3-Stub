@@ -6,6 +6,7 @@ import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import com.webank.wecross.stub.bcos3.common.BCOSStubException;
 import com.webank.wecross.stub.bcos3.protocol.response.TransactionProof;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.utils.MerkleProofUtility;
 
 import java.util.Objects;
@@ -14,19 +15,19 @@ public class MerkleValidation {
 
     /**
      * @param hash transaction hash
-     * @param transactionProof
+     * @param transactionReceipt
      * @throws BCOSStubException
      */
     public static void verifyTransactionReceiptProof(
             String hash,
             BlockHeader blockHeader,
-            TransactionProof transactionProof,
+            TransactionReceipt transactionReceipt,
             CryptoSuite cryptoSuite)
             throws BCOSStubException {
 
-        // verify transaction
+        // verify transaction todo receiptHash待确认
         if (!MerkleProofUtility.verifyTransactionReceipt(
-                blockHeader.getReceiptRoot(), transactionProof.getReceiptWithProof(), cryptoSuite)) {
+                blockHeader.getReceiptRoot(), transactionReceipt, cryptoSuite)) {
             throw new BCOSStubException(
                     BCOSStatusCode.TransactionReceiptProofVerifyFailed,
                     BCOSStatusCode.getStatusMessage(
@@ -36,9 +37,10 @@ public class MerkleValidation {
         }
 
         // verify transaction
-        if (!MerkleProofUtility.verifyTransaction(
+        if (!MerkleProofUtility.verifyMerkle(
                 blockHeader.getTransactionRoot(),
-                transactionProof.getTransWithProof(),
+                transactionReceipt.getTransactionProof(),
+                transactionReceipt.getTransactionHash(),
                 cryptoSuite)) {
             throw new BCOSStubException(
                     BCOSStatusCode.TransactionProofVerifyFailed,
