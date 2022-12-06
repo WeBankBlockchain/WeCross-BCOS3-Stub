@@ -47,13 +47,13 @@ public class TransactionProofTest {
         assertTrue(
                 Objects.nonNull(transactionProof.toString())
                         && !transactionProof.toString().isEmpty());
-        assertTrue(Objects.nonNull(transactionProof.getReceiptAndProof()));
+        assertTrue(Objects.nonNull(transactionProof.getReceiptWithProof()));
         assertEquals(
-                transactionProof.getReceiptAndProof().getTransactionHash(),
+                transactionProof.getReceiptWithProof().getTransactionHash(),
                 "0x633a3386a189455354c058af6606d705697f3b216ad555958dc680f68cc4e99d");
-        assertTrue(Objects.nonNull(transactionProof.getTransAndProof()));
+        assertTrue(Objects.nonNull(transactionProof.getTransWithProof()));
         assertEquals(
-                transactionProof.getTransAndProof().getHash(),
+                transactionProof.getTransWithProof().getHash(),
                 "0x633a3386a189455354c058af6606d705697f3b216ad555958dc680f68cc4e99d");
     }
 }
