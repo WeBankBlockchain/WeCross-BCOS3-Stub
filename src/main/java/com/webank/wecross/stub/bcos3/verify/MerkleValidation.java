@@ -25,7 +25,7 @@ public class MerkleValidation {
             CryptoSuite cryptoSuite)
             throws BCOSStubException {
 
-        // verify transaction todo receiptHash待确认
+        // verify transaction
         if (!MerkleProofUtility.verifyTransactionReceipt(
                 blockHeader.getReceiptRoot(), transactionReceipt, cryptoSuite)) {
             throw new BCOSStubException(
