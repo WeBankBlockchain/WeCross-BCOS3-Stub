@@ -8,8 +8,7 @@ import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
 public class ClientWrapperWithNullMock extends ClientWrapperImplMock {
 
     @Override
-    public TransactionReceipt getTransactionReceiptByHashWithProof(
-            String transactionHash) {
+    public TransactionReceipt getTransactionReceiptByHashWithProof(String transactionHash) {
         return new TransactionReceipt();
     }
 

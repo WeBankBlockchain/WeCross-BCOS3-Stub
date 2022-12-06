@@ -10,7 +10,7 @@ public class ClientWrapperCallNotSucStatus extends ClientWrapperImplMock {
         Call.CallOutput callOutput = new Call.CallOutput();
         callOutput.setBlockNumber(4369L);
         callOutput.setStatus(TransactionReceiptStatus.RevertInstruction.getCode());
-        callOutput.setOutput(Hex.toHexString(data).substring(10));
+        callOutput.setOutput(Hex.toHexString(data).substring(8));
         return callOutput;
     }
 }

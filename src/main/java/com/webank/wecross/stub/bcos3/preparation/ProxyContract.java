@@ -5,12 +5,25 @@ import com.webank.wecross.stub.bcos3.BCOSConnection;
 import com.webank.wecross.stub.bcos3.BCOSConnectionFactory;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
 import com.webank.wecross.stub.bcos3.client.AbstractClientWrapper;
-import com.webank.wecross.stub.bcos3.client.ClientWrapperFactory;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.StatusCode;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
 import com.webank.wecross.stub.bcos3.contract.SignTransaction;
+
+import org.fisco.bcos.sdk.v3.client.Client;
+import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
+import org.fisco.bcos.sdk.v3.model.CryptoType;
+import org.fisco.bcos.sdk.v3.model.PrecompiledRetCode;
+import org.fisco.bcos.sdk.v3.model.RetCode;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
+import org.fisco.bcos.sdk.v3.transaction.codec.encode.TransactionEncoderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+
 import java.io.File;
 import java.math.BigInteger;
 import java.util.Objects;
@@ -18,24 +31,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import org.fisco.bcos.sdk.client.Client;
-import org.fisco.bcos.sdk.contract.precompiled.cns.CnsInfo;
-import org.fisco.bcos.sdk.contract.precompiled.cns.CnsService;
-import org.fisco.bcos.sdk.crypto.keypair.CryptoKeyPair;
-import org.fisco.bcos.sdk.model.CryptoType;
-import org.fisco.bcos.sdk.model.PrecompiledRetCode;
-import org.fisco.bcos.sdk.model.RetCode;
-import org.fisco.bcos.sdk.model.TransactionReceipt;
-import org.fisco.bcos.sdk.model.callback.TransactionCallback;
-import org.fisco.bcos.sdk.transaction.codec.encode.TransactionEncoderService;
-import org.fisco.bcos.sdk.transaction.model.po.RawTransaction;
-import org.fisco.bcos.sdk.v3.model.CryptoType;
-import org.fisco.solc.compiler.CompilationResult;
-import org.fisco.solc.compiler.SolidityCompiler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 public class ProxyContract {
 
@@ -56,13 +51,11 @@ public class ProxyContract {
         BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
 
         boolean isGMStub = bcosStubConfig.isGMStub();
-        AbstractClientWrapper clientWrapper =
-                ClientWrapperFactory.createClientWrapperInstance(bcosStubConfig);
-
+        int cryptoType = isGMStub ? CryptoType.SM_TYPE : CryptoType.ECDSA_TYPE;
+        String alg = isGMStub ? BCOSConstant.SM2P256V1 : BCOSConstant.SECP256K1;
+        String stubType = bcosStubConfig.getType();
         BCOSBaseStubFactory bcosBaseStubFactory =
-                isGMStub
-                        ? new BCOSBaseStubFactory(CryptoType.SM_TYPE, BCOSConstant.SM2P256V1, "GM_BCOS2.0")
-                        : new BCOSBaseStubFactory(CryptoType.ECDSA_TYPE, BCOSConstant.SECP256K1, "BCOS2.0");
+                new BCOSBaseStubFactory(cryptoType, alg, stubType);
 
         account =
                 (BCOSAccount)
@@ -101,7 +94,8 @@ public class ProxyContract {
         }
     }
 
-    public ProxyContract() {}
+    public ProxyContract() {
+    }
 
     public BCOSAccount getAccount() {
         return account;

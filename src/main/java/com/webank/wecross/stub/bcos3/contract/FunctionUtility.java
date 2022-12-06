@@ -1,5 +1,6 @@
 package com.webank.wecross.stub.bcos3.contract;
 
+import org.fisco.bcos.sdk.v3.codec.FunctionEncoderInterface;
 import org.fisco.bcos.sdk.v3.codec.Utils;
 import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
 import org.fisco.bcos.sdk.v3.codec.abi.FunctionReturnDecoder;
@@ -139,7 +140,7 @@ public class FunctionUtility {
      * @return
      */
     public static Function newConstantCallProxyFunction(
-            FunctionEncoder functionEncoder, String name, String methodSignature, String abi) {
+            FunctionEncoderInterface functionEncoder, String name, String methodSignature, String abi) {
         String methodId = functionEncoder.buildMethodId(methodSignature).toString();
         Function function =
                 new Function(
@@ -161,7 +162,7 @@ public class FunctionUtility {
      * @return
      */
     public static Function newConstantCallProxyFunction(
-            FunctionEncoder functionEncoder, String name, String methodSignature, byte[] abi)
+            FunctionEncoderInterface functionEncoder, String name, String methodSignature, byte[] abi)
             throws IOException {
         byte[] methodId = functionEncoder.buildMethodId(methodSignature);
         ByteArrayOutputStream params = new ByteArrayOutputStream();
@@ -242,7 +243,7 @@ public class FunctionUtility {
      * @return
      */
     public static Function newSendTransactionProxyFunction(
-            FunctionEncoder functionEncoder,
+            FunctionEncoderInterface functionEncoder,
             String uid,
             String name,
             String methodSignature,
@@ -270,7 +271,7 @@ public class FunctionUtility {
      * @return
      */
     public static Function newSendTransactionProxyFunction(
-            FunctionEncoder functionEncoder,
+            FunctionEncoderInterface functionEncoder,
             String uid,
             String name,
             String methodSignature,

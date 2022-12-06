@@ -406,8 +406,8 @@ public class BCOSConnection implements Connection {
             logger.debug(
                     " getTransactionProof, tx hash: {}, transAndProof: {}, receiptAndProof: {}",
                     txHash,
-                    transactionProof.getTransAndProof(),
-                    transactionProof.getReceiptAndProof());
+                    transactionProof.getTransWithProof(),
+                    transactionProof.getReceiptWithProof());
             callback.onResponse(response);
         } catch (UnsupportedOperationException e) {
             response.setErrorCode(BCOSStatusCode.UnsupportedRPC);

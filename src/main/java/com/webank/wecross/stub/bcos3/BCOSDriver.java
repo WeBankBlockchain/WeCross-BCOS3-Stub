@@ -38,7 +38,7 @@ import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.response.Call;
-import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
+import org.fisco.bcos.sdk.v3.codec.FunctionEncoderInterface;
 import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple2;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple3;
@@ -76,24 +76,26 @@ public class BCOSDriver implements Driver {
 
     private final ObjectMapper objectMapper = ObjectMapperFactory.getObjectMapper();
 
+    private AsyncBfsService asyncBfsService;
     private CommandHandlerDispatcher commandHandlerDispatcher;
 
-    private AsyncBfsService asyncBfsService;
-    private ContractCodecJsonWrapper contractCodecJsonWrapper = new ContractCodecJsonWrapper();
-
+    private final ContractCodecJsonWrapper contractCodecJsonWrapper;
     private final CryptoSuite cryptoSuite;
-    private final ABIDefinitionFactory abiDefinitionFactory;
-    private final FunctionEncoder functionEncoder;
-    private final Signer signer;
     private final boolean isWasm;
+    private final ABIDefinitionFactory abiDefinitionFactory;
+    private final Signer signer;
+    private final FunctionEncoderInterface functionEncoder;
 
     public BCOSDriver(CryptoSuite cryptoSuite, boolean isWasm) {
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        this.contractCodecJsonWrapper = new ContractCodecJsonWrapper();
         this.cryptoSuite = cryptoSuite;
         this.isWasm = isWasm;
         this.abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
-        this.functionEncoder = new FunctionEncoder(cryptoSuite);
         this.signer = Signer.newSigner(cryptoSuite.getCryptoTypeConfig());
+        this.functionEncoder = (isWasm ?
+                new org.fisco.bcos.sdk.v3.codec.scale.FunctionEncoder(cryptoSuite)
+                : new org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder(cryptoSuite));
     }
 
 
@@ -302,8 +304,7 @@ public class BCOSDriver implements Driver {
 
                             if (abi == null) {
                                 throw new BCOSStubException(
-                                        BCOSStatusCode.ABINotExist,
-                                        "resource:" + name + " not exist");
+                                        BCOSStatusCode.ABINotExist, "resource:" + name + " not exist");
                             }
 
                             // encode
@@ -316,13 +317,10 @@ public class BCOSDriver implements Driver {
                                     contractABIDefinition.getFunctions().get(method);
                             if (Objects.isNull(functions) || functions.isEmpty()) {
                                 throw new BCOSStubException(
-                                        BCOSStatusCode.MethodNotExist,
-                                        "Method not found in abi, method: " + method);
+                                        BCOSStatusCode.MethodNotExist, "Method not found in abi, method: " + method);
                             }
 
-                            // Overloading is not supported ???
-                            ABIObject inputObj =
-                                    ABIObjectFactory.createInputObject(functions.get(0));
+                            ABIObject inputObj = ABIObjectFactory.createInputObject(functions.get(0));
 
                             byte[] encodedArgs = null;
                             if (!Objects.isNull(args)) {
@@ -594,8 +592,7 @@ public class BCOSDriver implements Driver {
                                 contractABIDefinition.getFunctions().get(method);
                         if (Objects.isNull(functions) || functions.isEmpty()) {
                             throw new BCOSStubException(
-                                    BCOSStatusCode.MethodNotExist,
-                                    "Method not found in abi, method: " + method);
+                                    BCOSStatusCode.MethodNotExist, "Method not found in abi, method: " + method);
                         }
 
                         ABIObject inputObj = ABIObjectFactory.createInputObject(functions.get(0));
@@ -755,7 +752,6 @@ public class BCOSDriver implements Driver {
                                             ABIObject outputObj =
                                                     ABIObjectFactory.createOutputObject(
                                                             functions.get(0));
-                                            // TODO: isWasm
                                             transactionResponse.setResult(
                                                     contractCodecJsonWrapper
                                                             .decode(
@@ -918,7 +914,7 @@ public class BCOSDriver implements Driver {
                     }
 
                     if (blockNumber
-                            != Numeric.decodeQuantity(proof.getReceiptAndProof().getBlockNumber())
+                            != Numeric.decodeQuantity(proof.getReceiptWithProof().getBlockNumber())
                             .longValue()) {
                         callback.onResponse(
                                 new Exception("Transaction hash does not match the block number"),
@@ -926,8 +922,8 @@ public class BCOSDriver implements Driver {
                         return;
                     }
 
-                    TransactionReceipt transactionReceipt = proof.getReceiptAndProof();
-                    JsonTransactionResponse transaction = proof.getTransAndProof();
+                    TransactionReceipt transactionReceipt = proof.getReceiptWithProof();
+                    JsonTransactionResponse transaction = proof.getTransWithProof();
 
                     if (isVerified) {
                         MerkleValidation.verifyTransactionProof(
@@ -1277,13 +1273,5 @@ public class BCOSDriver implements Driver {
 
     public void setAsyncBfsService(AsyncBfsService asyncBfsService) {
         this.asyncBfsService = asyncBfsService;
-    }
-
-    public ContractCodecJsonWrapper getContractCodecJsonWrapper() {
-        return contractCodecJsonWrapper;
-    }
-
-    public void setContractCodecJsonWrapper(ContractCodecJsonWrapper contractCodecJsonWrapper) {
-        this.contractCodecJsonWrapper = contractCodecJsonWrapper;
     }
 }

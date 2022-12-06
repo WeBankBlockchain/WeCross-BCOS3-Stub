@@ -230,7 +230,7 @@ public class BCOSBaseStubFactory implements StubFactory {
                             + "'\n"
                             + "    type = '"
                             + getStubType()
-                            + "' # BCOS3.0 or GM_BCOS3.0\n"
+                            + "' # BCOS3_ECDSA_EVM、BCOS3_ECDSA_WASM、BCOS3_GM_EVM、BCOS3_GM_WASM\n"
                             + "\n"
                             + "[chain]\n"
                             + "    groupId = 'group0' # default group0\n"
@@ -240,15 +240,12 @@ public class BCOSBaseStubFactory implements StubFactory {
                             + "    caCert = 'ca.crt'\n"
                             + "    sslCert = 'sdk.crt'\n"
                             + "    sslKey = 'sdk.key'\n"
-                            + (("BCOS3.0".equals(getStubType()))
-                            ? "    gmConnectEnable = false\n"
-                            : "    gmConnectEnable = true\n")
-                            + "    gmCaCert = 'gm/gmca.crt'\n"
-                            + "    gmSslCert = 'gm/gmsdk.crt'\n"
-                            + "    gmSslKey = 'gm/gmsdk.key'\n"
-                            + "    gmEnSslCert = 'gm/gmensdk.crt'\n"
-                            + "    gmEnSslKey = 'gm/gmensdk.key'\n"
-                            + "    timeout = 300000  # ms, default 60000ms\n"
+                            + "    gmCaCert = 'sm_ca.crt'\n"
+                            + "    gmSslCert = 'sm_sdk.crt'\n"
+                            + "    gmSslKey = 'sm_sdk.key'\n"
+                            + "    gmEnSslCert = 'sm_ensdk.crt'\n"
+                            + "    gmEnSslKey = 'sm_ensdk.key'\n"
+                            + "    messageTimeout = 300000  # ms, default 60000ms\n"
                             + "    connectionsStr = ['127.0.0.1:20200']\n"
                             + "\n";
             String confFilePath = path + "/stub.toml";
