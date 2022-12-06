@@ -3,11 +3,12 @@ package com.webank.wecross.stub.bcos3.config;
 import com.moandjiezana.toml.Toml;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSToml;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BCOSAccountConfigParser extends AbstractBCOSConfigParser {
 
@@ -36,7 +37,10 @@ public class BCOSAccountConfigParser extends AbstractBCOSConfigParser {
 
         String type = (String) accountValue.get("type");
         requireFieldNotNull(accountFile, "account", "type", getConfigPath());
-        if (!type.equals(BCOSConstant.BCOS_ACCOUNT) && !type.equals(BCOSConstant.BCOS_SM_ACCOUNT)) {
+        if (!type.equals(BCOSConstant.BCOS3_ECDSA_EVM_STUB_TYPE)
+                && !type.equals(BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE)
+                && !type.equals(BCOSConstant.BCOS3_GM_EVM_STUB_TYPE)
+                && !type.equals(BCOSConstant.BCOS3_GM_WASM_STUB_TYPE)) {
             throw new InvalidParameterException(" unrecognized type: " + type);
         }
 
