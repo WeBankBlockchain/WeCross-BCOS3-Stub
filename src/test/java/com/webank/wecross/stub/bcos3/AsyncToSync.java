@@ -20,4 +20,4 @@ public class AsyncToSync {
     }
 
     public Semaphore semaphore = new Semaphore(1, true);
-};
+}

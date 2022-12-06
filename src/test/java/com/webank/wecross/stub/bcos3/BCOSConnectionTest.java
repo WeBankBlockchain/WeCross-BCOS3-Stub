@@ -21,7 +21,6 @@ import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
 import com.webank.wecross.stub.bcos3.contract.BlockUtility;
 import com.webank.wecross.stub.bcos3.contract.FunctionUtility;
-import com.webank.wecross.stub.bcos3.contract.SignTransaction;
 import com.webank.wecross.stub.bcos3.protocol.request.TransactionParams;
 import org.fisco.bcos.sdk.jni.common.JniException;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;

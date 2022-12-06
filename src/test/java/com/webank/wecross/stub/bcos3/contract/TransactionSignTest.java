@@ -2,14 +2,8 @@ package com.webank.wecross.stub.bcos3.contract;
 
 import static junit.framework.TestCase.assertEquals;
 
-import com.webank.wecross.stub.bcos3.common.ExtendedTransactionDecoder;
 import java.io.IOException;
-import java.math.BigInteger;
 
-import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
-import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
-import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
-import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.junit.Test;
 
 public class TransactionSignTest {
