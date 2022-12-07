@@ -2,9 +2,6 @@ package com.webank.wecross.stub.bcos3.client;
 
 import com.webank.wecross.exception.WeCrossException;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import org.fisco.bcos.sdk.v3.BcosSDK;
 import org.fisco.bcos.sdk.v3.client.Client;
 import org.fisco.bcos.sdk.v3.config.ConfigOption;
@@ -13,6 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ClientUtility {
 
@@ -30,7 +31,7 @@ public class ClientUtility {
         Map<String, Object> network = new HashMap<>();
         network.put("peers", channelServiceConfig.getConnectionsStr());
         network.put("defaultGroup", ClientDefaultConfig.DEFAULT_GROUP_ID);
-        network.put("messageTimeout", channelServiceConfig.getMessageTimeout());
+        network.put("messageTimeout", String.valueOf(channelServiceConfig.getMessageTimeout()));
 
         // threadPool
         Map<String, Object> threadPool = new HashMap<>();
@@ -55,8 +56,8 @@ public class ClientUtility {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         BCOSStubConfig.ChannelService channelServiceConfig = bcosStubConfig.getChannelService();
         Map<String, Object> cryptoMaterial = new HashMap<>();
-        cryptoMaterial.put("useSMCrypto", bcosStubConfig.isGMStub());
-        cryptoMaterial.put("disableSsl", channelServiceConfig.isDisableSsl());
+        cryptoMaterial.put("useSMCrypto", String.valueOf(bcosStubConfig.isGMStub()));
+        cryptoMaterial.put("disableSsl", String.valueOf(channelServiceConfig.isDisableSsl()));
         if (channelServiceConfig.isDisableSsl()) {
             return cryptoMaterial;
         }
