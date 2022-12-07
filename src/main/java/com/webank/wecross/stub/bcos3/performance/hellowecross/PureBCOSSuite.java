@@ -5,6 +5,7 @@ import com.webank.wecross.stub.bcos3.BCOS3GMEvmStubFactory;
 import com.webank.wecross.stub.bcos3.BCOSBaseStubFactory;
 import com.webank.wecross.stub.bcos3.BCOSConnection;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
+import com.webank.wecross.stub.bcos3.client.AbstractClientWrapper;
 import com.webank.wecross.stub.bcos3.performance.PerformanceSuite;
 import org.fisco.bcos.sdk.v3.client.Client;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
@@ -22,6 +23,7 @@ public abstract class PureBCOSSuite implements PerformanceSuite {
     private Client client;
     private CryptoKeyPair credentials;
     private CryptoSuite cryptoSuite;
+    private AbstractClientWrapper abstractClientWrapper;
 
     public Client getClient() {
         return client;
@@ -43,6 +45,14 @@ public abstract class PureBCOSSuite implements PerformanceSuite {
         return cryptoSuite;
     }
 
+    public AbstractClientWrapper getAbstractClientWrapper() {
+        return abstractClientWrapper;
+    }
+
+    public void setAbstractClientWrapper(AbstractClientWrapper abstractClientWrapper) {
+        this.abstractClientWrapper = abstractClientWrapper;
+    }
+
     public PureBCOSSuite(String chainName, String accountName, boolean sm) {
 
         logger.info(" chain: {}, account: {}, enableGM: {}", chainName, accountName, sm);
@@ -51,6 +61,7 @@ public abstract class PureBCOSSuite implements PerformanceSuite {
         BCOSConnection connection =
                 (BCOSConnection) stubFactory.newConnection("classpath:/" + chainName);
 
+        this.abstractClientWrapper = connection.getClientWrapper();
         this.client = connection.getClientWrapper().getClient();
         this.cryptoSuite = new CryptoSuite(sm ? CryptoType.SM_TYPE : CryptoType.ECDSA_TYPE);
 
