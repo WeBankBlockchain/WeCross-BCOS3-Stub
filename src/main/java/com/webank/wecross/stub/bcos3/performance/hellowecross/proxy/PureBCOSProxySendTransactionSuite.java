@@ -1,17 +1,18 @@
 package com.webank.wecross.stub.bcos3.performance.hellowecross.proxy;
 
 import com.webank.wecross.stub.bcos3.performance.PerformanceSuiteCallback;
+import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
+import org.fisco.bcos.sdk.v3.codec.wrapper.ABIObject;
+import org.fisco.bcos.sdk.v3.codec.wrapper.ABIObjectFactory;
+import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
+import org.fisco.bcos.sdk.v3.utils.ByteUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import org.fisco.bcos.sdk.abi.wrapper.ABIDefinition;
-import org.fisco.bcos.sdk.abi.wrapper.ABIObject;
-import org.fisco.bcos.sdk.abi.wrapper.ABIObjectFactory;
-import org.fisco.bcos.sdk.model.TransactionReceipt;
-import org.fisco.bcos.sdk.model.callback.TransactionCallback;
-import org.fisco.bcos.sdk.utils.Numeric;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PureBCOSProxySendTransactionSuite extends PureBCOSProxySuite {
     private static final Logger logger =
@@ -20,12 +21,12 @@ public class PureBCOSProxySendTransactionSuite extends PureBCOSProxySuite {
     private List<String> ss = Arrays.asList("[\"HelloWorld" + System.currentTimeMillis() + "\"]");
 
     private ABIDefinition abiDefinition;
-    private String methodId;
+    private byte[] methodId;
     private ABIObject inputObject;
-    private String abi;
+    private byte[] abi;
 
     public PureBCOSProxySendTransactionSuite(
-            String resourceOrAddress, String chainName, String accountName, boolean sm)
+            String resourceOrAddress, String chainName, String accountName, boolean sm, boolean isWasm)
             throws Exception {
         super(chainName, accountName, sm, resourceOrAddress);
         logger.info(" ===>>> resourceOrAddress : {}, value: {}", resourceOrAddress, ss.get(0));
@@ -33,7 +34,7 @@ public class PureBCOSProxySendTransactionSuite extends PureBCOSProxySuite {
         this.abiDefinition = getContractABIDefinition().getFunctions().get("set").get(0);
         this.methodId = abiDefinition.getMethodId(this.getCryptoSuite());
         this.inputObject = ABIObjectFactory.createInputObject(abiDefinition);
-        this.abi = getAbiCodecJsonWrapper().encode(inputObject, ss).encode();
+        this.abi = getAbiCodecJsonWrapper().encode(inputObject, ss).encode(isWasm);
     }
 
     @Override
@@ -48,7 +49,7 @@ public class PureBCOSProxySendTransactionSuite extends PureBCOSProxySuite {
                     .sendTransaction(
                             UUID.randomUUID().toString(),
                             getContractName(),
-                            Numeric.hexStringToByteArray(methodId + abi),
+                            ByteUtils.merge(methodId, abi),
                             new TransactionCallback() {
                                 @Override
                                 public void onResponse(TransactionReceipt receipt) {

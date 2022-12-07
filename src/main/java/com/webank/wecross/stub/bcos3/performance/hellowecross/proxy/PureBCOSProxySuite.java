@@ -2,47 +2,49 @@ package com.webank.wecross.stub.bcos3.performance.hellowecross.proxy;
 
 import com.webank.wecross.stub.bcos3.performance.hellowecross.HelloWeCross;
 import com.webank.wecross.stub.bcos3.performance.hellowecross.PureBCOSSuite;
-import java.util.Objects;
-import org.fisco.bcos.sdk.abi.wrapper.ABICodecJsonWrapper;
-import org.fisco.bcos.sdk.abi.wrapper.ABIDefinitionFactory;
-import org.fisco.bcos.sdk.abi.wrapper.ContractABIDefinition;
-import org.fisco.bcos.sdk.contract.precompiled.cns.CnsInfo;
+import com.webank.wecross.stub.bcos3.preparation.BfsServiceWrapper;
+import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinitionFactory;
+import org.fisco.bcos.sdk.v3.codec.wrapper.ContractABIDefinition;
+import org.fisco.bcos.sdk.v3.codec.wrapper.ContractCodecJsonWrapper;
+import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 public abstract class PureBCOSProxySuite extends PureBCOSSuite {
 
     private static Logger logger = LoggerFactory.getLogger(PureBCOSProxySuite.class);
 
-    private CnsInfo cnsInfo;
+    private BFSInfo bfsInfo;
     private ContractABIDefinition contractABIDefinition;
-    private ABICodecJsonWrapper abiCodecJsonWrapper;
+    private ContractCodecJsonWrapper contractCodecJsonWrapper;
     private WeCrossProxy weCrossProxy;
     private String contractName;
 
-    public PureBCOSProxySuite(String chainName, String accountName, boolean sm, String contractName)
-            throws Exception {
+    public PureBCOSProxySuite(String chainName, String accountName, boolean sm, String contractName) {
         super(chainName, accountName, sm);
-        this.cnsInfo = CnsService.queryProxyCnsInfo(new ClientWrapperImplV26(getClient()));
-        this.abiCodecJsonWrapper = new ABICodecJsonWrapper();
+
+        this.bfsInfo = BfsServiceWrapper.queryProxyBFSInfo(getAbstractClientWrapper());
+        this.contractCodecJsonWrapper = new ContractCodecJsonWrapper();
         this.contractName = contractName;
 
         ABIDefinitionFactory abiDefinitionFactory = new ABIDefinitionFactory(getCryptoSuite());
         this.contractABIDefinition = abiDefinitionFactory.loadABI(HelloWeCross.ABI);
-        if (Objects.nonNull(this.cnsInfo)) {
+        if (Objects.nonNull(this.bfsInfo)) {
             this.weCrossProxy =
-                    WeCrossProxy.load(getCnsInfo().getAddress(), getClient(), getCredentials());
+                    WeCrossProxy.load(getBfsInfo().getAddress(), getClient(), getCredentials());
 
             logger.info(" ===>> contractName: {}", contractName);
         }
     }
 
-    public CnsInfo getCnsInfo() {
-        return cnsInfo;
+    public BFSInfo getBfsInfo() {
+        return bfsInfo;
     }
 
-    public void setCnsInfo(CnsInfo cnsInfo) {
-        this.cnsInfo = cnsInfo;
+    public void setBfsInfo(BFSInfo bfsInfo) {
+        this.bfsInfo = bfsInfo;
     }
 
     public ContractABIDefinition getContractABIDefinition() {
@@ -53,12 +55,12 @@ public abstract class PureBCOSProxySuite extends PureBCOSSuite {
         this.contractABIDefinition = contractABIDefinition;
     }
 
-    public ABICodecJsonWrapper getAbiCodecJsonWrapper() {
-        return abiCodecJsonWrapper;
+    public ContractCodecJsonWrapper getAbiCodecJsonWrapper() {
+        return contractCodecJsonWrapper;
     }
 
-    public void setAbiCodecJsonWrapper(ABICodecJsonWrapper abiCodecJsonWrapper) {
-        this.abiCodecJsonWrapper = abiCodecJsonWrapper;
+    public void setAbiCodecJsonWrapper(ContractCodecJsonWrapper contractCodecJsonWrapper) {
+        this.contractCodecJsonWrapper = contractCodecJsonWrapper;
     }
 
     public WeCrossProxy getWeCrossProxy() {
