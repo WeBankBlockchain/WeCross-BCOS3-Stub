@@ -11,11 +11,7 @@ import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
 import java.io.IOException;
 import java.math.BigInteger;
 
-public class ClientWrapperWithExceptionMock extends AbstractClientWrapper {
-
-    public ClientWrapperWithExceptionMock() {
-        super(null);
-    }
+public class ClientWrapperWithExceptionMock  extends ClientWrapperImplMock {
 
     @Override
     public BcosBlock.Block getBlockByNumber(long blockNumber) throws IOException {

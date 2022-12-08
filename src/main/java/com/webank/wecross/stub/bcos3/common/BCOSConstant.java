@@ -37,7 +37,7 @@ public interface BCOSConstant {
     String CUSTOM_COMMAND_REGISTER = "register";
     String CNS_PRECOMPILED_ADDRESS = "0x0000000000000000000000000000000000001004";
     String DEFAULT_ADDRESS = "0x1111111111111111111111111111111111111111";
-    String PROXY_METHOD_DEPLOY = "deployContractWithRegisterCNS";
+    String PROXY_METHOD_DEPLOY = "deployContractWithRegisterBFS";
     String PROXY_METHOD_REGISTER = "linkBFS";
     String PROXY_METHOD_GETPATHS = "getPaths";
     String PROXY_METHOD_READLINK = "readlink";
