@@ -144,7 +144,7 @@ public class BCOSStubCallContractIntegTest {
         TransactionReceipt transactionReceipt = helloWeCross.getDeployReceipt();
         AsyncToSync asyncToSync = new AsyncToSync();
 
-        driver.asyncGetTransaction(transactionReceipt.getTransactionHash(), Numeric.decodeQuantity(transactionReceipt.getBlockNumber()).longValue(), blockManager, true, connection, (e, transaction) -> {
+        driver.asyncGetTransaction(transactionReceipt.getTransactionHash(), transactionReceipt.getBlockNumber().longValue(), blockManager, true, connection, (e, transaction) -> {
             assertTrue(Objects.nonNull(transaction));
             assertTrue(Objects.isNull(e));
             assertEquals(account.getIdentity(), transaction.getAccountIdentity());

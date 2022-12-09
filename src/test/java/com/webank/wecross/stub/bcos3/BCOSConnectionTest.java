@@ -33,9 +33,7 @@ import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
-import org.fisco.bcos.sdk.v3.transaction.codec.encode.TransactionEncoderService;
 import org.fisco.bcos.sdk.v3.utils.Hex;
-import org.fisco.bcos.sdk.v3.utils.Numeric;
 import org.junit.Test;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
@@ -382,8 +380,8 @@ public class BCOSConnectionTest {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    String blockNumber = transactionReceipt.getBlockNumber();
-                    assertEquals(Numeric.decodeQuantity(blockNumber).longValue(), 9);
+                    BigInteger blockNumber = transactionReceipt.getBlockNumber();
+                    assertEquals(blockNumber.longValue(), 9);
                     assertEquals(
                             transactionReceipt.getTransactionHash(),
                             "0xf3421699230b54b0b1b863b924d8918f033782721269e0f087769e0f4690a3d3");

@@ -721,7 +721,7 @@ public class BCOSDriver implements Driver {
                             BlockManager blockManager = context.getBlockManager();
 
                             blockManager.asyncGetBlock(
-                                    Numeric.decodeQuantity(receipt.getBlockNumber()).longValue(),
+                                    receipt.getBlockNumber().longValue(),
                                     (blockException, block) -> {
                                         try {
                                             if (Objects.nonNull(blockException)) {
@@ -741,7 +741,7 @@ public class BCOSDriver implements Driver {
                                                     cryptoSuite);
 
                                             transactionResponse.setBlockNumber(
-                                                    Numeric.decodeQuantity(receipt.getBlockNumber())
+                                                    receipt.getBlockNumber()
                                                             .longValue());
                                             transactionResponse.setHash(
                                                     receipt.getTransactionHash());
@@ -914,7 +914,7 @@ public class BCOSDriver implements Driver {
                     }
 
                     if (blockNumber
-                            != Numeric.decodeQuantity(proof.getReceiptWithProof().getBlockNumber())
+                            != proof.getReceiptWithProof().getBlockNumber()
                             .longValue()) {
                         callback.onResponse(
                                 new Exception("Transaction hash does not match the block number"),
@@ -984,7 +984,7 @@ public class BCOSDriver implements Driver {
             transaction.getTransactionResponse().setHash(transactionHash);
             transaction
                     .getTransactionResponse()
-                    .setBlockNumber(Numeric.decodeQuantity(receipt.getBlockNumber()).longValue());
+                    .setBlockNumber(receipt.getBlockNumber().longValue());
 
             String proxyInput = receipt.getInput();
             String proxyOutput = receipt.getOutput();
