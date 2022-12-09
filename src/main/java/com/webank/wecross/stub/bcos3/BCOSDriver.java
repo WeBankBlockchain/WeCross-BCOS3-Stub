@@ -42,6 +42,7 @@ import org.fisco.bcos.sdk.v3.codec.FunctionEncoderInterface;
 import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple2;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple3;
+import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple4;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple6;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinitionFactory;
@@ -60,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -117,34 +119,31 @@ public class BCOSDriver implements Driver {
                 logger.trace(" TransactionParams: {}", transactionParams);
             }
 
-            Objects.requireNonNull(
-                    transactionParams.getTransactionRequest(), "TransactionRequest is null");
+            Objects.requireNonNull(transactionParams.getTransactionRequest(), "TransactionRequest is null");
             Objects.requireNonNull(transactionParams.getData(), "Data is null");
             Objects.requireNonNull(transactionParams.getSubType(), "type is null");
 
             TransactionRequest transactionRequest = transactionParams.getTransactionRequest();
-/*            TransactionParams.SUB_TYPE subType = transactionParams.getSubType();
+            TransactionParams.SUB_TYPE subType = transactionParams.getSubType();
             String abi = "";
             String encodeAbi = "";
             switch (subType) {
                 case SEND_TX_BY_PROXY:
                 case CALL_BY_PROXY: {
                     if (subType == TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY) {
-                        RawTransaction extendedRawTransaction =
-                                ExtendedTransactionDecoder.decode(transactionParams.getData());
+                        JsonTransactionResponse jsonTransactionResponse =
+                                JsonTransactionResponse.readFromHexString(transactionParams.getData());
 
-                        if (extendedRawTransaction
-                                .getData()
+                        if (jsonTransactionResponse.getInput()
                                 .startsWith(
                                         Numeric.cleanHexPrefix(
-                                                functionEncoder.buildMethodId(
-                                                        FunctionUtility
-                                                                .ProxySendTransactionTXMethod)))) {
+                                                Hex.toHexString(functionEncoder.buildMethodId(FunctionUtility.ProxySendTransactionTXMethod))
+                                        ))) {
                             Tuple6<String, String, BigInteger, String, String, byte[]>
                                     sendTransactionProxyFunctionInput =
                                     FunctionUtility
                                             .getSendTransactionProxyFunctionInput(
-                                                    extendedRawTransaction.getData());
+                                                    jsonTransactionResponse.getInput());
                             abi =
                                     Hex.toHexString(
                                             sendTransactionProxyFunctionInput.getValue6());
@@ -152,19 +151,17 @@ public class BCOSDriver implements Driver {
                             Tuple3<String, String, byte[]> sendTransactionProxyFunctionInput =
                                     FunctionUtility
                                             .getSendTransactionProxyWithoutTxIdFunctionInput(
-                                                    extendedRawTransaction.getData());
+                                                    jsonTransactionResponse.getInput());
                             abi =
                                     Hex.toHexString(
                                             sendTransactionProxyFunctionInput.getValue3());
                             abi = abi.substring(FunctionUtility.MethodIDLength);
                         }
                     } else {
-                        if (transactionParams
-                                .getData()
+                        if (transactionParams.getData()
                                 .startsWith(
-                                        functionEncoder.buildMethodId(
-                                                FunctionUtility
-                                                        .ProxyCallWithTransactionIdMethod))) {
+                                        Hex.toHexString(functionEncoder.buildMethodId(FunctionUtility.ProxyCallWithTransactionIdMethod)
+                                        ))) {
                             Tuple4<String, String, String, byte[]>
                                     constantCallProxyFunctionInput =
                                     FunctionUtility.getConstantCallProxyFunctionInput(
@@ -192,7 +189,7 @@ public class BCOSDriver implements Driver {
                                         + transactionRequest.getMethod());
                     }
 
-                    encodeAbi =
+                    encodeAbi =Hex.toHexString(
                             contractCodecJsonWrapper
                                     .encode(
                                             ABIObjectFactory.createInputObject(
@@ -201,16 +198,16 @@ public class BCOSDriver implements Driver {
                                                     ? Arrays.asList(
                                                     transactionRequest.getArgs())
                                                     : Arrays.asList())
-                                    .encode();
+                                    .encode(isWasm));
 
                     break;
                 }
                 case SEND_TX:
                 case CALL: {
                     if (subType == TransactionParams.SUB_TYPE.SEND_TX) {
-                        RawTransaction extendedRawTransaction =
-                                ExtendedTransactionDecoder.decode(transactionParams.getData());
-                        abi = extendedRawTransaction.getData();
+                        JsonTransactionResponse jsonTransactionResponse =
+                                JsonTransactionResponse.readFromHexString(transactionParams.getData());
+                        abi = jsonTransactionResponse.getInput();
                     } else {
                         abi = transactionParams.getData();
                     }
@@ -220,7 +217,7 @@ public class BCOSDriver implements Driver {
                                     transactionRequest.getMethod(),
                                     transactionRequest.getArgs());
 
-                    encodeAbi = functionEncoder.encode(function);
+                    encodeAbi = Hex.toHexString(functionEncoder.encode(function));
                     break;
                 }
                 default: {
@@ -233,8 +230,8 @@ public class BCOSDriver implements Driver {
                 return new ImmutablePair<>(true, transactionRequest);
             }
 
-            logger.warn(" abi not meet expectations, abi:{}, encodeAbi:{}", abi, encodeAbi);*/
-            return new ImmutablePair<>(true, transactionRequest);
+            logger.warn(" abi not meet expectations, abi:{}, encodeAbi:{}", abi, encodeAbi);
+            return new ImmutablePair<>(true, null);
 
         } catch (Exception e) {
             logger.error(" decodeTransactionRequest e: ", e);

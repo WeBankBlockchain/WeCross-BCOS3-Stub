@@ -76,35 +76,11 @@ public class FunctionUtility {
                 funcName,
                 Arrays.asList(
                         (0 == params.length)
-                                ? DynamicArray.empty("string[]")
+                                ? new DynamicArray<>(Utf8String.class, Collections.emptyList())
                                 : new DynamicArray<>(
+                                Utf8String.class,
                                 Utils.typeMap(Arrays.asList(params), Utf8String.class))),
                 abiTypeReferenceOutputs);
-    }
-
-    /**
-     * WeCrossProxy constantCall function <br>
-     * </>function sendTransaction(string memory _name, bytes memory _argsWithMethodId) public
-     * returns(bytes memory)
-     *
-     * @param id
-     * @param path
-     * @param methodSignature
-     * @param abi
-     * @return
-     */
-    public static Function newConstantCallProxyFunction(
-            String id, String path, String methodSignature, String abi) {
-        Function function =
-                new Function(
-                        "constantCall",
-                        Arrays.<Type>asList(
-                                new Utf8String(id),
-                                new Utf8String(path),
-                                new Utf8String(methodSignature),
-                                new DynamicBytes(Numeric.hexStringToByteArray(abi))),
-                        Collections.<TypeReference<?>>emptyList());
-        return function;
     }
 
     /**
@@ -128,28 +104,6 @@ public class FunctionUtility {
                         new Utf8String(methodSignature),
                         new DynamicBytes(abi)),
                 Collections.emptyList());
-    }
-
-    /**
-     * WeCrossProxy constantCall function function sendTransaction(string memory _name, bytes memory
-     * _argsWithMethodId) public returns(bytes memory)
-     *
-     * @param name
-     * @param methodSignature
-     * @param abi
-     * @return
-     */
-    public static Function newConstantCallProxyFunction(
-            FunctionEncoderInterface functionEncoder, String name, String methodSignature, String abi) {
-        String methodId = functionEncoder.buildMethodId(methodSignature).toString();
-        Function function =
-                new Function(
-                        "constantCall",
-                        Arrays.<Type>asList(
-                                new Utf8String(name),
-                                new DynamicBytes(Numeric.hexStringToByteArray(methodId + abi))),
-                        Collections.<TypeReference<?>>emptyList());
-        return function;
     }
 
     /**
@@ -190,35 +144,6 @@ public class FunctionUtility {
      * @return
      */
     public static Function newSendTransactionProxyFunction(
-            String uid, String tid, long seq, String path, String methodSignature, String abi) {
-        Function function =
-                new Function(
-                        "sendTransaction",
-                        Arrays.<Type>asList(
-                                new Utf8String(uid),
-                                new Utf8String(tid),
-                                new Uint256(seq),
-                                new Utf8String(path),
-                                new Utf8String(methodSignature),
-                                new DynamicBytes(Numeric.hexStringToByteArray(abi))),
-                        Collections.<TypeReference<?>>emptyList());
-        return function;
-    }
-
-    /**
-     * WeCrossProxy sendTransaction function function sendTransaction(string memory _transactionID,
-     * uint256 _seq, string memory _path, string memory _func, bytes memory _args) public
-     * returns(bytes memory)
-     *
-     * @param uid
-     * @param tid
-     * @param seq
-     * @param path
-     * @param methodSignature
-     * @param abi
-     * @return
-     */
-    public static Function newSendTransactionProxyFunction(
             String uid, String tid, long seq, String path, String methodSignature, byte[] abi) {
         return new Function(
                 "sendTransaction",
@@ -230,34 +155,6 @@ public class FunctionUtility {
                         new Utf8String(methodSignature),
                         new DynamicBytes(abi)),
                 Collections.emptyList());
-    }
-
-    /**
-     * WeCrossProxy sendTransaction function function sendTransaction(string memory _name, bytes
-     * memory _argsWithMethodId) public returns(bytes memory)
-     *
-     * @param uid
-     * @param name
-     * @param methodSignature
-     * @param abi
-     * @return
-     */
-    public static Function newSendTransactionProxyFunction(
-            FunctionEncoderInterface functionEncoder,
-            String uid,
-            String name,
-            String methodSignature,
-            String abi) {
-        String methodId = functionEncoder.buildMethodId(methodSignature).toString();
-        Function function =
-                new Function(
-                        "sendTransaction",
-                        Arrays.<Type>asList(
-                                new Utf8String(uid),
-                                new Utf8String(name),
-                                new DynamicBytes(Numeric.hexStringToByteArray(methodId + abi))),
-                        Collections.<TypeReference<?>>emptyList());
-        return function;
     }
 
     /**
@@ -304,8 +201,8 @@ public class FunctionUtility {
         final Function function =
                 new Function(
                         "constantCall",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(
+                        Collections.emptyList(),
+                        Arrays.asList(
                                 new TypeReference<Utf8String>() {
                                 },
                                 new TypeReference<Utf8String>() {
@@ -317,7 +214,7 @@ public class FunctionUtility {
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
-        return new Tuple4<String, String, String, byte[]>(
+        return new Tuple4<>(
                 (String) results.get(0).getValue(),
                 (String) results.get(1).getValue(),
                 (String) results.get(2).getValue(),
@@ -335,8 +232,8 @@ public class FunctionUtility {
         final Function function =
                 new Function(
                         "constantCall",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(
+                        Collections.emptyList(),
+                        Arrays.asList(
                                 new TypeReference<Utf8String>() {
                                 },
                                 new TypeReference<DynamicBytes>() {
@@ -344,8 +241,7 @@ public class FunctionUtility {
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
-        return new Tuple2<String, byte[]>(
-                (String) results.get(0).getValue(), (byte[]) results.get(1).getValue());
+        return new Tuple2<>((String) results.get(0).getValue(), (byte[]) results.get(1).getValue());
     }
 
     /**
@@ -361,8 +257,8 @@ public class FunctionUtility {
         final Function function =
                 new Function(
                         "sendTransaction",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(
+                        Collections.emptyList(),
+                        Arrays.asList(
                                 new TypeReference<Utf8String>() {
                                 },
                                 new TypeReference<Utf8String>() {
@@ -400,8 +296,8 @@ public class FunctionUtility {
         final Function function =
                 new Function(
                         "sendTransaction",
-                        Arrays.<Type>asList(),
-                        Arrays.<TypeReference<?>>asList(
+                        Collections.emptyList(),
+                        Arrays.asList(
                                 new TypeReference<Utf8String>() {
                                 },
                                 new TypeReference<Utf8String>() {
@@ -448,16 +344,16 @@ public class FunctionUtility {
      * @return
      */
     public static String[] decodeDefaultInput(String input) {
-        if (Objects.isNull(input) || input.length() < MethodIDWithHexPrefixLength) {
+        if (Objects.isNull(input) || input.length() < MethodIDLength) {
             return null;
         }
 
         // function funcName() public returns(string[])
-        if (input.length() == MethodIDWithHexPrefixLength) {
-            return null;
+        if (input.length() == MethodIDLength) {
+            return new String[0];
         }
 
-        return decodeDefaultOutput(input.substring(MethodIDWithHexPrefixLength));
+        return decodeDefaultOutput(input.substring(MethodIDLength));
     }
 
     /**
@@ -481,7 +377,7 @@ public class FunctionUtility {
      * @return
      */
     public static String[] decodeDefaultOutput(String output) {
-        if (Objects.isNull(output) || output.length() < MethodIDWithHexPrefixLength) {
+        if (Objects.isNull(output) || output.length() < MethodIDLength) {
             return null;
         }
 
@@ -494,7 +390,7 @@ public class FunctionUtility {
     }
 
     public static String decodeOutputAsString(String output) {
-        if (Objects.isNull(output) || output.length() < MethodIDWithHexPrefixLength) {
+        if (Objects.isNull(output) || output.length() < MethodIDLength) {
             return null;
         }
 
