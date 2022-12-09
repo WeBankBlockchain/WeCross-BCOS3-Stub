@@ -65,9 +65,12 @@ public class BCOSBaseStubFactory implements StubFactory {
         return alg;
     }
 
-
     public String getStubType() {
         return stubType;
+    }
+
+    public CryptoSuite getCryptoSuite() {
+        return cryptoSuite;
     }
 
     @Override

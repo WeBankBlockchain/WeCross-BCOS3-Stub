@@ -133,25 +133,20 @@ public class BCOSDriver implements Driver {
                     if (subType == TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY) {
                         JsonTransactionResponse jsonTransactionResponse =
                                 JsonTransactionResponse.readFromHexString(transactionParams.getData());
-
-                        if (jsonTransactionResponse.getInput()
-                                .startsWith(
-                                        Numeric.cleanHexPrefix(
-                                                Hex.toHexString(functionEncoder.buildMethodId(FunctionUtility.ProxySendTransactionTXMethod))
-                                        ))) {
+                        String input = Numeric.cleanHexPrefix(jsonTransactionResponse.getInput());
+                        if (input
+                                .startsWith(Hex.toHexString(functionEncoder.buildMethodId(FunctionUtility.ProxySendTransactionTXMethod)))) {
                             Tuple6<String, String, BigInteger, String, String, byte[]>
                                     sendTransactionProxyFunctionInput =
                                     FunctionUtility
-                                            .getSendTransactionProxyFunctionInput(
-                                                    jsonTransactionResponse.getInput());
+                                            .getSendTransactionProxyFunctionInput(input);
                             abi =
                                     Hex.toHexString(
                                             sendTransactionProxyFunctionInput.getValue6());
                         } else {
                             Tuple3<String, String, byte[]> sendTransactionProxyFunctionInput =
                                     FunctionUtility
-                                            .getSendTransactionProxyWithoutTxIdFunctionInput(
-                                                    jsonTransactionResponse.getInput());
+                                            .getSendTransactionProxyWithoutTxIdFunctionInput(input);
                             abi =
                                     Hex.toHexString(
                                             sendTransactionProxyFunctionInput.getValue3());
@@ -159,9 +154,7 @@ public class BCOSDriver implements Driver {
                         }
                     } else {
                         if (transactionParams.getData()
-                                .startsWith(
-                                        Hex.toHexString(functionEncoder.buildMethodId(FunctionUtility.ProxyCallWithTransactionIdMethod)
-                                        ))) {
+                                .startsWith(Hex.toHexString(functionEncoder.buildMethodId(FunctionUtility.ProxyCallWithTransactionIdMethod)))) {
                             Tuple4<String, String, String, byte[]>
                                     constantCallProxyFunctionInput =
                                     FunctionUtility.getConstantCallProxyFunctionInput(
@@ -189,7 +182,7 @@ public class BCOSDriver implements Driver {
                                         + transactionRequest.getMethod());
                     }
 
-                    encodeAbi =Hex.toHexString(
+                    encodeAbi = Hex.toHexString(
                             contractCodecJsonWrapper
                                     .encode(
                                             ABIObjectFactory.createInputObject(
@@ -207,7 +200,7 @@ public class BCOSDriver implements Driver {
                     if (subType == TransactionParams.SUB_TYPE.SEND_TX) {
                         JsonTransactionResponse jsonTransactionResponse =
                                 JsonTransactionResponse.readFromHexString(transactionParams.getData());
-                        abi = jsonTransactionResponse.getInput();
+                        abi = Numeric.cleanHexPrefix(jsonTransactionResponse.getInput());
                     } else {
                         abi = transactionParams.getData();
                     }
@@ -424,14 +417,6 @@ public class BCOSDriver implements Driver {
                                                         contractCodecJsonWrapper
                                                                 .decode(outputObj, Hex.decode(output), isWasm)
                                                                 .toArray(new String[0]));
-                                                //TODO: check status
-                                            } else if (String.valueOf(
-                                                    BCOSStatusCode.CallNotSuccessStatus)
-                                                    .equals(callOutput.getStatus())) {
-                                                transactionResponse.setErrorCode(
-                                                        BCOSStatusCode.CallNotSuccessStatus);
-                                                transactionResponse.setMessage(
-                                                        callOutput.getOutput());
                                             } else {
                                                 transactionResponse.setErrorCode(
                                                         BCOSStatusCode.CallNotSuccessStatus);

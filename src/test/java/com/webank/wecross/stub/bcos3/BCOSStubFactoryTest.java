@@ -15,9 +15,6 @@ import static junit.framework.TestCase.assertTrue;
 public class BCOSStubFactoryTest {
 
     private final BCOS3EcdsaEvmStubFactory bcosSubFactory = new BCOS3EcdsaEvmStubFactory();
-    //private final BCOS3GMEvmStubFactory bcosSubFactory = new BCOS3GMEvmStubFactory();
-    //private final BCOS3EcdsaWasmStubFactory bcosSubFactory = new BCOS3EcdsaWasmStubFactory();
-    //private final BCOS3GMWasmStubFactory bcosSubFactory = new BCOS3GMWasmStubFactory();
 
     @Test
     public void newConnectionTest() {
@@ -56,14 +53,5 @@ public class BCOSStubFactoryTest {
         System.out.println(bcosSubFactory.getStubType());
         assertEquals(BCOSConstant.BCOS3_ECDSA_EVM_STUB_TYPE, bcosSubFactory.getStubType());
         assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SECP256K1);
-
-//        assertEquals(BCOSConstant.BCOS3_GM_EVM_STUB_TYPE, bcosSubFactory.getStubType());
-//        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SM2P256V1);
-//
-//        assertEquals(BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE, bcosSubFactory.getStubType());
-//        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SECP256K1);
-//
-//        assertEquals(BCOSConstant.BCOS3_GM_WASM_STUB_TYPE, bcosSubFactory.getStubType());
-//        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SM2P256V1);
     }
 }
