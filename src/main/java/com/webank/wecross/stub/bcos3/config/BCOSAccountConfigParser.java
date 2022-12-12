@@ -3,12 +3,11 @@ package com.webank.wecross.stub.bcos3.config;
 import com.moandjiezana.toml.Toml;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSToml;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BCOSAccountConfigParser extends AbstractBCOSConfigParser {
 

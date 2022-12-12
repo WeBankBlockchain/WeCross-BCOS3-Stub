@@ -1,10 +1,10 @@
 package com.webank.wecross.stub.bcos3;
 
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_GM_EVM_STUB_TYPE;
+
 import com.webank.wecross.stub.Stub;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
-
-import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_GM_EVM_STUB_TYPE;
 
 @Stub(BCOS3_GM_EVM_STUB_TYPE)
 public class BCOS3GMEvmStubFactory extends BCOSBaseStubFactory {

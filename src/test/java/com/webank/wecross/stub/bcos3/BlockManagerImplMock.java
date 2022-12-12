@@ -5,10 +5,9 @@ import com.webank.wecross.stub.BlockManager;
 import com.webank.wecross.stub.bcos3.client.ClientWrapper;
 import com.webank.wecross.stub.bcos3.common.ObjectMapperFactory;
 import com.webank.wecross.stub.bcos3.contract.BlockUtility;
-import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
-
 import java.io.IOException;
 import java.math.BigInteger;
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 
 public class BlockManagerImplMock implements BlockManager {
 

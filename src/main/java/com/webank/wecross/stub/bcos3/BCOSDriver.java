@@ -33,6 +33,15 @@ import com.webank.wecross.stub.bcos3.protocol.response.TransactionProof;
 import com.webank.wecross.stub.bcos3.uaproof.Signer;
 import com.webank.wecross.stub.bcos3.verify.BlockHeaderValidation;
 import com.webank.wecross.stub.bcos3.verify.MerkleValidation;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
@@ -58,16 +67,6 @@ import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.fisco.bcos.sdk.v3.utils.Numeric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 
 /** Driver implementation for BCOS */
 public class BCOSDriver implements Driver {

@@ -4,14 +4,13 @@ import com.webank.wecross.stub.Block;
 import com.webank.wecross.stub.BlockHeader;
 import com.webank.wecross.stub.bcos3.common.BCOSBlockHeader;
 import com.webank.wecross.stub.bcos3.common.ObjectMapperFactory;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlockHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BlockUtility {
 

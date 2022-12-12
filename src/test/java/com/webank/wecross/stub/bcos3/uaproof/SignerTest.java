@@ -1,12 +1,12 @@
 package com.webank.wecross.stub.bcos3.uaproof;
 
+import static junit.framework.TestCase.assertTrue;
+
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.utils.Numeric;
 import org.junit.Test;
-
-import static junit.framework.TestCase.assertTrue;
 
 public class SignerTest {
     @Test

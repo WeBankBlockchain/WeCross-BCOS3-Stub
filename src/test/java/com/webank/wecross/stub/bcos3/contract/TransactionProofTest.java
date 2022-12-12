@@ -1,16 +1,15 @@
 package com.webank.wecross.stub.bcos3.contract;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
+
 import com.webank.wecross.stub.bcos3.common.ObjectMapperFactory;
 import com.webank.wecross.stub.bcos3.protocol.response.TransactionProof;
+import java.io.IOException;
+import java.util.Objects;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.Objects;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 
 public class TransactionProofTest {
     @Test

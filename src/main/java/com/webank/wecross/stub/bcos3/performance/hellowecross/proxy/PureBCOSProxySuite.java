@@ -3,14 +3,13 @@ package com.webank.wecross.stub.bcos3.performance.hellowecross.proxy;
 import com.webank.wecross.stub.bcos3.performance.hellowecross.HelloWeCross;
 import com.webank.wecross.stub.bcos3.performance.hellowecross.PureBCOSSuite;
 import com.webank.wecross.stub.bcos3.preparation.BfsServiceWrapper;
+import java.util.Objects;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinitionFactory;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ContractABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ContractCodecJsonWrapper;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
 
 public abstract class PureBCOSProxySuite extends PureBCOSSuite {
 
