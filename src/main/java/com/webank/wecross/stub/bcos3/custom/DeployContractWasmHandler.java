@@ -11,6 +11,14 @@ import com.webank.wecross.stub.TransactionRequest;
 import com.webank.wecross.stub.bcos3.AsyncBfsService;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import org.apache.commons.io.IOUtils;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinitionFactory;
@@ -25,15 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
 public class DeployContractWasmHandler implements CommandHandler {
     private static final Logger logger = LoggerFactory.getLogger(DeployContractWasmHandler.class);
@@ -59,11 +58,11 @@ public class DeployContractWasmHandler implements CommandHandler {
     }
 
     /**
-     * @param path         rule id
-     * @param args         command args
-     * @param account      if needs to sign
+     * @param path rule id
+     * @param args command args
+     * @param account if needs to sign
      * @param blockManager if needs to verify transaction
-     * @param connection   chain connection
+     * @param connection chain connection
      * @param callback
      */
     @Override
@@ -168,11 +167,7 @@ public class DeployContractWasmHandler implements CommandHandler {
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace(
-                    "deploy contract, name: {}, bin: {}, abi:{}",
-                    bfsName,
-                    bin,
-                    abi);
+            logger.trace("deploy contract, name: {}, bin: {}, abi:{}", bfsName, bin, abi);
         }
 
         deployContractAndRegisterLink(

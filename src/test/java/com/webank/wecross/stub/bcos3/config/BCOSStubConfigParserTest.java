@@ -1,14 +1,13 @@
 package com.webank.wecross.stub.bcos3.config;
 
-import org.junit.Test;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
+import org.junit.Test;
 
 public class BCOSStubConfigParserTest {
     @Test
@@ -31,7 +30,6 @@ public class BCOSStubConfigParserTest {
         assertEquals(channelService.getMessageTimeout(), 111100);
         assertEquals(channelService.getConnectionsStr().size(), 1);
         assertEquals(channelService.getThreadPoolSize(), 8);
-
 
         assertEquals(bcosStubConfig.getResources().size(), 2);
         assertEquals(bcosStubConfig.getResources().get(0).getName(), "HelloWeCross");

@@ -1,5 +1,9 @@
 package com.webank.wecross.stub.bcos3;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.webank.wecross.stub.Block;
@@ -22,6 +26,12 @@ import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
 import com.webank.wecross.stub.bcos3.contract.BlockUtility;
 import com.webank.wecross.stub.bcos3.contract.FunctionUtility;
 import com.webank.wecross.stub.bcos3.protocol.request.TransactionParams;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import org.fisco.bcos.sdk.jni.common.JniException;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
@@ -36,17 +46,6 @@ import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
 import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.junit.Test;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
 
 public class BCOSConnectionTest {
     @Test
@@ -219,7 +218,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
         FunctionEncoder functionEncoder = new FunctionEncoder(clientWrapper.getCryptoSuite());
@@ -246,7 +245,8 @@ public class BCOSConnectionTest {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    assertEquals(callOutput.getStatus(), TransactionReceiptStatus.Success.getCode());
+                    assertEquals(
+                            callOutput.getStatus(), TransactionReceiptStatus.Success.getCode());
 
                     String data = callOutput.getOutput();
 
@@ -271,7 +271,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
         FunctionEncoder functionEncoder = new FunctionEncoder(clientWrapper.getCryptoSuite());
@@ -305,7 +305,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
         FunctionEncoder functionEncoder = new FunctionEncoder(clientWrapper.getCryptoSuite());
@@ -339,7 +339,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
 
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
@@ -391,7 +391,8 @@ public class BCOSConnectionTest {
     }
 
     @Test
-    public void handleFailedSendTransactionTest() throws IOException, InterruptedException, JniException {
+    public void handleFailedSendTransactionTest()
+            throws IOException, InterruptedException, JniException {
 
         AbstractClientWrapper clientWrapper = new ClientWrapperWithExceptionMock();
         CryptoSuite cryptoSuite = clientWrapper.getCryptoSuite();
@@ -405,7 +406,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
 
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
@@ -446,7 +447,8 @@ public class BCOSConnectionTest {
     }
 
     @Test
-    public void handleFailedSendTransactionTest0() throws IOException, InterruptedException, JniException {
+    public void handleFailedSendTransactionTest0()
+            throws IOException, InterruptedException, JniException {
 
         AbstractClientWrapper clientWrapper = new ClientWrapperWithNullMock();
         CryptoSuite cryptoSuite = clientWrapper.getCryptoSuite();
@@ -460,7 +462,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
 
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 

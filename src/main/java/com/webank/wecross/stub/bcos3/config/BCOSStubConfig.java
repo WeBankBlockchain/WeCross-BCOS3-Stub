@@ -2,35 +2,24 @@ package com.webank.wecross.stub.bcos3.config;
 
 import com.webank.wecross.stub.ResourceInfo;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.fisco.bcos.sdk.v3.crypto.hash.Hash;
 import org.fisco.bcos.sdk.v3.crypto.hash.Keccak256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Resolve the BCOS stub.toml to get BCOSConfig object
- */
+/** Resolve the BCOS stub.toml to get BCOSConfig object */
 public class BCOSStubConfig {
     private static Logger logger = LoggerFactory.getLogger(BCOSStubConfig.class);
-    /**
-     * stub type, BCOS3_ECDSA_EVM、BCOS3_ECDSA_WASM、BCOS3_GM_EVM、BCOS3_GM_WASM
-     */
+    /** stub type, BCOS3_ECDSA_EVM、BCOS3_ECDSA_WASM、BCOS3_GM_EVM、BCOS3_GM_WASM */
     private String type;
-    /**
-     * chain
-     */
+    /** chain */
     private Chain chain;
-    /**
-     * channelService, used for JavaSDK initialize
-     */
+    /** channelService, used for JavaSDK initialize */
     private ChannelService channelService;
-    /**
-     * BCOS resource list
-     */
+    /** BCOS resource list */
     private List<Resource> resources;
 
     public boolean isGMStub() {
@@ -302,12 +291,8 @@ public class BCOSStubConfig {
             resourceInfo.setStubType(this.type);
             resourceInfo.setChecksum(hash.hash(resource.getValue()));
             resourceInfo.getProperties().put(resource.getName(), resource.getValue());
-            resourceInfo
-                    .getProperties()
-                    .put(BCOSConstant.BCOS_GROUP_ID, this.chain.getGroupID());
-            resourceInfo
-                    .getProperties()
-                    .put(BCOSConstant.BCOS_CHAIN_ID, this.chain.getChainID());
+            resourceInfo.getProperties().put(BCOSConstant.BCOS_GROUP_ID, this.chain.getGroupID());
+            resourceInfo.getProperties().put(BCOSConstant.BCOS_CHAIN_ID, this.chain.getChainID());
             resourceInfos.add(resourceInfo);
         }
 

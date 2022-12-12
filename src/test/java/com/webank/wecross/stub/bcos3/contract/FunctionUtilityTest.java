@@ -13,6 +13,7 @@ import org.fisco.bcos.sdk.v3.codec.datatypes.Type;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.junit.Test;
 
 public class FunctionUtilityTest {
@@ -20,63 +21,72 @@ public class FunctionUtilityTest {
     private static final String[] params = new String[] {"aa", "bb", "cc"};
     private static final String[] emptyParams = new String[0];
     private static final String[] nonParams = null;
-    FunctionEncoder functionEncoder = new FunctionEncoder(new CryptoSuite(CryptoType.ECDSA_TYPE));
-    private static String funcName = "funcName";
-    private static String funcSignature = "funcName(string[])";
-    private static String funcNoneParamsSignature = "funcName()";
+    private static final FunctionEncoder functionEncoder =
+            new FunctionEncoder(new CryptoSuite(CryptoType.ECDSA_TYPE));
+    private static final FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+    private static final String funcName = "funcName";
+    private static final String funcSignature = "funcName(string[])";
+    private static final String funcNoneParamsSignature = "funcName()";
     private static String funcMethodId;
     private static String funcEmptyParamsMethodId;
     private static String funcNoneParamsMethodId;
-    private static Function function = FunctionUtility.newDefaultFunction(funcName, params);
-    private static Function emptyParamsFunction =
+    private static final Function function = FunctionUtility.newDefaultFunction(funcName, params);
+    private static final Function emptyParamsFunction =
             FunctionUtility.newDefaultFunction(funcName, emptyParams);
-    private static Function noneParamsFunction =
+    private static final Function noneParamsFunction =
             FunctionUtility.newDefaultFunction(funcName, nonParams);
+
+    static {
+        funcMethodId = Hex.toHexString(functionEncoder.buildMethodId(funcSignature));
+        funcEmptyParamsMethodId = Hex.toHexString(functionEncoder.buildMethodId(funcSignature));
+        funcNoneParamsMethodId =
+                Hex.toHexString(functionEncoder.buildMethodId(funcNoneParamsSignature));
+    }
 
     @Test
     public void newFunctionTest() throws IOException {
-        funcMethodId = functionEncoder.buildMethodId(funcSignature).toString();
-        funcEmptyParamsMethodId = functionEncoder.buildMethodId(funcSignature).toString();
-        funcNoneParamsMethodId = functionEncoder.buildMethodId(funcNoneParamsSignature).toString();
-        String abi = functionEncoder.encode(function).toString();
+        funcMethodId = Hex.toHexString(functionEncoder.buildMethodId(funcSignature));
+        funcEmptyParamsMethodId = Hex.toHexString(functionEncoder.buildMethodId(funcSignature));
+        funcNoneParamsMethodId =
+                Hex.toHexString(functionEncoder.buildMethodId(funcNoneParamsSignature));
+        String abi = Hex.toHexString(functionEncoder.encode(function));
         assertTrue(abi.startsWith(funcMethodId));
-        assertTrue(funcName.equals(function.getName()));
+        assertEquals(funcName, function.getName());
         assertTrue(abi.startsWith(funcMethodId));
-        assertTrue(function.getInputParameters().size() == 1);
-        assertTrue(function.getOutputParameters().size() == 1);
+        assertEquals(1, function.getInputParameters().size());
+        assertEquals(1, function.getOutputParameters().size());
     }
 
     @Test
     public void newFunctionWithEmptyParamsTest() throws IOException {
-        String abi = functionEncoder.encode(emptyParamsFunction).toString();
-        assertTrue(funcName.equals(emptyParamsFunction.getName()));
+        String abi = Hex.toHexString(functionEncoder.encode(emptyParamsFunction));
+        assertEquals(funcName, emptyParamsFunction.getName());
         assertTrue(abi.startsWith(funcEmptyParamsMethodId));
-        assertTrue(emptyParamsFunction.getInputParameters().size() == 1);
-        assertTrue(emptyParamsFunction.getOutputParameters().size() == 1);
+        assertEquals(1, emptyParamsFunction.getInputParameters().size());
+        assertEquals(1, emptyParamsFunction.getOutputParameters().size());
     }
 
     @Test
     public void newFunctionWithNonParamsTest() throws IOException {
-        String abi = functionEncoder.encode(noneParamsFunction).toString();
-        assertTrue(abi.length() == FunctionUtility.MethodIDWithHexPrefixLength);
-        assertTrue(funcName.equals(noneParamsFunction.getName()));
+        String abi = Hex.toHexString(functionEncoder.encode(noneParamsFunction));
+        assertEquals(FunctionUtility.MethodIDLength, abi.length());
+        assertEquals(funcName, noneParamsFunction.getName());
         assertTrue(abi.startsWith(funcNoneParamsMethodId));
-        assertTrue(noneParamsFunction.getInputParameters().size() == 0);
-        assertTrue(noneParamsFunction.getOutputParameters().size() == 1);
+        assertEquals(0, noneParamsFunction.getInputParameters().size());
+        assertEquals(1, noneParamsFunction.getOutputParameters().size());
     }
 
     @Test
-    public void convertToStringListTest() throws IOException {
-        String abi = functionEncoder.encode(function).toString();
+    public void convertToStringListTest() throws Exception {
+        String abi = Hex.toHexString(functionEncoder.encode(function));
         assertTrue(abi.startsWith(funcMethodId));
 
-        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> typeList =
                 functionReturnDecoder.decode(
-                        abi.substring(FunctionUtility.MethodIDWithHexPrefixLength),
+                        abi.substring(FunctionUtility.MethodIDLength),
                         function.getOutputParameters());
         List<String> resultList = FunctionUtility.convertToStringList(typeList);
-        assertTrue(resultList.size() == params.length);
+        assertEquals(resultList.size(), params.length);
         for (int i = 0; i < params.length; i++) {
             assertEquals(params[i], resultList.get(i));
         }
@@ -85,15 +95,14 @@ public class FunctionUtilityTest {
     @Test
     public void emptyParamsConvertToStringListTest() throws IOException {
         Function function = FunctionUtility.newDefaultFunction(funcName, emptyParams);
-        String abi = functionEncoder.encode(function).toString();
+        String abi = Hex.toHexString(functionEncoder.encode(function));
         assertTrue(abi.startsWith(funcEmptyParamsMethodId));
 
-        assertTrue(funcName.equals(function.getName()));
+        assertEquals(funcName, function.getName());
 
-        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> typeList =
                 functionReturnDecoder.decode(
-                        abi.substring(FunctionUtility.MethodIDWithHexPrefixLength),
+                        abi.substring(FunctionUtility.MethodIDLength),
                         function.getOutputParameters());
         List<String> resultList = FunctionUtility.convertToStringList(typeList);
         assertTrue(resultList.isEmpty());
@@ -102,14 +111,13 @@ public class FunctionUtilityTest {
     @Test
     public void noneParamsConvertToStringListTest() throws IOException {
         Function function = FunctionUtility.newDefaultFunction(funcName, nonParams);
-        String abi = functionEncoder.encode(function).toString();
+        String abi = Hex.toHexString(functionEncoder.encode(function));
         assertTrue(abi.startsWith(funcNoneParamsMethodId));
-        assertTrue(funcName.equals(function.getName()));
+        assertEquals(funcName, function.getName());
 
-        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> typeList =
                 functionReturnDecoder.decode(
-                        abi.substring(FunctionUtility.MethodIDWithHexPrefixLength),
+                        abi.substring(FunctionUtility.MethodIDLength),
                         function.getOutputParameters());
         List<String> resultList = FunctionUtility.convertToStringList(typeList);
         assertTrue(resultList.isEmpty());
@@ -120,26 +128,23 @@ public class FunctionUtilityTest {
         assertTrue(Objects.isNull(FunctionUtility.decodeDefaultOutput("0x")));
         assertTrue(Objects.isNull(FunctionUtility.decodeDefaultOutput("")));
 
-        String abi1 = functionEncoder.encode(emptyParamsFunction).toString();
+        String abi1 = Hex.toHexString(functionEncoder.encode(emptyParamsFunction));
 
         String[] output1 =
-                FunctionUtility.decodeDefaultOutput(
-                        "0x" + abi1.substring(FunctionUtility.MethodIDWithHexPrefixLength));
-        assertTrue(output1.length == 0);
+                FunctionUtility.decodeDefaultOutput(abi1.substring(FunctionUtility.MethodIDLength));
+        assertEquals(0, output1.length);
 
-        String abi2 = functionEncoder.encode(function).toString();
+        String abi2 = Hex.toHexString(functionEncoder.encode(function));
         String[] output2 =
-                FunctionUtility.decodeDefaultOutput(
-                        abi2.substring(FunctionUtility.MethodIDWithHexPrefixLength));
-        assertTrue(output2.length == params.length);
+                FunctionUtility.decodeDefaultOutput(abi2.substring(FunctionUtility.MethodIDLength));
+        assertEquals(output2.length, params.length);
         for (int i = 0; i < output2.length; ++i) {
             assertEquals(output2[i], params[i]);
         }
 
-        String abi3 = functionEncoder.encode(noneParamsFunction).toString();
+        String abi3 = Hex.toHexString(functionEncoder.encode(noneParamsFunction));
         String[] output3 =
-                FunctionUtility.decodeDefaultOutput(
-                        abi3.substring(FunctionUtility.MethodIDWithHexPrefixLength));
+                FunctionUtility.decodeDefaultOutput(abi3.substring(FunctionUtility.MethodIDLength));
         assertTrue(Objects.isNull(output3));
     }
 
@@ -149,32 +154,32 @@ public class FunctionUtilityTest {
 
         assertTrue(Objects.isNull(FunctionUtility.decodeDefaultInput("")));
 
-        String abi1 = functionEncoder.encode(emptyParamsFunction).toString();
+        String abi1 = Hex.toHexString(functionEncoder.encode(emptyParamsFunction));
         String[] input1 = FunctionUtility.decodeDefaultInput(abi1);
-        assertTrue(input1.length == 0);
+        assertEquals(0, input1.length);
 
-        String abi2 = functionEncoder.encode(function).toString();
+        String abi2 = Hex.toHexString(functionEncoder.encode(function));
         String[] input2 = FunctionUtility.decodeDefaultInput(abi2);
-        assertTrue(input2.length == params.length);
+        assertEquals(input2.length, params.length);
 
         for (int i = 0; i < input2.length; ++i) {
             assertEquals(input2[i], params[i]);
         }
 
-        String abi3 = functionEncoder.encode(noneParamsFunction).toString();
-        String[] input3 = FunctionUtility.decodeDefaultInput(abi1);
-        assertTrue(input3.length == 0);
+        String abi3 = Hex.toHexString(functionEncoder.encode(noneParamsFunction));
+        String[] input3 = FunctionUtility.decodeDefaultInput(abi3);
+        assertEquals(0, input3.length);
     }
 
     @Test
     public void decodeTransactionReceiptInputTest() throws IOException {
         TransactionReceipt receipt = new TransactionReceipt();
         receipt.setStatus(1);
-        String abi = functionEncoder.encode(function).toString();
+        String abi = Hex.toHexString(functionEncoder.encode(function));
         receipt.setInput(abi);
-        receipt.setOutput("0x" + abi.substring(10));
+        receipt.setOutput(abi.substring(8));
         String[] inputs = FunctionUtility.decodeDefaultInput(receipt);
-        assertTrue(inputs.length == params.length);
+        assertEquals(inputs.length, params.length);
         String[] outputs = FunctionUtility.decodeDefaultOutput(receipt);
         assertTrue(Objects.isNull(outputs));
     }
@@ -183,40 +188,40 @@ public class FunctionUtilityTest {
     public void decodeTransactionReceiptInputTest0() throws IOException {
         TransactionReceipt receipt = new TransactionReceipt();
         receipt.setStatus(0);
-        String abi = functionEncoder.encode(emptyParamsFunction).toString();
+        String abi = Hex.toHexString(functionEncoder.encode(emptyParamsFunction));
         receipt.setInput(abi);
-        receipt.setOutput("0x" + abi.substring(10));
+        receipt.setOutput(abi.substring(8));
         String[] inputs = FunctionUtility.decodeDefaultInput(receipt);
-        assertTrue(inputs.length == emptyParams.length);
+        assertEquals(inputs.length, emptyParams.length);
         String[] outputs = FunctionUtility.decodeDefaultOutput(receipt);
-        assertTrue(outputs.length == 0);
+        assertEquals(0, outputs.length);
     }
 
     @Test
     public void decodeTransactionReceiptInputTest1() throws IOException {
         TransactionReceipt receipt = new TransactionReceipt();
         receipt.setStatus(0);
-        String abi = functionEncoder.encode(noneParamsFunction).toString();
+        String abi = Hex.toHexString(functionEncoder.encode(noneParamsFunction));
         receipt.setInput(abi);
-        receipt.setOutput("0x" + abi.substring(10));
+        receipt.setOutput(abi.substring(8));
         String[] inputs = FunctionUtility.decodeDefaultInput(receipt);
-        assertTrue(Objects.isNull(inputs));
+        assertEquals(0, inputs.length);
     }
 
     @Test
     public void decodeTransactionReceiptInputTest2() throws IOException {
         TransactionReceipt receipt = new TransactionReceipt();
-        receipt.setStatus(22);
+        receipt.setStatus(16);
 
         String funcName = "funcName";
         String[] params = new String[] {"aa", "bb", "cc"};
 
         Function function = FunctionUtility.newDefaultFunction(funcName, params);
-        String abi = functionEncoder.encode(function).toString();
+        String abi = Hex.toHexString(functionEncoder.encode(function));
         receipt.setInput(abi);
-        receipt.setOutput("0x" + abi.substring(10));
+        receipt.setOutput(abi.substring(8));
         String[] inputs = FunctionUtility.decodeDefaultInput(receipt);
-        assertTrue(inputs.length == params.length);
+        assertEquals(inputs.length, params.length);
         String[] outputs = FunctionUtility.decodeDefaultOutput(receipt);
         assertTrue(Objects.isNull(outputs));
     }

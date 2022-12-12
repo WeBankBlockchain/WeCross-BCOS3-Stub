@@ -7,14 +7,13 @@ import com.webank.wecross.stub.bcos3.BCOSConnection;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
 import com.webank.wecross.stub.bcos3.client.AbstractClientWrapper;
 import com.webank.wecross.stub.bcos3.performance.PerformanceSuite;
+import java.io.File;
 import org.fisco.bcos.sdk.v3.client.Client;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 public abstract class PureBCOSSuite implements PerformanceSuite {
 
@@ -57,7 +56,8 @@ public abstract class PureBCOSSuite implements PerformanceSuite {
 
         logger.info(" chain: {}, account: {}, enableGM: {}", chainName, accountName, sm);
 
-        BCOSBaseStubFactory stubFactory = (sm ? new BCOS3GMEvmStubFactory() : new BCOS3EcdsaEvmStubFactory());
+        BCOSBaseStubFactory stubFactory =
+                (sm ? new BCOS3GMEvmStubFactory() : new BCOS3EcdsaEvmStubFactory());
         BCOSConnection connection =
                 (BCOSConnection) stubFactory.newConnection("classpath:/" + chainName);
 

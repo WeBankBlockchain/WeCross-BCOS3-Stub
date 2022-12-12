@@ -1,23 +1,19 @@
 package com.webank.wecross.stub.bcos3;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
+
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
-import org.junit.Test;
-
 import java.util.Objects;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
+import org.junit.Test;
 
 public class BCOSStubFactoryTest {
 
     private final BCOS3EcdsaEvmStubFactory bcosSubFactory = new BCOS3EcdsaEvmStubFactory();
-    //private final BCOS3GMEvmStubFactory bcosSubFactory = new BCOS3GMEvmStubFactory();
-    //private final BCOS3EcdsaWasmStubFactory bcosSubFactory = new BCOS3EcdsaWasmStubFactory();
-    //private final BCOS3GMWasmStubFactory bcosSubFactory = new BCOS3GMWasmStubFactory();
 
     @Test
     public void newConnectionTest() {
@@ -56,14 +52,5 @@ public class BCOSStubFactoryTest {
         System.out.println(bcosSubFactory.getStubType());
         assertEquals(BCOSConstant.BCOS3_ECDSA_EVM_STUB_TYPE, bcosSubFactory.getStubType());
         assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SECP256K1);
-
-//        assertEquals(BCOSConstant.BCOS3_GM_EVM_STUB_TYPE, bcosSubFactory.getStubType());
-//        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SM2P256V1);
-//
-//        assertEquals(BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE, bcosSubFactory.getStubType());
-//        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SECP256K1);
-//
-//        assertEquals(BCOSConstant.BCOS3_GM_WASM_STUB_TYPE, bcosSubFactory.getStubType());
-//        assertEquals(bcosSubFactory.getAlg(), BCOSConstant.SM2P256V1);
     }
 }

@@ -2,6 +2,9 @@ package com.webank.wecross.stub.bcos3.client;
 
 import com.webank.wecross.exception.WeCrossException;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.fisco.bcos.sdk.v3.BcosSDK;
 import org.fisco.bcos.sdk.v3.client.Client;
 import org.fisco.bcos.sdk.v3.config.ConfigOption;
@@ -10,10 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ClientUtility {
 

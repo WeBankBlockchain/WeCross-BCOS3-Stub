@@ -13,6 +13,12 @@ import com.webank.wecross.stub.bcos3.custom.DeployContractWasmHandler;
 import com.webank.wecross.stub.bcos3.custom.LinkBfsHandler;
 import com.webank.wecross.stub.bcos3.preparation.HubContractDeployment;
 import com.webank.wecross.stub.bcos3.preparation.ProxyContractDeployment;
+import java.io.File;
+import java.io.FileWriter;
+import java.net.URL;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -22,13 +28,6 @@ import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.net.URL;
-import java.security.PrivateKey;
-import java.security.Security;
-import java.util.Map;
 
 public class BCOSBaseStubFactory implements StubFactory {
     private final Logger logger = LoggerFactory.getLogger(BCOSBaseStubFactory.class);
@@ -49,8 +48,7 @@ public class BCOSBaseStubFactory implements StubFactory {
     }
 
     @Override
-    public void init(WeCrossContext context) {
-    }
+    public void init(WeCrossContext context) {}
 
     public boolean isGMStub() {
         return StringUtils.containsIgnoreCase(stubType, BCOSConstant.GM);
@@ -60,14 +58,16 @@ public class BCOSBaseStubFactory implements StubFactory {
         return StringUtils.containsIgnoreCase(stubType, BCOSConstant.WASM);
     }
 
-
     public String getAlg() {
         return alg;
     }
 
-
     public String getStubType() {
         return stubType;
+    }
+
+    public CryptoSuite getCryptoSuite() {
+        return cryptoSuite;
     }
 
     @Override

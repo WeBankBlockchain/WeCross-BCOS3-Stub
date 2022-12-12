@@ -1,5 +1,10 @@
 package com.webank.wecross.stub.bcos3;
 
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
+
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.BlockHeader;
 import com.webank.wecross.stub.BlockManager;
@@ -27,9 +32,14 @@ import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
 import com.webank.wecross.stub.bcos3.contract.FunctionUtility;
 import com.webank.wecross.stub.bcos3.protocol.request.TransactionParams;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
-import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
 import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
@@ -39,24 +49,11 @@ import org.fisco.bcos.sdk.v3.codec.wrapper.ABIObjectFactory;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ContractABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ContractCodecJsonWrapper;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
-import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.transaction.codec.encode.TransactionEncoderService;
 import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
 
 public class BCOSDriverTest {
 
@@ -90,10 +87,7 @@ public class BCOSDriverTest {
         BCOSStubConfigParser bcosStubConfigParser =
                 new BCOSStubConfigParser("./", "stub-sample-ut.toml");
         BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
-        cryptoSuite =
-                bcosStubConfig.isGMStub()
-                        ? new CryptoSuite(CryptoType.SM_TYPE)
-                        : new CryptoSuite(CryptoType.ECDSA_TYPE);
+        cryptoSuite = bcosSubFactory.getCryptoSuite();
         abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
         functionEncoder = new FunctionEncoder(cryptoSuite);
         transactionEncoderService = new TransactionEncoderService(cryptoSuite);
@@ -103,7 +97,9 @@ public class BCOSDriverTest {
 
         ScheduledExecutorService scheduledExecutorService =
                 new ScheduledThreadPoolExecutor(4, new CustomizableThreadFactory("tmpBCOSConn-"));
-        connection = BCOSConnectionFactory.build(bcosStubConfig, new ClientWrapperImplMock(), scheduledExecutorService);
+        connection =
+                BCOSConnectionFactory.build(
+                        bcosStubConfig, new ClientWrapperImplMock(), scheduledExecutorService);
         connection
                 .getProperties()
                 .put(
@@ -132,7 +128,7 @@ public class BCOSDriverTest {
     @Test
     public void decodeCallTransactionRequestTest() throws Exception {
         String func = "func";
-        String[] params = new String[]{"a", "b", "c"};
+        String[] params = new String[] {"a", "b", "c"};
 
         TransactionRequest request = new TransactionRequest(func, params);
         Function function = FunctionUtility.newDefaultFunction(func, params);
@@ -155,26 +151,26 @@ public class BCOSDriverTest {
     @Test
     public void decodeSendTransactionTransactionRequestTest() throws Exception {
         String func = "func";
-        String[] params = new String[]{"a", "b", "c"};
+        String[] params = new String[] {"a", "b", "c"};
 
         TransactionRequest request = new TransactionRequest(func, params);
         Function function = FunctionUtility.newDefaultFunction(func, params);
 
-        TxPair signedTransaction =
-                TransactionBuilderJniObj.createSignedTransaction(
-                        account.getCredentials().getJniKeyPair(),
+        long transactionData =
+                TransactionBuilderJniObj.createTransactionData(
                         ClientDefaultConfig.DEFAULT_GROUP_ID,
                         ClientDefaultConfig.DEFAULT_CHAIN_ID,
                         "0x0",
                         Hex.toHexString(functionEncoder.encode(function)),
                         "",
-                        1111,
-                        0);
-
-        String signTx = signedTransaction.getSignedTx();
+                        1111);
+        String encodeTransactionData =
+                TransactionBuilderJniObj.encodeTransactionData(transactionData);
+        TransactionBuilderJniObj.destroyTransactionData(transactionData);
 
         TransactionParams transaction =
-                new TransactionParams(request, signTx, TransactionParams.SUB_TYPE.SEND_TX);
+                new TransactionParams(
+                        request, encodeTransactionData, TransactionParams.SUB_TYPE.SEND_TX);
 
         byte[] data = ObjectMapperFactory.getObjectMapper().writeValueAsBytes(transaction);
 
@@ -189,7 +185,7 @@ public class BCOSDriverTest {
     @Test
     public void decodeProxySendTransactionTransactionRequestTest() throws Exception {
         String func = "set";
-        String[] params = new String[]{"a"};
+        String[] params = new String[] {"a"};
 
         String abi =
                 "[{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"string\"}],\"name\":\"set\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"get\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]";
@@ -205,20 +201,23 @@ public class BCOSDriverTest {
                 FunctionUtility.newSendTransactionProxyFunction(
                         "1", "1", 1, "a.b.Hello", "set(string)", encoded.encode(false));
 
-        TxPair signedTransaction =
-                TransactionBuilderJniObj.createSignedTransaction(
-                        account.getCredentials().getJniKeyPair(),
+        long transactionData =
+                TransactionBuilderJniObj.createTransactionData(
                         ClientDefaultConfig.DEFAULT_GROUP_ID,
                         ClientDefaultConfig.DEFAULT_CHAIN_ID,
                         "0x0",
                         Hex.toHexString(functionEncoder.encode(function)),
                         "",
-                        1111,
-                        0);
+                        1111);
+        String encodeTransactionData =
+                TransactionBuilderJniObj.encodeTransactionData(transactionData);
+        TransactionBuilderJniObj.destroyTransactionData(transactionData);
 
-        String signTx = signedTransaction.getSignedTx();
         TransactionParams transaction =
-                new TransactionParams(request, signTx, TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY);
+                new TransactionParams(
+                        request,
+                        encodeTransactionData,
+                        TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY);
         transaction.setAbi(abi);
 
         byte[] data = ObjectMapperFactory.getObjectMapper().writeValueAsBytes(transaction);
@@ -234,7 +233,7 @@ public class BCOSDriverTest {
     @Test
     public void decodeProxyCallTransactionRequestTest() throws Exception {
         String func = "set";
-        String[] params = new String[]{"a"};
+        String[] params = new String[] {"a"};
 
         String abi =
                 "[{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"string\"}],\"name\":\"set\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"get\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]";
@@ -376,7 +375,7 @@ public class BCOSDriverTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig", "xxxxx"};
+        String[] params = new String[] {"abc", "def", "hig", "xxxxx"};
 
         TransactionRequest transactionRequest = createTransactionRequest(funName, params);
 

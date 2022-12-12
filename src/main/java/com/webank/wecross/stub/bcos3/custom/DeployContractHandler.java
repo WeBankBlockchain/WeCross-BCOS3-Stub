@@ -11,6 +11,13 @@ import com.webank.wecross.stub.TransactionRequest;
 import com.webank.wecross.stub.bcos3.AsyncBfsService;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinitionFactory;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIObject;
@@ -24,14 +31,6 @@ import org.fisco.solc.compiler.CompilationResult;
 import org.fisco.solc.compiler.SolidityCompiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
 public class DeployContractHandler implements CommandHandler {
     private static final Logger logger = LoggerFactory.getLogger(DeployContractHandler.class);
@@ -222,9 +221,9 @@ public class DeployContractHandler implements CommandHandler {
                 new TransactionRequest(
                         BCOSConstant.PROXY_METHOD_DEPLOY,
                         Arrays.asList(
-                                path.toString(),
-                                ContractCodecJsonWrapper.HexEncodedDataPrefix + bin,
-                                abi)
+                                        path.toString(),
+                                        ContractCodecJsonWrapper.HexEncodedDataPrefix + bin,
+                                        abi)
                                 .toArray(new String[0]));
 
         TransactionContext transactionContext =

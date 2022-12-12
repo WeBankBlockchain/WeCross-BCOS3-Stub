@@ -16,6 +16,17 @@ import com.webank.wecross.stub.bcos3.contract.FunctionUtility;
 import com.webank.wecross.stub.bcos3.protocol.request.TransactionParams;
 import com.webank.wecross.stub.bcos3.protocol.response.TransactionPair;
 import com.webank.wecross.stub.bcos3.protocol.response.TransactionProof;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.fisco.bcos.sdk.v3.client.exceptions.ClientException;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
@@ -30,21 +41,7 @@ import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-/**
- * The implementation of connection for BCOS
- */
+/** The implementation of connection for BCOS */
 public class BCOSConnection implements Connection {
 
     private static final Logger logger = LoggerFactory.getLogger(BCOSConnection.class);
@@ -160,9 +157,7 @@ public class BCOSConnection implements Connection {
         this.properties.put(key, value);
     }
 
-    /**
-     * list paths stored in proxy contract
-     */
+    /** list paths stored in proxy contract */
     public String[] listPaths() {
         Function function =
                 FunctionUtility.newDefaultFunction(BCOSConstant.PROXY_METHOD_GETPATHS, null);
@@ -299,11 +294,11 @@ public class BCOSConnection implements Connection {
                                     || Objects.isNull(receipt.getTransactionHash())
                                     || "".equals(receipt.getTransactionHash())
                                     || (new BigInteger(
-                                    receipt.getTransactionHash()
-                                            .substring(2),
-                                    16)
-                                    .compareTo(BigInteger.ZERO)
-                                    == 0)) {
+                                                            receipt.getTransactionHash()
+                                                                    .substring(2),
+                                                            16)
+                                                    .compareTo(BigInteger.ZERO)
+                                            == 0)) {
                                 response.setErrorCode(BCOSStatusCode.TransactionReceiptNotExist);
                                 response.setErrorMessage(
                                         BCOSStatusCode.getStatusMessage(
@@ -328,13 +323,13 @@ public class BCOSConnection implements Connection {
                             // trigger resources sync after cns updated
                             if (transaction.getTransactionRequest() != null
                                     && (transaction
-                                    .getTransactionRequest()
-                                    .getMethod()
-                                    .equals(BCOSConstant.PROXY_METHOD_DEPLOY)
-                                    || transaction
-                                    .getTransactionRequest()
-                                    .getMethod()
-                                    .equals(BCOSConstant.PROXY_METHOD_REGISTER))) {
+                                                    .getTransactionRequest()
+                                                    .getMethod()
+                                                    .equals(BCOSConstant.PROXY_METHOD_DEPLOY)
+                                            || transaction
+                                                    .getTransactionRequest()
+                                                    .getMethod()
+                                                    .equals(BCOSConstant.PROXY_METHOD_REGISTER))) {
 
                                 scheduledExecutorService.schedule(
                                         () -> noteOnResourcesChange(), 1, TimeUnit.MILLISECONDS);

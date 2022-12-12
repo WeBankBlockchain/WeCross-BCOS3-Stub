@@ -30,9 +30,10 @@ public class BlockUtility {
         }
         BlockHeader blockHeader = new BlockHeader();
         blockHeader.setHash(block.getHash());
-        blockHeader.setPrevHash(block.getParentInfo().isEmpty()
-                ? null
-                : block.getParentInfo().get(0).getBlockHash());
+        blockHeader.setPrevHash(
+                block.getParentInfo().isEmpty()
+                        ? null
+                        : block.getParentInfo().get(0).getBlockHash());
         blockHeader.setNumber(block.getNumber());
         blockHeader.setReceiptRoot(block.getReceiptsRoot());
         blockHeader.setStateRoot(block.getStateRoot());
@@ -55,9 +56,10 @@ public class BlockUtility {
 
         BCOSBlockHeader stubBlockHeader = new BCOSBlockHeader();
         stubBlockHeader.setHash(bcosHeader.getHash());
-        stubBlockHeader.setPrevHash(block.getParentInfo().isEmpty()
-                ? null
-                : block.getParentInfo().get(0).getBlockHash());
+        stubBlockHeader.setPrevHash(
+                block.getParentInfo().isEmpty()
+                        ? null
+                        : block.getParentInfo().get(0).getBlockHash());
         stubBlockHeader.setNumber(bcosHeader.getNumber());
         stubBlockHeader.setReceiptRoot(bcosHeader.getReceiptsRoot());
         stubBlockHeader.setStateRoot(bcosHeader.getStateRoot());
