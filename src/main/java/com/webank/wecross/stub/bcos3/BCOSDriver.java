@@ -69,9 +69,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Driver implementation for BCOS
- */
+/** Driver implementation for BCOS */
 public class BCOSDriver implements Driver {
 
     private static final Logger logger = LoggerFactory.getLogger(BCOSDriver.class);
@@ -95,11 +93,11 @@ public class BCOSDriver implements Driver {
         this.isWasm = isWasm;
         this.abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
         this.signer = Signer.newSigner(cryptoSuite.getCryptoTypeConfig());
-        this.functionEncoder = (isWasm ?
-                new org.fisco.bcos.sdk.v3.codec.scale.FunctionEncoder(cryptoSuite)
-                : new org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder(cryptoSuite));
+        this.functionEncoder =
+                (isWasm
+                        ? new org.fisco.bcos.sdk.v3.codec.scale.FunctionEncoder(cryptoSuite)
+                        : new org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder(cryptoSuite));
     }
-
 
     @Override
     public ImmutablePair<Boolean, TransactionRequest> decodeTransactionRequest(Request request) {
@@ -119,7 +117,8 @@ public class BCOSDriver implements Driver {
                 logger.trace(" TransactionParams: {}", transactionParams);
             }
 
-            Objects.requireNonNull(transactionParams.getTransactionRequest(), "TransactionRequest is null");
+            Objects.requireNonNull(
+                    transactionParams.getTransactionRequest(), "TransactionRequest is null");
             Objects.requireNonNull(transactionParams.getData(), "Data is null");
             Objects.requireNonNull(transactionParams.getSubType(), "type is null");
 
@@ -129,94 +128,114 @@ public class BCOSDriver implements Driver {
             String encodeAbi = "";
             switch (subType) {
                 case SEND_TX_BY_PROXY:
-                case CALL_BY_PROXY: {
-                    if (subType == TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY) {
-                        JsonTransactionResponse jsonTransactionResponse =
-                                JsonTransactionResponse.readFromHexString(transactionParams.getData());
-                        String input = Numeric.cleanHexPrefix(jsonTransactionResponse.getInput());
-                        if (input
-                                .startsWith(Hex.toHexString(functionEncoder.buildMethodId(FunctionUtility.ProxySendTransactionTXMethod)))) {
-                            Tuple6<String, String, BigInteger, String, String, byte[]>
-                                    sendTransactionProxyFunctionInput =
-                                    FunctionUtility
-                                            .getSendTransactionProxyFunctionInput(input);
-                            abi =
-                                    Hex.toHexString(
-                                            sendTransactionProxyFunctionInput.getValue6());
-                        } else {
-                            Tuple3<String, String, byte[]> sendTransactionProxyFunctionInput =
-                                    FunctionUtility
-                                            .getSendTransactionProxyWithoutTxIdFunctionInput(input);
-                            abi =
-                                    Hex.toHexString(
-                                            sendTransactionProxyFunctionInput.getValue3());
-                            abi = abi.substring(FunctionUtility.MethodIDLength);
-                        }
-                    } else {
-                        if (transactionParams.getData()
-                                .startsWith(Hex.toHexString(functionEncoder.buildMethodId(FunctionUtility.ProxyCallWithTransactionIdMethod)))) {
-                            Tuple4<String, String, String, byte[]>
-                                    constantCallProxyFunctionInput =
-                                    FunctionUtility.getConstantCallProxyFunctionInput(
+                case CALL_BY_PROXY:
+                    {
+                        if (subType == TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY) {
+                            JsonTransactionResponse jsonTransactionResponse =
+                                    JsonTransactionResponse.readFromHexString(
                                             transactionParams.getData());
-                            abi = Hex.toHexString(constantCallProxyFunctionInput.getValue4());
-                        } else {
-                            Tuple2<String, byte[]> sendTransactionProxyFunctionInput =
-                                    FunctionUtility.getConstantCallFunctionInput(
-                                            transactionParams.getData());
-                            abi =
+                            String input =
+                                    Numeric.cleanHexPrefix(jsonTransactionResponse.getInput());
+                            if (input.startsWith(
                                     Hex.toHexString(
-                                            sendTransactionProxyFunctionInput.getValue2());
-                            abi = abi.substring(FunctionUtility.MethodIDLength);
+                                            functionEncoder.buildMethodId(
+                                                    FunctionUtility
+                                                            .ProxySendTransactionTXMethod)))) {
+                                Tuple6<String, String, BigInteger, String, String, byte[]>
+                                        sendTransactionProxyFunctionInput =
+                                                FunctionUtility
+                                                        .getSendTransactionProxyFunctionInput(
+                                                                input);
+                                abi =
+                                        Hex.toHexString(
+                                                sendTransactionProxyFunctionInput.getValue6());
+                            } else {
+                                Tuple3<String, String, byte[]> sendTransactionProxyFunctionInput =
+                                        FunctionUtility
+                                                .getSendTransactionProxyWithoutTxIdFunctionInput(
+                                                        input);
+                                abi =
+                                        Hex.toHexString(
+                                                sendTransactionProxyFunctionInput.getValue3());
+                                abi = abi.substring(FunctionUtility.MethodIDLength);
+                            }
+                        } else {
+                            if (transactionParams
+                                    .getData()
+                                    .startsWith(
+                                            Hex.toHexString(
+                                                    functionEncoder.buildMethodId(
+                                                            FunctionUtility
+                                                                    .ProxyCallWithTransactionIdMethod)))) {
+                                Tuple4<String, String, String, byte[]>
+                                        constantCallProxyFunctionInput =
+                                                FunctionUtility.getConstantCallProxyFunctionInput(
+                                                        transactionParams.getData());
+                                abi = Hex.toHexString(constantCallProxyFunctionInput.getValue4());
+                            } else {
+                                Tuple2<String, byte[]> sendTransactionProxyFunctionInput =
+                                        FunctionUtility.getConstantCallFunctionInput(
+                                                transactionParams.getData());
+                                abi =
+                                        Hex.toHexString(
+                                                sendTransactionProxyFunctionInput.getValue2());
+                                abi = abi.substring(FunctionUtility.MethodIDLength);
+                            }
                         }
+
+                        List<ABIDefinition> abiDefinitions =
+                                abiDefinitionFactory
+                                        .loadABI(transactionParams.getAbi())
+                                        .getFunctions()
+                                        .get(transactionRequest.getMethod());
+                        if (Objects.isNull(abiDefinitions) || abiDefinitions.isEmpty()) {
+                            throw new InvalidParameterException(
+                                    " found no method in abi, method: "
+                                            + transactionRequest.getMethod());
+                        }
+
+                        encodeAbi =
+                                Hex.toHexString(
+                                        contractCodecJsonWrapper
+                                                .encode(
+                                                        ABIObjectFactory.createInputObject(
+                                                                abiDefinitions.get(0)),
+                                                        Objects.nonNull(
+                                                                        transactionRequest
+                                                                                .getArgs())
+                                                                ? Arrays.asList(
+                                                                        transactionRequest
+                                                                                .getArgs())
+                                                                : Arrays.asList())
+                                                .encode(isWasm));
+
+                        break;
                     }
-
-                    List<ABIDefinition> abiDefinitions =
-                            abiDefinitionFactory
-                                    .loadABI(transactionParams.getAbi())
-                                    .getFunctions()
-                                    .get(transactionRequest.getMethod());
-                    if (Objects.isNull(abiDefinitions) || abiDefinitions.isEmpty()) {
-                        throw new InvalidParameterException(
-                                " found no method in abi, method: "
-                                        + transactionRequest.getMethod());
-                    }
-
-                    encodeAbi = Hex.toHexString(
-                            contractCodecJsonWrapper
-                                    .encode(
-                                            ABIObjectFactory.createInputObject(
-                                                    abiDefinitions.get(0)),
-                                            Objects.nonNull(transactionRequest.getArgs())
-                                                    ? Arrays.asList(
-                                                    transactionRequest.getArgs())
-                                                    : Arrays.asList())
-                                    .encode(isWasm));
-
-                    break;
-                }
                 case SEND_TX:
-                case CALL: {
-                    if (subType == TransactionParams.SUB_TYPE.SEND_TX) {
-                        JsonTransactionResponse jsonTransactionResponse =
-                                JsonTransactionResponse.readFromHexString(transactionParams.getData());
-                        abi = Numeric.cleanHexPrefix(jsonTransactionResponse.getInput());
-                    } else {
-                        abi = transactionParams.getData();
+                case CALL:
+                    {
+                        if (subType == TransactionParams.SUB_TYPE.SEND_TX) {
+                            JsonTransactionResponse jsonTransactionResponse =
+                                    JsonTransactionResponse.readFromHexString(
+                                            transactionParams.getData());
+                            abi = Numeric.cleanHexPrefix(jsonTransactionResponse.getInput());
+                        } else {
+                            abi = transactionParams.getData();
+                        }
+
+                        Function function =
+                                FunctionUtility.newDefaultFunction(
+                                        transactionRequest.getMethod(),
+                                        transactionRequest.getArgs());
+
+                        encodeAbi = Hex.toHexString(functionEncoder.encode(function));
+                        break;
                     }
-
-                    Function function =
-                            FunctionUtility.newDefaultFunction(
-                                    transactionRequest.getMethod(),
-                                    transactionRequest.getArgs());
-
-                    encodeAbi = Hex.toHexString(functionEncoder.encode(function));
-                    break;
-                }
-                default: {
-                    // not call/sendTransaction
-                    return new ImmutablePair<>(true, null);
-                }
+                default:
+                    {
+                        // not call/sendTransaction
+                        return new ImmutablePair<>(true, null);
+                    }
             }
 
             if (Numeric.cleanHexPrefix(encodeAbi).equals(Numeric.cleanHexPrefix(abi))) {
@@ -294,7 +313,8 @@ public class BCOSDriver implements Driver {
 
                             if (abi == null) {
                                 throw new BCOSStubException(
-                                        BCOSStatusCode.ABINotExist, "resource:" + name + " not exist");
+                                        BCOSStatusCode.ABINotExist,
+                                        "resource:" + name + " not exist");
                             }
 
                             // encode
@@ -307,15 +327,18 @@ public class BCOSDriver implements Driver {
                                     contractABIDefinition.getFunctions().get(method);
                             if (Objects.isNull(functions) || functions.isEmpty()) {
                                 throw new BCOSStubException(
-                                        BCOSStatusCode.MethodNotExist, "Method not found in abi, method: " + method);
+                                        BCOSStatusCode.MethodNotExist,
+                                        "Method not found in abi, method: " + method);
                             }
 
-                            ABIObject inputObj = ABIObjectFactory.createInputObject(functions.get(0));
+                            ABIObject inputObj =
+                                    ABIObjectFactory.createInputObject(functions.get(0));
 
                             byte[] encodedArgs = null;
                             if (!Objects.isNull(args)) {
                                 ABIObject encodedObj =
-                                        contractCodecJsonWrapper.encode(inputObj, Arrays.asList(args));
+                                        contractCodecJsonWrapper.encode(
+                                                inputObj, Arrays.asList(args));
                                 encodedArgs = encodedObj.encode(isWasm);
                             }
 
@@ -397,8 +420,9 @@ public class BCOSDriver implements Driver {
                                                         callOutput.getBlockNumber());
                                             }
 
-                                            if (Objects.equals(TransactionReceiptStatus.Success.getCode()
-                                                    , callOutput.getStatus())) {
+                                            if (Objects.equals(
+                                                    TransactionReceiptStatus.Success.getCode(),
+                                                    callOutput.getStatus())) {
                                                 transactionResponse.setErrorCode(
                                                         BCOSStatusCode.Success);
                                                 transactionResponse.setMessage(
@@ -415,7 +439,10 @@ public class BCOSDriver implements Driver {
                                                         callOutput.getOutput().substring(130);
                                                 transactionResponse.setResult(
                                                         contractCodecJsonWrapper
-                                                                .decode(outputObj, Hex.decode(output), isWasm)
+                                                                .decode(
+                                                                        outputObj,
+                                                                        Hex.decode(output),
+                                                                        isWasm)
                                                                 .toArray(new String[0]));
                                             } else {
                                                 transactionResponse.setErrorCode(
@@ -431,9 +458,10 @@ public class BCOSDriver implements Driver {
                                                 } else {
                                                     transactionResponse.setMessage(
                                                             TransactionReceiptStatus
-                                                                    .getStatusMessage(callOutput.getStatus(), "Unknown error")
-                                                                    .getMessage()
-                                                    );
+                                                                    .getStatusMessage(
+                                                                            callOutput.getStatus(),
+                                                                            "Unknown error")
+                                                                    .getMessage());
                                                 }
                                             }
 
@@ -574,7 +602,8 @@ public class BCOSDriver implements Driver {
                                 contractABIDefinition.getFunctions().get(method);
                         if (Objects.isNull(functions) || functions.isEmpty()) {
                             throw new BCOSStubException(
-                                    BCOSStatusCode.MethodNotExist, "Method not found in abi, method: " + method);
+                                    BCOSStatusCode.MethodNotExist,
+                                    "Method not found in abi, method: " + method);
                         }
 
                         ABIObject inputObj = ABIObjectFactory.createInputObject(functions.get(0));
@@ -723,8 +752,7 @@ public class BCOSDriver implements Driver {
                                                     cryptoSuite);
 
                                             transactionResponse.setBlockNumber(
-                                                    receipt.getBlockNumber()
-                                                            .longValue());
+                                                    receipt.getBlockNumber().longValue());
                                             transactionResponse.setHash(
                                                     receipt.getTransactionHash());
                                             // TODO: check 130
@@ -788,7 +816,7 @@ public class BCOSDriver implements Driver {
                             } else {
                                 transactionResponse.setMessage(
                                         TransactionReceiptStatus.getStatusMessage(
-                                                receipt.getStatus(), "Unknown error")
+                                                        receipt.getStatus(), "Unknown error")
                                                 .getMessage());
                             }
 
@@ -807,7 +835,6 @@ public class BCOSDriver implements Driver {
                     }
                 });
     }
-
 
     @Override
     public void asyncGetBlockNumber(Connection connection, GetBlockNumberCallback callback) {
@@ -895,9 +922,7 @@ public class BCOSDriver implements Driver {
                         return;
                     }
 
-                    if (blockNumber
-                            != proof.getReceiptWithProof().getBlockNumber()
-                            .longValue()) {
+                    if (blockNumber != proof.getReceiptWithProof().getBlockNumber().longValue()) {
                         callback.onResponse(
                                 new Exception("Transaction hash does not match the block number"),
                                 null);
@@ -985,7 +1010,8 @@ public class BCOSDriver implements Driver {
                 }
             } else if (proxyInput.startsWith(
                     Hex.toHexStringWithPrefix(
-                            functionEncoder.buildMethodId(FunctionUtility.ProxySendTransactionTXMethod)))) {
+                            functionEncoder.buildMethodId(
+                                    FunctionUtility.ProxySendTransactionTXMethod)))) {
                 Tuple6<String, String, BigInteger, String, String, byte[]> proxyInputResult =
                         FunctionUtility.getSendTransactionProxyFunctionInput(proxyInput);
 
@@ -1073,14 +1099,17 @@ public class BCOSDriver implements Driver {
                                     .getTransactionResponse()
                                     .setMessage(
                                             TransactionReceiptStatus.getStatusMessage(
-                                                    receipt.getStatus(), "Unknown error")
+                                                            receipt.getStatus(), "Unknown error")
                                                     .getMessage());
 
                             if (TransactionReceiptStatus.Success.getCode() == receipt.getStatus()) {
-                                ABIObject outputObject = ABIObjectFactory.createOutputObject(function);
+                                ABIObject outputObject =
+                                        ABIObjectFactory.createOutputObject(function);
                                 List<String> outputParams =
                                         contractCodecJsonWrapper.decode(
-                                                outputObject, Hex.decode(proxyOutput.substring(130)), isWasm);
+                                                outputObject,
+                                                Hex.decode(proxyOutput.substring(130)),
+                                                isWasm);
                                 /** decode output from output */
                                 transaction
                                         .getTransactionResponse()
@@ -1106,7 +1135,6 @@ public class BCOSDriver implements Driver {
             callback.onResponse(e, null);
         }
     }
-
 
     private interface RequestTransactionProofCallback {
         void onResponse(BCOSStubException e, TransactionProof proof);

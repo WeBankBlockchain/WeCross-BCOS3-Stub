@@ -2,7 +2,6 @@ package com.webank.wecross.stub.bcos3.contract;
 
 import org.fisco.bcos.sdk.v3.codec.FunctionEncoderInterface;
 import org.fisco.bcos.sdk.v3.codec.Utils;
-import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
 import org.fisco.bcos.sdk.v3.codec.abi.FunctionReturnDecoder;
 import org.fisco.bcos.sdk.v3.codec.datatypes.DynamicArray;
 import org.fisco.bcos.sdk.v3.codec.datatypes.DynamicBytes;
@@ -54,8 +53,7 @@ public class FunctionUtility {
     public static final String ProxyCallMethod = "constantCall(string,bytes)";
 
     public static final List<TypeReference<?>> abiTypeReferenceOutputs =
-            Collections.singletonList(new TypeReference<DynamicArray<Utf8String>>() {
-            });
+            Collections.singletonList(new TypeReference<DynamicArray<Utf8String>>() {});
 
     /**
      * Get the function object used to encode and decode the abi parameters
@@ -78,8 +76,8 @@ public class FunctionUtility {
                         (0 == params.length)
                                 ? new DynamicArray<>(Utf8String.class, Collections.emptyList())
                                 : new DynamicArray<>(
-                                Utf8String.class,
-                                Utils.typeMap(Arrays.asList(params), Utf8String.class))),
+                                        Utf8String.class,
+                                        Utils.typeMap(Arrays.asList(params), Utf8String.class))),
                 abiTypeReferenceOutputs);
     }
 
@@ -116,7 +114,10 @@ public class FunctionUtility {
      * @return
      */
     public static Function newConstantCallProxyFunction(
-            FunctionEncoderInterface functionEncoder, String name, String methodSignature, byte[] abi)
+            FunctionEncoderInterface functionEncoder,
+            String name,
+            String methodSignature,
+            byte[] abi)
             throws IOException {
         byte[] methodId = functionEncoder.buildMethodId(methodSignature);
         ByteArrayOutputStream params = new ByteArrayOutputStream();
@@ -203,14 +204,10 @@ public class FunctionUtility {
                         "constantCall",
                         Collections.emptyList(),
                         Arrays.asList(
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<DynamicBytes>() {
-                                }));
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<DynamicBytes>() {}));
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
@@ -234,10 +231,8 @@ public class FunctionUtility {
                         "constantCall",
                         Collections.emptyList(),
                         Arrays.asList(
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<DynamicBytes>() {
-                                }));
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<DynamicBytes>() {}));
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
@@ -251,7 +246,7 @@ public class FunctionUtility {
      * @return
      */
     public static Tuple6<String, String, BigInteger, String, String, byte[]>
-    getSendTransactionProxyFunctionInput(String input) {
+            getSendTransactionProxyFunctionInput(String input) {
         String data = input.substring(Numeric.containsHexPrefix(input) ? 10 : 8);
 
         final Function function =
@@ -259,18 +254,12 @@ public class FunctionUtility {
                         "sendTransaction",
                         Collections.emptyList(),
                         Arrays.asList(
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<Uint256>() {
-                                },
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<DynamicBytes>() {
-                                }));
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<Uint256>() {},
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<DynamicBytes>() {}));
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
@@ -298,12 +287,9 @@ public class FunctionUtility {
                         "sendTransaction",
                         Collections.emptyList(),
                         Arrays.asList(
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<Utf8String>() {
-                                },
-                                new TypeReference<DynamicBytes>() {
-                                }));
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<Utf8String>() {},
+                                new TypeReference<DynamicBytes>() {}));
         FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
@@ -399,8 +385,7 @@ public class FunctionUtility {
                 functionReturnDecoder.decode(
                         output,
                         Utils.convert(
-                                Collections.singletonList(new TypeReference<Utf8String>() {
-                                })));
+                                Collections.singletonList(new TypeReference<Utf8String>() {})));
         if (Objects.isNull(outputTypes) || outputTypes.isEmpty()) {
             return null;
         }

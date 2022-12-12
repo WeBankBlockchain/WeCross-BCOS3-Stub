@@ -22,7 +22,8 @@ public abstract class PureBCOSProxySuite extends PureBCOSSuite {
     private WeCrossProxy weCrossProxy;
     private String contractName;
 
-    public PureBCOSProxySuite(String chainName, String accountName, boolean sm, String contractName) {
+    public PureBCOSProxySuite(
+            String chainName, String accountName, boolean sm, String contractName) {
         super(chainName, accountName, sm);
 
         this.bfsInfo = BfsServiceWrapper.queryProxyBFSInfo(getAbstractClientWrapper());

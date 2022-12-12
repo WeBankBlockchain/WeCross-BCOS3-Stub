@@ -15,9 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Load and parser stub.toml configuration file for BCOS
- */
+/** Load and parser stub.toml configuration file for BCOS */
 public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
 
     private static final Logger logger = LoggerFactory.getLogger(BCOSStubConfigParser.class);
@@ -56,16 +54,20 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
         BCOSStubConfig.Chain chainConfig = getChainConfig(chainConfigValue);
 
         // channelService
-        Map<String, Object> channelServiceConfigValue = (Map<String, Object>) stubConfig.get("channelService");
+        Map<String, Object> channelServiceConfigValue =
+                (Map<String, Object>) stubConfig.get("channelService");
         requireItemNotNull(channelServiceConfigValue, "channelService", getConfigPath());
-        BCOSStubConfig.ChannelService channelServiceConfig = getChannelServiceConfig(getConfigPath(), channelServiceConfigValue, stubType);
+        BCOSStubConfig.ChannelService channelServiceConfig =
+                getChannelServiceConfig(getConfigPath(), channelServiceConfigValue, stubType);
 
         // resources
-        List<Map<String, String>> resourcesConfigValue = (List<Map<String, String>>) stubConfig.get("resources");
+        List<Map<String, String>> resourcesConfigValue =
+                (List<Map<String, String>>) stubConfig.get("resources");
         if (resourcesConfigValue == null) {
             resourcesConfigValue = new ArrayList<>();
         }
-        List<BCOSStubConfig.Resource> resourcesConfig = getBCOSResourceConfig(getConfigPath(), chainConfig, resourcesConfigValue);
+        List<BCOSStubConfig.Resource> resourcesConfig =
+                getBCOSResourceConfig(getConfigPath(), chainConfig, resourcesConfigValue);
 
         BCOSStubConfig bcosStubConfig = new BCOSStubConfig();
         bcosStubConfig.setType(stubType);
@@ -152,7 +154,8 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
                         : messageTimeout.intValue());
 
         // connectionsStr field
-        List<String> connectionsStr = (List<String>) channelServiceConfigValue.get("connectionsStr");
+        List<String> connectionsStr =
+                (List<String>) channelServiceConfigValue.get("connectionsStr");
         requireFieldNotNull(connectionsStr, "channelService", "connectionsStr", configFile);
         channelServiceConfig.setConnectionsStr(connectionsStr);
 

@@ -136,7 +136,8 @@ public class TwoPCContractDeployment {
             AbstractClientWrapper clientWrapper = proxyContract.getConnection().getClientWrapper();
 
             if (isWasm) {
-                DeployContractWasmHandler deployContractWasmHandler = new DeployContractWasmHandler();
+                DeployContractWasmHandler deployContractWasmHandler =
+                        new DeployContractWasmHandler();
                 deployContractWasmHandler.setAsyncBfsService(asyncBfsService);
                 twoPCContract.setDeployContractWasmHandler(deployContractWasmHandler);
             } else {

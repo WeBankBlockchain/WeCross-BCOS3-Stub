@@ -8,7 +8,6 @@ import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 import java.io.IOException;
 import java.math.BigInteger;
 
-
 public class ClientBlockManager implements BlockManager {
     private ClientWrapper clientWrapper;
 

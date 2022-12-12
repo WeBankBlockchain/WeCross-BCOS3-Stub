@@ -219,7 +219,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
         FunctionEncoder functionEncoder = new FunctionEncoder(clientWrapper.getCryptoSuite());
@@ -246,7 +246,8 @@ public class BCOSConnectionTest {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    assertEquals(callOutput.getStatus(), TransactionReceiptStatus.Success.getCode());
+                    assertEquals(
+                            callOutput.getStatus(), TransactionReceiptStatus.Success.getCode());
 
                     String data = callOutput.getOutput();
 
@@ -271,7 +272,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
         FunctionEncoder functionEncoder = new FunctionEncoder(clientWrapper.getCryptoSuite());
@@ -305,7 +306,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
         FunctionEncoder functionEncoder = new FunctionEncoder(clientWrapper.getCryptoSuite());
@@ -339,7 +340,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
 
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
@@ -391,7 +392,8 @@ public class BCOSConnectionTest {
     }
 
     @Test
-    public void handleFailedSendTransactionTest() throws IOException, InterruptedException, JniException {
+    public void handleFailedSendTransactionTest()
+            throws IOException, InterruptedException, JniException {
 
         AbstractClientWrapper clientWrapper = new ClientWrapperWithExceptionMock();
         CryptoSuite cryptoSuite = clientWrapper.getCryptoSuite();
@@ -405,7 +407,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
 
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 
@@ -446,7 +448,8 @@ public class BCOSConnectionTest {
     }
 
     @Test
-    public void handleFailedSendTransactionTest0() throws IOException, InterruptedException, JniException {
+    public void handleFailedSendTransactionTest0()
+            throws IOException, InterruptedException, JniException {
 
         AbstractClientWrapper clientWrapper = new ClientWrapperWithNullMock();
         CryptoSuite cryptoSuite = clientWrapper.getCryptoSuite();
@@ -460,7 +463,7 @@ public class BCOSConnectionTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig"};
+        String[] params = new String[] {"abc", "def", "hig"};
 
         Function function = FunctionUtility.newDefaultFunction(funName, params);
 

@@ -83,9 +83,7 @@ public class PerformanceTest {
                 System.err.println(" ## Error: unable to fetch proxy contract address. ");
                 System.exit(0);
             }
-            System.err.println(
-                    " ## Proxy contract address: "
-                            + bfsInfo.getAddress());
+            System.err.println(" ## Proxy contract address: " + bfsInfo.getAddress());
 
             PerformanceManager performanceManager = new PerformanceManager(suite, count, qps);
             performanceManager.run();

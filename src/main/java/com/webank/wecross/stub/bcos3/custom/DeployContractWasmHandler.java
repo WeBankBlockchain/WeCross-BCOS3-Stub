@@ -59,11 +59,11 @@ public class DeployContractWasmHandler implements CommandHandler {
     }
 
     /**
-     * @param path         rule id
-     * @param args         command args
-     * @param account      if needs to sign
+     * @param path rule id
+     * @param args command args
+     * @param account if needs to sign
      * @param blockManager if needs to verify transaction
-     * @param connection   chain connection
+     * @param connection chain connection
      * @param callback
      */
     @Override
@@ -168,11 +168,7 @@ public class DeployContractWasmHandler implements CommandHandler {
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace(
-                    "deploy contract, name: {}, bin: {}, abi:{}",
-                    bfsName,
-                    bin,
-                    abi);
+            logger.trace("deploy contract, name: {}, bin: {}, abi:{}", bfsName, bin, abi);
         }
 
         deployContractAndRegisterLink(

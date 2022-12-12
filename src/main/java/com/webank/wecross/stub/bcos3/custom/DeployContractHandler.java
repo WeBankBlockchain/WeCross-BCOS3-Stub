@@ -222,9 +222,9 @@ public class DeployContractHandler implements CommandHandler {
                 new TransactionRequest(
                         BCOSConstant.PROXY_METHOD_DEPLOY,
                         Arrays.asList(
-                                path.toString(),
-                                ContractCodecJsonWrapper.HexEncodedDataPrefix + bin,
-                                abi)
+                                        path.toString(),
+                                        ContractCodecJsonWrapper.HexEncodedDataPrefix + bin,
+                                        abi)
                                 .toArray(new String[0]));
 
         TransactionContext transactionContext =

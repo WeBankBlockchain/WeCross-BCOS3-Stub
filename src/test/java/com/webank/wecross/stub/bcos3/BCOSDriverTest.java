@@ -98,7 +98,9 @@ public class BCOSDriverTest {
 
         ScheduledExecutorService scheduledExecutorService =
                 new ScheduledThreadPoolExecutor(4, new CustomizableThreadFactory("tmpBCOSConn-"));
-        connection = BCOSConnectionFactory.build(bcosStubConfig, new ClientWrapperImplMock(), scheduledExecutorService);
+        connection =
+                BCOSConnectionFactory.build(
+                        bcosStubConfig, new ClientWrapperImplMock(), scheduledExecutorService);
         connection
                 .getProperties()
                 .put(
@@ -127,7 +129,7 @@ public class BCOSDriverTest {
     @Test
     public void decodeCallTransactionRequestTest() throws Exception {
         String func = "func";
-        String[] params = new String[]{"a", "b", "c"};
+        String[] params = new String[] {"a", "b", "c"};
 
         TransactionRequest request = new TransactionRequest(func, params);
         Function function = FunctionUtility.newDefaultFunction(func, params);
@@ -150,24 +152,26 @@ public class BCOSDriverTest {
     @Test
     public void decodeSendTransactionTransactionRequestTest() throws Exception {
         String func = "func";
-        String[] params = new String[]{"a", "b", "c"};
+        String[] params = new String[] {"a", "b", "c"};
 
         TransactionRequest request = new TransactionRequest(func, params);
         Function function = FunctionUtility.newDefaultFunction(func, params);
 
-        long transactionData = TransactionBuilderJniObj.createTransactionData(
-                ClientDefaultConfig.DEFAULT_GROUP_ID,
-                ClientDefaultConfig.DEFAULT_CHAIN_ID,
-                "0x0",
-                Hex.toHexString(functionEncoder.encode(function)),
-                "",
-                1111
-        );
-        String encodeTransactionData = TransactionBuilderJniObj.encodeTransactionData(transactionData);
+        long transactionData =
+                TransactionBuilderJniObj.createTransactionData(
+                        ClientDefaultConfig.DEFAULT_GROUP_ID,
+                        ClientDefaultConfig.DEFAULT_CHAIN_ID,
+                        "0x0",
+                        Hex.toHexString(functionEncoder.encode(function)),
+                        "",
+                        1111);
+        String encodeTransactionData =
+                TransactionBuilderJniObj.encodeTransactionData(transactionData);
         TransactionBuilderJniObj.destroyTransactionData(transactionData);
 
         TransactionParams transaction =
-                new TransactionParams(request, encodeTransactionData, TransactionParams.SUB_TYPE.SEND_TX);
+                new TransactionParams(
+                        request, encodeTransactionData, TransactionParams.SUB_TYPE.SEND_TX);
 
         byte[] data = ObjectMapperFactory.getObjectMapper().writeValueAsBytes(transaction);
 
@@ -182,7 +186,7 @@ public class BCOSDriverTest {
     @Test
     public void decodeProxySendTransactionTransactionRequestTest() throws Exception {
         String func = "set";
-        String[] params = new String[]{"a"};
+        String[] params = new String[] {"a"};
 
         String abi =
                 "[{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"string\"}],\"name\":\"set\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"get\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]";
@@ -198,19 +202,23 @@ public class BCOSDriverTest {
                 FunctionUtility.newSendTransactionProxyFunction(
                         "1", "1", 1, "a.b.Hello", "set(string)", encoded.encode(false));
 
-        long transactionData = TransactionBuilderJniObj.createTransactionData(
-                ClientDefaultConfig.DEFAULT_GROUP_ID,
-                ClientDefaultConfig.DEFAULT_CHAIN_ID,
-                "0x0",
-                Hex.toHexString(functionEncoder.encode(function)),
-                "",
-                1111
-        );
-        String encodeTransactionData = TransactionBuilderJniObj.encodeTransactionData(transactionData);
+        long transactionData =
+                TransactionBuilderJniObj.createTransactionData(
+                        ClientDefaultConfig.DEFAULT_GROUP_ID,
+                        ClientDefaultConfig.DEFAULT_CHAIN_ID,
+                        "0x0",
+                        Hex.toHexString(functionEncoder.encode(function)),
+                        "",
+                        1111);
+        String encodeTransactionData =
+                TransactionBuilderJniObj.encodeTransactionData(transactionData);
         TransactionBuilderJniObj.destroyTransactionData(transactionData);
 
         TransactionParams transaction =
-                new TransactionParams(request, encodeTransactionData, TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY);
+                new TransactionParams(
+                        request,
+                        encodeTransactionData,
+                        TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY);
         transaction.setAbi(abi);
 
         byte[] data = ObjectMapperFactory.getObjectMapper().writeValueAsBytes(transaction);
@@ -226,7 +234,7 @@ public class BCOSDriverTest {
     @Test
     public void decodeProxyCallTransactionRequestTest() throws Exception {
         String func = "set";
-        String[] params = new String[]{"a"};
+        String[] params = new String[] {"a"};
 
         String abi =
                 "[{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"string\"}],\"name\":\"set\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"get\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]";
@@ -368,7 +376,7 @@ public class BCOSDriverTest {
 
         String address = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
         String funName = "funcName";
-        String[] params = new String[]{"abc", "def", "hig", "xxxxx"};
+        String[] params = new String[] {"abc", "def", "hig", "xxxxx"};
 
         TransactionRequest transactionRequest = createTransactionRequest(funName, params);
 

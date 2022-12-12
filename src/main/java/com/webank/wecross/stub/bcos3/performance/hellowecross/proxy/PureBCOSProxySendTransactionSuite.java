@@ -26,7 +26,11 @@ public class PureBCOSProxySendTransactionSuite extends PureBCOSProxySuite {
     private byte[] abi;
 
     public PureBCOSProxySendTransactionSuite(
-            String resourceOrAddress, String chainName, String accountName, boolean sm, boolean isWasm)
+            String resourceOrAddress,
+            String chainName,
+            String accountName,
+            boolean sm,
+            boolean isWasm)
             throws Exception {
         super(chainName, accountName, sm, resourceOrAddress);
         logger.info(" ===>>> resourceOrAddress : {}, value: {}", resourceOrAddress, ss.get(0));

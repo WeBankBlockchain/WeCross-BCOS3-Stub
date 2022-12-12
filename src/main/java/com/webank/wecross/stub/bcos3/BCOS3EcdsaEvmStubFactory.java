@@ -14,7 +14,10 @@ public class BCOS3EcdsaEvmStubFactory extends BCOSBaseStubFactory {
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println(String.format("This is %s Stub Plugin. Please copy this file to router/plugin/", BCOS3_ECDSA_EVM_STUB_TYPE));
+        System.out.println(
+                String.format(
+                        "This is %s Stub Plugin. Please copy this file to router/plugin/",
+                        BCOS3_ECDSA_EVM_STUB_TYPE));
         System.out.println("For deploy WeCrossProxy:");
         System.out.println(
                 "    java -cp conf/:lib/*:plugin/* com.webank.wecross.stub.bcos.normal.preparation.ProxyContractDeployment");

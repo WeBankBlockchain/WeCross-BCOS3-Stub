@@ -101,8 +101,7 @@ public class ProxyContract {
         }
     }
 
-    public ProxyContract() {
-    }
+    public ProxyContract() {}
 
     public BCOSAccount getAccount() {
         return account;
@@ -124,8 +123,8 @@ public class ProxyContract {
      * @param solFile, String contractName
      * @return
      */
-    public BFSInfo deployContractAndLinkBFS(
-            File solFile, String contractName, String linkName) throws Exception {
+    public BFSInfo deployContractAndLinkBFS(File solFile, String contractName, String linkName)
+            throws Exception {
 
         logger.info("linkName: {}", linkName);
 

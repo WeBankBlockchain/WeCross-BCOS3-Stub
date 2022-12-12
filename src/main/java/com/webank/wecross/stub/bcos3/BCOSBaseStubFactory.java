@@ -49,8 +49,7 @@ public class BCOSBaseStubFactory implements StubFactory {
     }
 
     @Override
-    public void init(WeCrossContext context) {
-    }
+    public void init(WeCrossContext context) {}
 
     public boolean isGMStub() {
         return StringUtils.containsIgnoreCase(stubType, BCOSConstant.GM);
@@ -59,7 +58,6 @@ public class BCOSBaseStubFactory implements StubFactory {
     public boolean isWASMStub() {
         return StringUtils.containsIgnoreCase(stubType, BCOSConstant.WASM);
     }
-
 
     public String getAlg() {
         return alg;

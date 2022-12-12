@@ -93,8 +93,7 @@ public class HubContract {
         }
     }
 
-    public HubContract() {
-    }
+    public HubContract() {}
 
     public BCOSAccount getAccount() {
         return account;
@@ -184,7 +183,8 @@ public class HubContract {
                                     " deploy contract failed, error status: {}, error message: {} ",
                                     receipt.getStatus(),
                                     TransactionReceiptStatus.getStatusMessage(
-                                            receipt.getStatus(), "Unknown error").getMessage());
+                                                    receipt.getStatus(), "Unknown error")
+                                            .getMessage());
                             completableFuture.complete(null);
                         } else {
                             logger.info(
@@ -200,8 +200,7 @@ public class HubContract {
             throw new Exception("Failed to deploy hub contract.");
         }
         BFSService bfsService = new BFSService(client, account.getCredentials().generateKeyPair());
-        RetCode retCode =
-                bfsService.link(linkName, "latest", contractAddress, metadata.abi);
+        RetCode retCode = bfsService.link(linkName, "latest", contractAddress, metadata.abi);
 
         if (retCode.getCode() < PrecompiledRetCode.CODE_SUCCESS.getCode()) {
             throw new RuntimeException(" registerBfs failed, error message: " + retCode);
@@ -221,8 +220,7 @@ public class HubContract {
                     new PathMatchingResourcePatternResolver();
             File file = resolver.getResource("classpath:" + hubContractFile).getFile();
 
-            deployContractAndLinkBFS(
-                    file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
+            deployContractAndLinkBFS(file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
             System.out.println(
                     "SUCCESS: WeCrossHub: /apps/WeCrossHub/latest has been deployed! chain: "
                             + chainPath);
@@ -239,8 +237,7 @@ public class HubContract {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         File file = resolver.getResource("classpath:" + hubContractFile).getFile();
 
-        deployContractAndLinkBFS(
-                file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
+        deployContractAndLinkBFS(file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
 
         System.out.println(
                 "SUCCESS: WeCrossHub: /apps/WeCrossHub/latest has been upgraded! chain: "

@@ -26,7 +26,8 @@ public class BCOSConnectionFactoryTest {
             AbstractClientWrapper clientWrapper = new ClientWrapperImplMock();
             Connection connection = BCOSConnectionFactory.build(bcosStubConfig, clientWrapper);
 
-            Driver driver = new BCOSDriver(clientWrapper.getCryptoSuite(), bcosStubConfig.isWASMStub());
+            Driver driver =
+                    new BCOSDriver(clientWrapper.getCryptoSuite(), bcosStubConfig.isWASMStub());
             List<ResourceInfo> resources = driver.getResources(connection);
             assertEquals(resources.size(), 4);
             ResourceInfo resourceInfo = resources.get(0);

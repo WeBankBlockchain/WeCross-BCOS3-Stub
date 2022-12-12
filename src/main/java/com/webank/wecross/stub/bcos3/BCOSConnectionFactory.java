@@ -24,19 +24,22 @@ public class BCOSConnectionFactory {
         return build(stubConfigPath, configName, executorService);
     }
 
-    public static BCOSConnection build(String stubConfigPath, String configName, ScheduledExecutorService executorService)
+    public static BCOSConnection build(
+            String stubConfigPath, String configName, ScheduledExecutorService executorService)
             throws Exception {
         logger.info(" stubConfigPath: {} ", stubConfigPath);
 
-        BCOSStubConfigParser bcosStubConfigParser = new BCOSStubConfigParser(stubConfigPath, configName);
+        BCOSStubConfigParser bcosStubConfigParser =
+                new BCOSStubConfigParser(stubConfigPath, configName);
         BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
 
-        AbstractClientWrapper clientWrapper = ClientWrapperFactory.createClientWrapperInstance(bcosStubConfig);
+        AbstractClientWrapper clientWrapper =
+                ClientWrapperFactory.createClientWrapperInstance(bcosStubConfig);
         return build(bcosStubConfig, clientWrapper, executorService);
     }
 
-
-    public static BCOSConnection build(BCOSStubConfig bcosStubConfig, AbstractClientWrapper clientWrapper) {
+    public static BCOSConnection build(
+            BCOSStubConfig bcosStubConfig, AbstractClientWrapper clientWrapper) {
         ScheduledExecutorService scheduledExecutorService =
                 new ScheduledThreadPoolExecutor(4, new CustomizableThreadFactory("tmpBCOSConn-"));
         return build(bcosStubConfig, clientWrapper, scheduledExecutorService);
@@ -70,6 +73,4 @@ public class BCOSConnectionFactory {
         }
         return bcosConnection;
     }
-
-
 }

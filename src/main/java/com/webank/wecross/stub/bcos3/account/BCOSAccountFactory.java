@@ -1,17 +1,7 @@
 package com.webank.wecross.stub.bcos3.account;
 
-import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_EVM_STUB_TYPE;
-import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE;
-import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_GM_EVM_STUB_TYPE;
-import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_GM_WASM_STUB_TYPE;
-
 import com.webank.wecross.stub.bcos3.config.BCOSAccountConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSAccountConfigParser;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.security.KeyPair;
-import java.util.Map;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.crypto.keystore.P12KeyStore;
@@ -22,6 +12,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.security.KeyPair;
+import java.util.Map;
+
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_EVM_STUB_TYPE;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_GM_EVM_STUB_TYPE;
+import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_GM_WASM_STUB_TYPE;
 
 public class BCOSAccountFactory {
 
@@ -47,14 +48,15 @@ public class BCOSAccountFactory {
         String address = (String) properties.get("ext0");
 
         if (cryptoSuite.getCryptoTypeConfig() == CryptoType.ECDSA_TYPE) {
-            if (!type.equals(BCOS3_ECDSA_EVM_STUB_TYPE) && !type.equals(BCOS3_ECDSA_WASM_STUB_TYPE)) {
+            if (!type.equals(BCOS3_ECDSA_EVM_STUB_TYPE)
+                    && !type.equals(BCOS3_ECDSA_WASM_STUB_TYPE)) {
                 logger.error("Invalid stub type: " + type);
                 return null;
             }
         }
 
         if (cryptoSuite.getCryptoTypeConfig() == CryptoType.SM_TYPE) {
-            if (!type.equals(BCOS3_GM_EVM_STUB_TYPE) && !type.equals(BCOS3_GM_WASM_STUB_TYPE) ) {
+            if (!type.equals(BCOS3_GM_EVM_STUB_TYPE) && !type.equals(BCOS3_GM_WASM_STUB_TYPE)) {
                 logger.error("Invalid stub type: " + type);
                 return null;
             }

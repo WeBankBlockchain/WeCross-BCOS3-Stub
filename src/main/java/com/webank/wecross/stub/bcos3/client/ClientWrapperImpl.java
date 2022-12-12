@@ -7,5 +7,4 @@ public class ClientWrapperImpl extends AbstractClientWrapper {
     public ClientWrapperImpl(Client client) {
         super(client);
     }
-
 }

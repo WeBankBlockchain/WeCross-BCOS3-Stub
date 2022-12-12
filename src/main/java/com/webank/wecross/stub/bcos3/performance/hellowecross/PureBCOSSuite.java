@@ -57,7 +57,8 @@ public abstract class PureBCOSSuite implements PerformanceSuite {
 
         logger.info(" chain: {}, account: {}, enableGM: {}", chainName, accountName, sm);
 
-        BCOSBaseStubFactory stubFactory = (sm ? new BCOS3GMEvmStubFactory() : new BCOS3EcdsaEvmStubFactory());
+        BCOSBaseStubFactory stubFactory =
+                (sm ? new BCOS3GMEvmStubFactory() : new BCOS3EcdsaEvmStubFactory());
         BCOSConnection connection =
                 (BCOSConnection) stubFactory.newConnection("classpath:/" + chainName);
 

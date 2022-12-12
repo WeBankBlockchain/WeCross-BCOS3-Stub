@@ -1,11 +1,5 @@
 package com.webank.wecross.stub.bcos3.contract;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
 import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
 import org.fisco.bcos.sdk.v3.codec.abi.FunctionReturnDecoder;
 import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
@@ -15,6 +9,13 @@ import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 public class FunctionUtilityTest {
 
