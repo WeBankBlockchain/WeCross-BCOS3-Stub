@@ -314,7 +314,7 @@ public class BCOSStubCallContractIntegTest {
         asyncToSync.getSemaphore().acquire();
 
         AsyncToSync asyncToSync3 = new AsyncToSync();
-        //todo isVerified
+
         driver.asyncGetTransaction(hash[0], blockNumber[0], blockManager, true, connection, (e, transaction) -> {
             assertTrue(Objects.nonNull(transaction));
             assertTrue(Objects.isNull(e));
@@ -374,7 +374,7 @@ public class BCOSStubCallContractIntegTest {
 
 
         AsyncToSync asyncToSync1 = new AsyncToSync();
-        //todo isVerified
+
         driver.asyncGetTransaction(hash[0], blockNumber[0], blockManager, true, connection, (e, transaction) -> {
             assertTrue(Objects.isNull(transaction));
             assertTrue(Objects.nonNull(e));
@@ -389,7 +389,7 @@ public class BCOSStubCallContractIntegTest {
     public void getVerifiedTransactionNotExistTest() throws Exception {
         AsyncToSync asyncToSync = new AsyncToSync();
         String transactionHash = "0x6db416c8ac6b1fe7ed08771de419b71c084ee5969029346806324601f2e3f0d0";
-        //todo isVerified
+
         driver.asyncGetTransaction(transactionHash, 1, blockManager, true, connection, (e, verifiedTransaction) -> {
             assertTrue(Objects.nonNull(e));
             asyncToSync.getSemaphore().release();
@@ -596,7 +596,7 @@ public class BCOSStubCallContractIntegTest {
         asyncToSync.semaphore.acquire(1);
 
         AsyncToSync asyncToSync1 = new AsyncToSync();
-        //todo  isVerified
+
         driver.asyncGetTransaction(hash.get(), blockNumber[0], blockManager, true, connection, (e, transaction) -> {
             assertTrue(Objects.isNull(e));
             assertEquals(transaction.getTransactionResponse().getHash(), hash.get());
@@ -640,7 +640,7 @@ public class BCOSStubCallContractIntegTest {
         asyncToSync.semaphore.acquire(1);
 
         AsyncToSync asyncToSync1 = new AsyncToSync();
-        //todo isVerified
+
         driver.asyncGetTransaction(hash.get(), blockNumber[0], blockManager, true, connection, (exception, res) -> {
             assertTrue(Objects.isNull(exception));
             assertEquals(res.getTransactionResponse().getHash(), hash.get());
@@ -682,7 +682,7 @@ public class BCOSStubCallContractIntegTest {
         asyncToSync.semaphore.acquire(1);
 
         AsyncToSync asyncToSync1 = new AsyncToSync();
-        //todo isVerified
+
         driver.asyncGetTransaction(hash.get(), blockNumber[0], blockManager, true, connection, (exception, transaction) -> {
             assertTrue(Objects.isNull(exception));
             assertEquals(transaction.getTransactionResponse().getHash(), hash.get());

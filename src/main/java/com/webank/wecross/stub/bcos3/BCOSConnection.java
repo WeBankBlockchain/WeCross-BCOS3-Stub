@@ -32,7 +32,7 @@ import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlockHeader;
 import org.fisco.bcos.sdk.v3.client.protocol.response.Call;
-import org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder;
+import org.fisco.bcos.sdk.v3.codec.FunctionEncoderInterface;
 import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
@@ -60,13 +60,18 @@ public class BCOSConnection implements Connection {
 
     private Map<String, String> properties = new HashMap<>();
 
-    private final FunctionEncoder functionEncoder;
+    private final FunctionEncoderInterface functionEncoder;
 
     public BCOSConnection(
             AbstractClientWrapper clientWrapper,
             ScheduledExecutorService scheduledExecutorService) {
         this.clientWrapper = clientWrapper;
-        this.functionEncoder = new FunctionEncoder(clientWrapper.getCryptoSuite());
+        this.functionEncoder =
+                (clientWrapper.getClient().isWASM()
+                        ? new org.fisco.bcos.sdk.v3.codec.scale.FunctionEncoder(
+                                clientWrapper.getCryptoSuite())
+                        : new org.fisco.bcos.sdk.v3.codec.abi.FunctionEncoder(
+                                clientWrapper.getCryptoSuite()));
         this.scheduledExecutorService = scheduledExecutorService;
         this.objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         this.scheduledExecutorService.scheduleAtFixedRate(
