@@ -81,7 +81,6 @@ public class DeployContractHandler implements CommandHandler {
         String cnsName = (String) args[0];
         String sourceContent = (String) args[1];
         String className = (String) args[2];
-        // FIXME: ignore version args[3]
 
         Driver driver = getAsyncBfsService().getBcosDriver();
         /* constructor params */

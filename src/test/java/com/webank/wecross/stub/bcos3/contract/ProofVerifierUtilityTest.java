@@ -1,9 +1,9 @@
 package com.webank.wecross.stub.bcos3.contract;
 
-import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
 import com.webank.wecross.stub.ObjectMapperFactory;
+import java.io.IOException;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
@@ -11,8 +11,6 @@ import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.utils.MerkleProofUtility;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
 
 public class ProofVerifierUtilityTest {
     private String blockJson =
@@ -29,7 +27,6 @@ public class ProofVerifierUtilityTest {
     private String transactionReceiptAndProofJson0 =
             "{\"blockNumber\":72,\"checksumContractAddress\":\"\",\"contractAddress\":\"\",\"from\":\"0xc3905204c48f8bdffe5e57c465d178d4648416a4\",\"gasUsed\":\"13088\",\"hash\":\"0x759d4feef082f5e0088baae80f82104aac10639999692c934a78980759d58e47\",\"input\":\"0x4ed3885e000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000036161610000000000000000000000000000000000000000000000000000000000\",\"logEntries\":[],\"message\":\"\",\"output\":\"0x\",\"status\":0,\"to\":\"0xbf5dabac8a87e5d1f8da357e119c0f19f8c40b91\",\"transactionHash\":\"0xa7c9868b5780c4ab9ee8e7713b132e5b8b1b3de65060dc2aaa18aba1fb8da6c1\",\"transactionProof\":null,\"version\":0}";
 
-
     private BcosBlock.Block block = null;
     private TransactionReceipt receipt = null;
     private JsonTransactionResponse transAndProof = null;
@@ -43,31 +40,21 @@ public class ProofVerifierUtilityTest {
 
     @Before
     public void init() throws IOException {
-        block = ObjectMapperFactory.getObjectMapper().readValue(blockJson,
-                BcosBlock.Block.class);
+        block = ObjectMapperFactory.getObjectMapper().readValue(blockJson, BcosBlock.Block.class);
         transAndProof =
                 ObjectMapperFactory.getObjectMapper()
-                        .readValue(
-                                transactionAndProofJson,
-                                JsonTransactionResponse.class);
+                        .readValue(transactionAndProofJson, JsonTransactionResponse.class);
         receiptAndProof =
                 ObjectMapperFactory.getObjectMapper()
-                        .readValue(
-                                transactionReceiptAndProofJson,
-                                TransactionReceipt.class);
+                        .readValue(transactionReceiptAndProofJson, TransactionReceipt.class);
 
-        block0 = ObjectMapperFactory.getObjectMapper().readValue(blockJson0,
-                BcosBlock.Block.class);
+        block0 = ObjectMapperFactory.getObjectMapper().readValue(blockJson0, BcosBlock.Block.class);
         transAndProof0 =
                 ObjectMapperFactory.getObjectMapper()
-                        .readValue(
-                                transactionAndProofJson0,
-                                JsonTransactionResponse.class);
+                        .readValue(transactionAndProofJson0, JsonTransactionResponse.class);
         receiptAndProof0 =
                 ObjectMapperFactory.getObjectMapper()
-                        .readValue(
-                                transactionReceiptAndProofJson0,
-                                TransactionReceipt.class);
+                        .readValue(transactionReceiptAndProofJson0, TransactionReceipt.class);
     }
 
     @Test
@@ -75,20 +62,31 @@ public class ProofVerifierUtilityTest {
 
         assertTrue(
                 MerkleProofUtility.verifyMerkle(
-                        block.getTransactionsRoot(), transAndProof.getTxProof(), transAndProof.getHash(), cryptoSuite));
+                        block.getTransactionsRoot(),
+                        transAndProof.getTxProof(),
+                        transAndProof.getHash(),
+                        cryptoSuite));
         assertTrue(
                 MerkleProofUtility.verifyMerkle(
-                        block0.getTransactionsRoot(), transAndProof0.getTxProof(), transAndProof0.getHash(), cryptoSuite));
+                        block0.getTransactionsRoot(),
+                        transAndProof0.getTxProof(),
+                        transAndProof0.getHash(),
+                        cryptoSuite));
     }
 
     @Test
     public void verifyTransactionReceiptTest() {
         assertTrue(
                 MerkleProofUtility.verifyMerkle(
-                        block.getReceiptsRoot(), receiptAndProof.getTxReceiptProof(), receiptAndProof.getReceiptHash(), cryptoSuite));
+                        block.getReceiptsRoot(),
+                        receiptAndProof.getTxReceiptProof(),
+                        receiptAndProof.getReceiptHash(),
+                        cryptoSuite));
         assertTrue(
                 MerkleProofUtility.verifyMerkle(
-                        block0.getReceiptsRoot(), receiptAndProof0.getTxReceiptProof(), receiptAndProof0.getReceiptHash(), cryptoSuite));
+                        block0.getReceiptsRoot(),
+                        receiptAndProof0.getTxReceiptProof(),
+                        receiptAndProof0.getReceiptHash(),
+                        cryptoSuite));
     }
-
 }

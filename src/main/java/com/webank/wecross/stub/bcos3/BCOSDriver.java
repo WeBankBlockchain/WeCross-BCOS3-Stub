@@ -432,8 +432,7 @@ public class BCOSDriver implements Driver {
                                                         ABIObjectFactory.createOutputObject(
                                                                 functions.get(0));
 
-                                                // decode outputs
-                                                // TODO: check 130
+                                                // decode 130
                                                 String output =
                                                         callOutput.getOutput().substring(130);
                                                 transactionResponse.setResult(
@@ -754,8 +753,7 @@ public class BCOSDriver implements Driver {
                                                     receipt.getBlockNumber().longValue());
                                             transactionResponse.setHash(
                                                     receipt.getTransactionHash());
-                                            // TODO: check 130
-                                            // decode
+                                            // decode 130
                                             String output = receipt.getOutput().substring(130);
 
                                             ABIObject outputObj =

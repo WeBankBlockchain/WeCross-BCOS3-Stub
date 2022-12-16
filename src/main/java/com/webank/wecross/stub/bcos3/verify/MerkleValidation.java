@@ -5,16 +5,15 @@ import com.webank.wecross.stub.BlockManager;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import com.webank.wecross.stub.bcos3.common.BCOSStubException;
 import com.webank.wecross.stub.bcos3.protocol.response.TransactionProof;
+import java.util.Objects;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.utils.MerkleProofUtility;
 
-import java.util.Objects;
-
 public class MerkleValidation {
 
     /**
-     * @param hash               transaction hash
+     * @param hash transaction hash
      * @param transactionReceipt
      * @throws BCOSStubException
      */
@@ -26,11 +25,14 @@ public class MerkleValidation {
             throws BCOSStubException {
         // verify transaction
         if (!MerkleProofUtility.verifyMerkle(
-                blockHeader.getReceiptRoot(), transactionReceipt.getTxReceiptProof(), transactionReceipt.getReceiptHash(), cryptoSuite)) {
+                blockHeader.getReceiptRoot(),
+                transactionReceipt.getTxReceiptProof(),
+                transactionReceipt.getReceiptHash(),
+                cryptoSuite)) {
             throw new BCOSStubException(
                     BCOSStatusCode.TransactionReceiptProofVerifyFailed,
                     BCOSStatusCode.getStatusMessage(
-                            BCOSStatusCode.TransactionReceiptProofVerifyFailed)
+                                    BCOSStatusCode.TransactionReceiptProofVerifyFailed)
                             + ", hash="
                             + hash);
         }
@@ -43,7 +45,6 @@ public class MerkleValidation {
                 cryptoSuite)) {
             throw new BCOSStubException(
                     BCOSStatusCode.TransactionProofVerifyFailed,
-
                     BCOSStatusCode.getStatusMessage(BCOSStatusCode.TransactionProofVerifyFailed)
                             + ", hash="
                             + hash);
@@ -56,7 +57,7 @@ public class MerkleValidation {
 
     /**
      * @param blockNumber
-     * @param hash             transaction hash
+     * @param hash transaction hash
      * @param blockManager
      * @param transactionProof proof of transaction
      * @param callback
@@ -77,8 +78,7 @@ public class MerkleValidation {
                                 new BCOSStubException(
                                         BCOSStatusCode.FetchBlockHeaderFailed,
                                         BCOSStatusCode.getStatusMessage(
-
-                                                BCOSStatusCode.FetchBlockHeaderFailed)
+                                                        BCOSStatusCode.FetchBlockHeaderFailed)
                                                 + ", blockNumber: "
                                                 + blockNumber));
                         return;
@@ -92,12 +92,10 @@ public class MerkleValidation {
                             cryptoSuite)) {
                         callback.onResponse(
                                 new BCOSStubException(
-
                                         BCOSStatusCode.TransactionReceiptProofVerifyFailed,
                                         BCOSStatusCode.getStatusMessage(
-                                                BCOSStatusCode
-
-                                                        .TransactionReceiptProofVerifyFailed)
+                                                        BCOSStatusCode
+                                                                .TransactionReceiptProofVerifyFailed)
                                                 + ", hash="
                                                 + hash));
                         return;
@@ -114,8 +112,7 @@ public class MerkleValidation {
                                 new BCOSStubException(
                                         BCOSStatusCode.TransactionProofVerifyFailed,
                                         BCOSStatusCode.getStatusMessage(
-
-                                                BCOSStatusCode.TransactionProofVerifyFailed)
+                                                        BCOSStatusCode.TransactionProofVerifyFailed)
                                                 + ", hash="
                                                 + hash));
                         return;
