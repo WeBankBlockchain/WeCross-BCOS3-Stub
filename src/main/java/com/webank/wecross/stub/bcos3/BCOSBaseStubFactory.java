@@ -242,7 +242,7 @@ public class BCOSBaseStubFactory implements StubFactory {
                             + "    groupId = 'group0' # default group0\n"
                             + "    chainId = 'chain0' # default chain0\n"
                             + "\n"
-                            + "[channelService]\n"
+                            + "[service]\n"
                             + "    caCert = 'ca.crt'\n"
                             + "    sslCert = 'sdk.crt'\n"
                             + "    sslKey = 'sdk.key'\n"

@@ -22,7 +22,7 @@ public class BCOSConstantTest {
 
         assertEquals(ClientDefaultConfig.DEFAULT_GROUP_ID, "group0");
         assertEquals(ClientDefaultConfig.DEFAULT_CHAIN_ID, "chain0");
-        assertEquals(ClientDefaultConfig.CHANNEL_SERVICE_DEFAULT_TIMEOUT, 60000);
+        assertEquals(ClientDefaultConfig.DEFAULT_SERVICE_TIMEOUT, 60000);
     }
 
     @Test

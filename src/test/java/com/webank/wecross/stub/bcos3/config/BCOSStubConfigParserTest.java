@@ -22,14 +22,14 @@ public class BCOSStubConfigParserTest {
         assertEquals(chain.getChainID(), "chain0");
         assertEquals(chain.getGroupID(), "group0");
 
-        BCOSStubConfig.ChannelService channelService = bcosStubConfig.getChannelService();
-        assertEquals(channelService.getCaCert(), "./" + File.separator + "ca.crt");
-        assertEquals(channelService.getSslCert(), "./" + File.separator + "sdk.crt");
-        assertEquals(channelService.getSslKey(), "./" + File.separator + "sdk.key");
-        assertFalse(channelService.isDisableSsl());
-        assertEquals(channelService.getMessageTimeout(), 111100);
-        assertEquals(channelService.getConnectionsStr().size(), 1);
-        assertEquals(channelService.getThreadPoolSize(), 8);
+        BCOSStubConfig.Service service = bcosStubConfig.getService();
+        assertEquals(service.getCaCert(), "./" + File.separator + "ca.crt");
+        assertEquals(service.getSslCert(), "./" + File.separator + "sdk.crt");
+        assertEquals(service.getSslKey(), "./" + File.separator + "sdk.key");
+        assertFalse(service.isDisableSsl());
+        assertEquals(service.getMessageTimeout(), 111100);
+        assertEquals(service.getConnectionsStr().size(), 1);
+        assertEquals(service.getThreadPoolSize(), 8);
 
         assertEquals(bcosStubConfig.getResources().size(), 2);
         assertEquals(bcosStubConfig.getResources().get(0).getName(), "HelloWeCross");
