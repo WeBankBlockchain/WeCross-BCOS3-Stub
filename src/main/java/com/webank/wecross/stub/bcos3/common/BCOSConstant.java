@@ -13,6 +13,7 @@ public interface BCOSConstant {
 
     String WASM = "WASM";
     String GM = "GM";
+    String ECDSA = "ECDSA";
 
     String BCOS3_ACCOUNT = "BCOS3.0";
     /** */
