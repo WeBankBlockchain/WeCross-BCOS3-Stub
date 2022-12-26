@@ -1,6 +1,7 @@
 package com.webank.wecross.stub.bcos3.client;
 
-
+import java.io.IOException;
+import java.math.BigInteger;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlockHeader;
@@ -8,10 +9,7 @@ import org.fisco.bcos.sdk.v3.client.protocol.response.Call;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
-public class ClientWrapperWithExceptionMock  extends ClientWrapperImplMock {
+public class ClientWrapperWithExceptionMock extends ClientWrapperImplMock {
 
     @Override
     public BcosBlock.Block getBlockByNumber(long blockNumber) throws IOException {
@@ -34,14 +32,14 @@ public class ClientWrapperWithExceptionMock  extends ClientWrapperImplMock {
     }
 
     @Override
-    public TransactionReceipt getTransactionReceiptByHashWithProof(
-            String transactionHash) throws IOException {
+    public TransactionReceipt getTransactionReceiptByHashWithProof(String transactionHash)
+            throws IOException {
         throw new IOException(" IOException");
     }
 
     @Override
-    public JsonTransactionResponse getTransactionByHashWithProof(
-            String transactionHash) throws IOException {
+    public JsonTransactionResponse getTransactionByHashWithProof(String transactionHash)
+            throws IOException {
         throw new IOException(" IOException");
     }
 

@@ -1,16 +1,15 @@
 package com.webank.wecross.stub.bcos3;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
+
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
-import org.junit.Test;
-
 import java.util.Objects;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
+import org.junit.Test;
 
 public class BCOSStubFactoryTest {
 

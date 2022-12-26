@@ -6,9 +6,9 @@ public class ClientDefaultConfig {
 
     public static final String DEFAULT_CHAIN_ID = "chain0";
 
-    public static final int CHANNEL_SERVICE_DEFAULT_TIMEOUT = 60000;
+    public static final int DEFAULT_SERVICE_TIMEOUT = 60000;
 
-    public static final int CHANNEL_SERVICE_DEFAULT_THREAD_NUMBER = 16;
+    public static final int DEFAULT_SERVICE_THREAD_NUMBER = 16;
 
-    public static final boolean CHANNEL_SERVICE_DEFAULT_DISABLE_SSL = false;
+    public static final boolean DEFAULT_SERVICE_DISABLE_SSL = false;
 }

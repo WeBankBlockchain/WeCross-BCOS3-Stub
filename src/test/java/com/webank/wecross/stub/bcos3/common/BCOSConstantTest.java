@@ -1,11 +1,10 @@
 package com.webank.wecross.stub.bcos3.common;
 
-import com.webank.wecross.stub.bcos3.client.ClientDefaultConfig;
-import org.junit.Test;
-
-import java.io.IOException;
-
 import static junit.framework.TestCase.assertEquals;
+
+import com.webank.wecross.stub.bcos3.client.ClientDefaultConfig;
+import java.io.IOException;
+import org.junit.Test;
 
 public class BCOSConstantTest {
 
@@ -23,7 +22,7 @@ public class BCOSConstantTest {
 
         assertEquals(ClientDefaultConfig.DEFAULT_GROUP_ID, "group0");
         assertEquals(ClientDefaultConfig.DEFAULT_CHAIN_ID, "chain0");
-        assertEquals(ClientDefaultConfig.CHANNEL_SERVICE_DEFAULT_TIMEOUT, 60000);
+        assertEquals(ClientDefaultConfig.DEFAULT_SERVICE_TIMEOUT, 60000);
     }
 
     @Test

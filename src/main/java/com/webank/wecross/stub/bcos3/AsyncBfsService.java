@@ -9,14 +9,9 @@ import com.webank.wecross.stub.ObjectMapperFactory;
 import com.webank.wecross.stub.Path;
 import com.webank.wecross.stub.TransactionContext;
 import com.webank.wecross.stub.TransactionRequest;
-
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import com.webank.wecross.stub.bcos3.common.LRUCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +19,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 public class AsyncBfsService {
     private static final Logger logger = LoggerFactory.getLogger(AsyncBfsService.class);

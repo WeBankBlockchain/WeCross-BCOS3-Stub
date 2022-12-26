@@ -10,7 +10,8 @@ public class TransactionProof {
 
     public TransactionProof() {}
 
-    public TransactionProof(JsonTransactionResponse transWithProof, TransactionReceipt receiptWithProof) {
+    public TransactionProof(
+            JsonTransactionResponse transWithProof, TransactionReceipt receiptWithProof) {
         this.transWithProof = transWithProof;
         this.receiptWithProof = receiptWithProof;
     }

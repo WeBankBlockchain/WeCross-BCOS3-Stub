@@ -13,6 +13,13 @@ import com.webank.wecross.stub.bcos3.BCOSDriver;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import org.apache.commons.io.IOUtils;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinitionFactory;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIObject;
@@ -87,7 +94,6 @@ public class DeployContractHandler implements CommandHandler {
         String bfsName = (String) args[0];
         String sourceContent = (String) args[1];
         String className = (String) args[2];
-        // FIXME: ignore version args[3]
 
         BCOSDriver driver = getAsyncBfsService().getBcosDriver();
         boolean isWasm = driver.isWasm();
@@ -253,9 +259,9 @@ public class DeployContractHandler implements CommandHandler {
                 new TransactionRequest(
                         BCOSConstant.PROXY_METHOD_DEPLOY,
                         Arrays.asList(
-                                path.toString(),
-                                ContractCodecJsonWrapper.HexEncodedDataPrefix + bin,
-                                abi)
+                                        path.toString(),
+                                        ContractCodecJsonWrapper.HexEncodedDataPrefix + bin,
+                                        abi)
                                 .toArray(new String[0]));
 
         TransactionContext transactionContext =

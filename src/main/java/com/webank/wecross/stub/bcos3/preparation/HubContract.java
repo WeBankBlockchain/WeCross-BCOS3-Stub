@@ -9,6 +9,13 @@ import com.webank.wecross.stub.bcos3.client.ClientWrapperFactory;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
+import java.io.File;
+import java.math.BigInteger;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.client.Client;
@@ -27,14 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-
-import java.io.File;
-import java.math.BigInteger;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class HubContract {
 
@@ -93,8 +92,7 @@ public class HubContract {
         }
     }
 
-    public HubContract() {
-    }
+    public HubContract() {}
 
     public BCOSAccount getAccount() {
         return account;
@@ -184,7 +182,8 @@ public class HubContract {
                                     " deploy contract failed, error status: {}, error message: {} ",
                                     receipt.getStatus(),
                                     TransactionReceiptStatus.getStatusMessage(
-                                            receipt.getStatus(), "Unknown error").getMessage());
+                                                    receipt.getStatus(), "Unknown error")
+                                            .getMessage());
                             completableFuture.complete(null);
                         } else {
                             logger.info(
@@ -200,8 +199,7 @@ public class HubContract {
             throw new Exception("Failed to deploy hub contract.");
         }
         BFSService bfsService = new BFSService(client, account.getCredentials().generateKeyPair());
-        RetCode retCode =
-                bfsService.link(linkName, "latest", contractAddress, metadata.abi);
+        RetCode retCode = bfsService.link(linkName, "latest", contractAddress, metadata.abi);
 
         if (retCode.getCode() < PrecompiledRetCode.CODE_SUCCESS.getCode()) {
             throw new RuntimeException(" registerBfs failed, error message: " + retCode);
@@ -221,8 +219,7 @@ public class HubContract {
                     new PathMatchingResourcePatternResolver();
             File file = resolver.getResource("classpath:" + hubContractFile).getFile();
 
-            deployContractAndLinkBFS(
-                    file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
+            deployContractAndLinkBFS(file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
             System.out.println(
                     "SUCCESS: WeCrossHub: /apps/WeCrossHub/latest has been deployed! chain: "
                             + chainPath);
@@ -239,8 +236,7 @@ public class HubContract {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         File file = resolver.getResource("classpath:" + hubContractFile).getFile();
 
-        deployContractAndLinkBFS(
-                file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
+        deployContractAndLinkBFS(file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
 
         System.out.println(
                 "SUCCESS: WeCrossHub: /apps/WeCrossHub/latest has been upgraded! chain: "

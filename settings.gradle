@@ -1,4 +1,4 @@
-
+/*
 pluginManagement {
     repositories {
         maven {
@@ -7,6 +7,6 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-
+*/
 rootProject.name = 'bcos3-stub'
 

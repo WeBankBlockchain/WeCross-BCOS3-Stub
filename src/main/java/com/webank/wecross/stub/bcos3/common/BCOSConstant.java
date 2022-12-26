@@ -2,9 +2,7 @@ package com.webank.wecross.stub.bcos3.common;
 
 import com.webank.wecross.stub.StubConstant;
 
-/**
- * The definition of the resource type in BCOS
- */
+/** The definition of the resource type in BCOS */
 public interface BCOSConstant {
     String ADMIN_ACCOUNT = "admin";
 

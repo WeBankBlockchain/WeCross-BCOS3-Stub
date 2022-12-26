@@ -1,12 +1,13 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
 import com.webank.wecross.stub.bcos3.client.AbstractClientWrapper;
+import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
+import com.webank.wecross.stub.bcos3.custom.DeployContractWasmHandler;
+import java.io.File;
+import java.nio.file.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
-import java.io.File;
-import java.nio.file.Files;
 
 public class TwoPCContractDeployment {
     private static final Logger logger = LoggerFactory.getLogger(TwoPCContractDeployment.class);
@@ -124,6 +125,17 @@ public class TwoPCContractDeployment {
 
             File file = resolver.getResource(contractPath).getFile();
             AbstractClientWrapper clientWrapper = proxyContract.getConnection().getClientWrapper();
+
+            if (isWasm) {
+                DeployContractWasmHandler deployContractWasmHandler =
+                        new DeployContractWasmHandler();
+                deployContractWasmHandler.setAsyncBfsService(asyncBfsService);
+                twoPCContract.setDeployContractWasmHandler(deployContractWasmHandler);
+            } else {
+                DeployContractHandler deployContractHandler = new DeployContractHandler();
+                deployContractHandler.setAsyncBfsService(asyncBfsService);
+                twoPCContract.setDeployContractHandler(deployContractHandler);
+            }
             twoPCContract.deploy2PCContract(
                     contractName,
                     version,

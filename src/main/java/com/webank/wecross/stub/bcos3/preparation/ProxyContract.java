@@ -9,6 +9,13 @@ import com.webank.wecross.stub.bcos3.client.ClientWrapperFactory;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
+import java.io.File;
+import java.math.BigInteger;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.client.Client;
@@ -27,14 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-
-import java.io.File;
-import java.math.BigInteger;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class ProxyContract {
 
@@ -101,8 +100,7 @@ public class ProxyContract {
         }
     }
 
-    public ProxyContract() {
-    }
+    public ProxyContract() {}
 
     public BCOSAccount getAccount() {
         return account;
@@ -124,8 +122,8 @@ public class ProxyContract {
      * @param solFile, String contractName
      * @return
      */
-    public BFSInfo deployContractAndLinkBFS(
-            File solFile, String contractName, String linkName) throws Exception {
+    public BFSInfo deployContractAndLinkBFS(File solFile, String contractName, String linkName)
+            throws Exception {
 
         logger.info("linkName: {}", linkName);
 

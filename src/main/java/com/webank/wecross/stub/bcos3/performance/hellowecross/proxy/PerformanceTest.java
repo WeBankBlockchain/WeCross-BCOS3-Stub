@@ -1,12 +1,11 @@
 package com.webank.wecross.stub.bcos3.performance.hellowecross.proxy;
 
 import com.webank.wecross.stub.bcos3.performance.PerformanceManager;
+import java.math.BigInteger;
+import java.util.Objects;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.math.BigInteger;
-import java.util.Objects;
 
 public class PerformanceTest {
 
@@ -83,9 +82,7 @@ public class PerformanceTest {
                 System.err.println(" ## Error: unable to fetch proxy contract address. ");
                 System.exit(0);
             }
-            System.err.println(
-                    " ## Proxy contract address: "
-                            + bfsInfo.getAddress());
+            System.err.println(" ## Proxy contract address: " + bfsInfo.getAddress());
 
             PerformanceManager performanceManager = new PerformanceManager(suite, count, qps);
             performanceManager.run();
