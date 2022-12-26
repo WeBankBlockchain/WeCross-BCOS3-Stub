@@ -47,6 +47,6 @@ public class BCOSAccountFactoryTest {
                 "0x4c9e341a015ce8200060a028ce45dfea8bf33e15");
 
         assertEquals(bcosAccount0.getName(), "bcos");
-        assertEquals(bcosAccount0.getType(), "BCOS3_ECDSA_EVM");
+        assertEquals(bcosAccount0.getType(), "BCOS3.0");
     }
 }
