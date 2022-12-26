@@ -9,7 +9,6 @@ import com.webank.wecross.stub.bcos3.account.BCOSAccountFactory;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.custom.CommandHandlerDispatcher;
 import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
-import com.webank.wecross.stub.bcos3.custom.DeployContractWasmHandler;
 import com.webank.wecross.stub.bcos3.custom.LinkBfsHandler;
 import com.webank.wecross.stub.bcos3.preparation.HubContractDeployment;
 import com.webank.wecross.stub.bcos3.preparation.ProxyContractDeployment;
@@ -84,16 +83,11 @@ public class BCOSBaseStubFactory implements StubFactory {
         DeployContractHandler deployContractHandler = new DeployContractHandler();
         deployContractHandler.setAsyncBfsService(asyncBfsService);
 
-        DeployContractWasmHandler deployContractWasmHandler = new DeployContractWasmHandler();
-        deployContractWasmHandler.setAsyncBfsService(asyncBfsService);
-
         CommandHandlerDispatcher commandHandlerDispatcher = new CommandHandlerDispatcher();
         commandHandlerDispatcher.registerCommandHandler(
                 BCOSConstant.CUSTOM_COMMAND_REGISTER, linkBfsHandler);
         commandHandlerDispatcher.registerCommandHandler(
                 BCOSConstant.CUSTOM_COMMAND_DEPLOY, deployContractHandler);
-        commandHandlerDispatcher.registerCommandHandler(
-                BCOSConstant.CUSTOM_COMMAND_DEPLOY_WASM, deployContractWasmHandler);
 
         /** Initializes the bcos driver */
         BCOSDriver driver = new BCOSDriver(this.cryptoSuite, isWASMStub());
@@ -242,7 +236,7 @@ public class BCOSBaseStubFactory implements StubFactory {
                             + "    groupId = 'group0' # default group0\n"
                             + "    chainId = 'chain0' # default chain0\n"
                             + "\n"
-                            + "[channelService]\n"
+                            + "[service]\n"
                             + "    caCert = 'ca.crt'\n"
                             + "    sslCert = 'sdk.crt'\n"
                             + "    sslKey = 'sdk.key'\n"
@@ -287,7 +281,13 @@ public class BCOSBaseStubFactory implements StubFactory {
     public void generateProxyContract(String path) {
         try {
             String proxyPath = "WeCrossProxy.sol";
-            URL proxyDir = getClass().getResource(File.separator + proxyPath);
+            URL proxyDir =
+                    getClass()
+                            .getResource(
+                                    File.separator
+                                            + BCOSConstant.BCOS3
+                                            + File.separator
+                                            + proxyPath);
             File dest =
                     new File(path + File.separator + "WeCrossProxy" + File.separator + proxyPath);
             FileUtils.copyURLToFile(proxyDir, dest);
@@ -299,7 +299,10 @@ public class BCOSBaseStubFactory implements StubFactory {
     public void generateHubContract(String path) {
         try {
             String hubPath = "WeCrossHub.sol";
-            URL hubDir = getClass().getResource(File.separator + hubPath);
+            URL hubDir =
+                    getClass()
+                            .getResource(
+                                    File.separator + BCOSConstant.BCOS3 + File.separator + hubPath);
             File dest = new File(path + File.separator + "WeCrossHub" + File.separator + hubPath);
             FileUtils.copyURLToFile(hubDir, dest);
         } catch (Exception e) {

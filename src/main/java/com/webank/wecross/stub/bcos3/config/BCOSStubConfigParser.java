@@ -52,12 +52,11 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
         requireItemNotNull(chainConfigValue, "chain", getConfigPath());
         BCOSStubConfig.Chain chainConfig = getChainConfig(chainConfigValue);
 
-        // channelService
-        Map<String, Object> channelServiceConfigValue =
-                (Map<String, Object>) stubConfig.get("channelService");
-        requireItemNotNull(channelServiceConfigValue, "channelService", getConfigPath());
-        BCOSStubConfig.ChannelService channelServiceConfig =
-                getChannelServiceConfig(getConfigPath(), channelServiceConfigValue, stubType);
+        // service
+        Map<String, Object> serviceConfigValue = (Map<String, Object>) stubConfig.get("service");
+        requireItemNotNull(serviceConfigValue, "service", getConfigPath());
+        BCOSStubConfig.Service serviceConfig =
+                getServiceConfig(getConfigPath(), serviceConfigValue, stubType);
 
         // resources
         List<Map<String, String>> resourcesConfigValue =
@@ -71,7 +70,7 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
         BCOSStubConfig bcosStubConfig = new BCOSStubConfig();
         bcosStubConfig.setType(stubType);
         bcosStubConfig.setChain(chainConfig);
-        bcosStubConfig.setChannelService(channelServiceConfig);
+        bcosStubConfig.setService(serviceConfig);
         bcosStubConfig.setResources(resourcesConfig);
 
         return bcosStubConfig;
@@ -92,81 +91,77 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
         return chain;
     }
 
-    public BCOSStubConfig.ChannelService getChannelServiceConfig(
-            String configFile, Map<String, Object> channelServiceConfigValue, String stubType) {
+    public BCOSStubConfig.Service getServiceConfig(
+            String configFile, Map<String, Object> serviceConfigValue, String stubType) {
         // config
-        BCOSStubConfig.ChannelService channelServiceConfig = new BCOSStubConfig.ChannelService();
+        BCOSStubConfig.Service serviceConfig = new BCOSStubConfig.Service();
 
         // caCert field
-        String caCertPath = stubDir + File.separator + channelServiceConfigValue.get("caCert");
-        requireFieldNotNull(caCertPath, "channelService", "caCert", configFile);
+        String caCertPath = stubDir + File.separator + serviceConfigValue.get("caCert");
+        requireFieldNotNull(caCertPath, "service", "caCert", configFile);
         // sslCert field
-        String sslCert = stubDir + File.separator + channelServiceConfigValue.get("sslCert");
-        requireFieldNotNull(sslCert, "channelService", "sslCert", configFile);
+        String sslCert = stubDir + File.separator + serviceConfigValue.get("sslCert");
+        requireFieldNotNull(sslCert, "service", "sslCert", configFile);
         // sslKey field
-        String sslKey = stubDir + File.separator + channelServiceConfigValue.get("sslKey");
-        requireFieldNotNull(sslKey, "channelService", "sslKey", configFile);
-        channelServiceConfig.setCaCert(caCertPath);
-        channelServiceConfig.setSslCert(sslCert);
-        channelServiceConfig.setSslKey(sslKey);
+        String sslKey = stubDir + File.separator + serviceConfigValue.get("sslKey");
+        requireFieldNotNull(sslKey, "service", "sslKey", configFile);
+        serviceConfig.setCaCert(caCertPath);
+        serviceConfig.setSslCert(sslCert);
+        serviceConfig.setSslKey(sslKey);
 
         // stubType
         boolean isGmStub = StringUtils.containsIgnoreCase(stubType, BCOSConstant.GM);
         if (isGmStub) {
-            String gmCaCert = stubDir + File.separator + channelServiceConfigValue.get("gmCaCert");
-            requireFieldNotNull(gmCaCert, "channelService", "gmCaCert", configFile);
+            String gmCaCert = stubDir + File.separator + serviceConfigValue.get("gmCaCert");
+            requireFieldNotNull(gmCaCert, "service", "gmCaCert", configFile);
 
-            String gmSslCert =
-                    stubDir + File.separator + channelServiceConfigValue.get("gmSslCert");
-            requireFieldNotNull(gmSslCert, "channelService", "gmSslCert", configFile);
+            String gmSslCert = stubDir + File.separator + serviceConfigValue.get("gmSslCert");
+            requireFieldNotNull(gmSslCert, "service", "gmSslCert", configFile);
 
-            String gmSslKey = stubDir + File.separator + channelServiceConfigValue.get("gmSslKey");
-            requireFieldNotNull(gmSslKey, "channelService", "gmSslKey", configFile);
+            String gmSslKey = stubDir + File.separator + serviceConfigValue.get("gmSslKey");
+            requireFieldNotNull(gmSslKey, "service", "gmSslKey", configFile);
 
-            String gmEnSslCert =
-                    stubDir + File.separator + channelServiceConfigValue.get("gmEnSslCert");
-            requireFieldNotNull(gmEnSslCert, "channelService", "gmEnSslCert", configFile);
+            String gmEnSslCert = stubDir + File.separator + serviceConfigValue.get("gmEnSslCert");
+            requireFieldNotNull(gmEnSslCert, "service", "gmEnSslCert", configFile);
 
-            String gmEnSslKey =
-                    stubDir + File.separator + channelServiceConfigValue.get("gmEnSslKey");
-            requireFieldNotNull(gmEnSslKey, "channelService", "gmEnSslKey", configFile);
+            String gmEnSslKey = stubDir + File.separator + serviceConfigValue.get("gmEnSslKey");
+            requireFieldNotNull(gmEnSslKey, "service", "gmEnSslKey", configFile);
 
-            channelServiceConfig.setGmCaCert(gmCaCert);
-            channelServiceConfig.setGmSslCert(gmSslCert);
-            channelServiceConfig.setGmSslKey(gmSslKey);
-            channelServiceConfig.setGmEnSslCert(gmEnSslCert);
-            channelServiceConfig.setGmEnSslKey(gmEnSslKey);
+            serviceConfig.setGmCaCert(gmCaCert);
+            serviceConfig.setGmSslCert(gmSslCert);
+            serviceConfig.setGmSslKey(gmSslKey);
+            serviceConfig.setGmEnSslCert(gmEnSslCert);
+            serviceConfig.setGmEnSslKey(gmEnSslKey);
         }
 
         // disableSsl
-        Boolean disableSsl = (Boolean) channelServiceConfigValue.get("disableSsl");
-        channelServiceConfig.setDisableSsl(
+        Boolean disableSsl = (Boolean) serviceConfigValue.get("disableSsl");
+        serviceConfig.setDisableSsl(
                 Objects.isNull(disableSsl)
-                        ? ClientDefaultConfig.CHANNEL_SERVICE_DEFAULT_DISABLE_SSL
+                        ? ClientDefaultConfig.DEFAULT_SERVICE_DISABLE_SSL
                         : disableSsl);
 
         // timeout field
-        Long messageTimeout = (Long) channelServiceConfigValue.get("messageTimeout");
-        channelServiceConfig.setMessageTimeout(
+        Long messageTimeout = (Long) serviceConfigValue.get("messageTimeout");
+        serviceConfig.setMessageTimeout(
                 Objects.isNull(messageTimeout)
-                        ? ClientDefaultConfig.CHANNEL_SERVICE_DEFAULT_TIMEOUT
+                        ? ClientDefaultConfig.DEFAULT_SERVICE_TIMEOUT
                         : messageTimeout.intValue());
 
         // connectionsStr field
-        List<String> connectionsStr =
-                (List<String>) channelServiceConfigValue.get("connectionsStr");
-        requireFieldNotNull(connectionsStr, "channelService", "connectionsStr", configFile);
-        channelServiceConfig.setConnectionsStr(connectionsStr);
+        List<String> connectionsStr = (List<String>) serviceConfigValue.get("connectionsStr");
+        requireFieldNotNull(connectionsStr, "service", "connectionsStr", configFile);
+        serviceConfig.setConnectionsStr(connectionsStr);
 
         // thread num
-        Long threadPoolSize = (Long) channelServiceConfigValue.get("threadPoolSize");
-        channelServiceConfig.setThreadPoolSize(
+        Long threadPoolSize = (Long) serviceConfigValue.get("threadPoolSize");
+        serviceConfig.setThreadPoolSize(
                 Objects.isNull(threadPoolSize)
-                        ? ClientDefaultConfig.CHANNEL_SERVICE_DEFAULT_THREAD_NUMBER
+                        ? ClientDefaultConfig.DEFAULT_SERVICE_THREAD_NUMBER
                         : threadPoolSize.intValue());
-        logger.debug(" ChannelServiceConfig: {}", channelServiceConfig);
+        logger.debug("ServiceConfig: {}", serviceConfig);
 
-        return channelServiceConfig;
+        return serviceConfig;
     }
 
     public List<BCOSStubConfig.Resource> getBCOSResourceConfig(

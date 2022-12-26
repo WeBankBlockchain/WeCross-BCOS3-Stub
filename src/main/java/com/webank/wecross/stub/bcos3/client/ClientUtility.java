@@ -19,7 +19,7 @@ public class ClientUtility {
     private static final Logger logger = LoggerFactory.getLogger(ClientUtility.class);
 
     public static Client initClient(BCOSStubConfig bcosStubConfig) throws Exception {
-        BCOSStubConfig.ChannelService channelServiceConfig = bcosStubConfig.getChannelService();
+        BCOSStubConfig.Service serviceConfig = bcosStubConfig.getService();
         // groupID
         String groupID = bcosStubConfig.getChain().getGroupID();
 
@@ -28,13 +28,13 @@ public class ClientUtility {
 
         // network
         Map<String, Object> network = new HashMap<>();
-        network.put("peers", channelServiceConfig.getConnectionsStr());
+        network.put("peers", serviceConfig.getConnectionsStr());
         network.put("defaultGroup", ClientDefaultConfig.DEFAULT_GROUP_ID);
-        network.put("messageTimeout", String.valueOf(channelServiceConfig.getMessageTimeout()));
+        network.put("messageTimeout", String.valueOf(serviceConfig.getMessageTimeout()));
 
         // threadPool
         Map<String, Object> threadPool = new HashMap<>();
-        threadPool.put("threadPoolSize", String.valueOf(channelServiceConfig.getThreadPoolSize()));
+        threadPool.put("threadPoolSize", String.valueOf(serviceConfig.getThreadPoolSize()));
 
         // configProperty
         ConfigProperty configProperty = new ConfigProperty();
@@ -53,33 +53,27 @@ public class ClientUtility {
     private static Map<String, Object> buildCryptoMaterial(BCOSStubConfig bcosStubConfig)
             throws WeCrossException, IOException {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        BCOSStubConfig.ChannelService channelServiceConfig = bcosStubConfig.getChannelService();
+        BCOSStubConfig.Service serviceConfig = bcosStubConfig.getService();
         Map<String, Object> cryptoMaterial = new HashMap<>();
         cryptoMaterial.put("useSMCrypto", String.valueOf(bcosStubConfig.isGMStub()));
-        cryptoMaterial.put("disableSsl", String.valueOf(channelServiceConfig.isDisableSsl()));
-        if (channelServiceConfig.isDisableSsl()) {
+        cryptoMaterial.put("disableSsl", String.valueOf(serviceConfig.isDisableSsl()));
+        if (serviceConfig.isDisableSsl()) {
             return cryptoMaterial;
         }
         if (bcosStubConfig.isGMStub()) {
             // gm
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getGmCaCert(), "caCert");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getGmSslCert(), "sslCert");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getGmSslKey(), "sslKey");
             checkCertExistAndPut(
-                    resolver, cryptoMaterial, channelServiceConfig.getGmCaCert(), "caCert");
+                    resolver, cryptoMaterial, serviceConfig.getGmEnSslCert(), "enSslCert");
             checkCertExistAndPut(
-                    resolver, cryptoMaterial, channelServiceConfig.getGmSslCert(), "sslCert");
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, channelServiceConfig.getGmSslKey(), "sslKey");
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, channelServiceConfig.getGmEnSslCert(), "enSslCert");
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, channelServiceConfig.getGmEnSslKey(), "enSslKey");
+                    resolver, cryptoMaterial, serviceConfig.getGmEnSslKey(), "enSslKey");
         } else {
             // not gm
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, channelServiceConfig.getCaCert(), "caCert");
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, channelServiceConfig.getSslCert(), "sslCert");
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, channelServiceConfig.getSslKey(), "sslKey");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getCaCert(), "caCert");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getSslCert(), "sslCert");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getSslKey(), "sslKey");
         }
         return cryptoMaterial;
     }

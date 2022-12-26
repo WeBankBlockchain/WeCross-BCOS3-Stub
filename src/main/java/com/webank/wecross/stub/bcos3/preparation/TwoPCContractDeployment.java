@@ -1,9 +1,6 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
-import com.webank.wecross.stub.bcos3.AsyncBfsService;
 import com.webank.wecross.stub.bcos3.client.AbstractClientWrapper;
-import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
-import com.webank.wecross.stub.bcos3.custom.DeployContractWasmHandler;
 import java.io.File;
 import java.nio.file.Files;
 import org.slf4j.Logger;
@@ -53,7 +50,6 @@ public class TwoPCContractDeployment {
         String version = args[4];
         String contractPath = args[5];
         int tps = Integer.parseInt(args[6]);
-        boolean isWasm = Boolean.parseBoolean(args[7]);
 
         int fromIndex = 0;
         int toIndex = 0;
@@ -83,8 +79,6 @@ public class TwoPCContractDeployment {
                         + contractPath
                         + " ,TPS: "
                         + tps
-                        + " ,isWasm: "
-                        + isWasm
                         + " ,version: "
                         + version
                         + " ,fromIndex: "
@@ -100,8 +94,7 @@ public class TwoPCContractDeployment {
                 contractPath,
                 tps,
                 fromIndex,
-                toIndex,
-                isWasm);
+                toIndex);
 
         System.out.println(" ## 2PC contract deployment complete. ");
         System.exit(0);
@@ -115,11 +108,8 @@ public class TwoPCContractDeployment {
             String contractPath,
             int tps,
             int fromIndex,
-            int toIndex,
-            boolean isWasm) {
+            int toIndex) {
         try {
-            AsyncBfsService asyncBfsService = new AsyncBfsService();
-
             ProxyContract proxyContract = new ProxyContract(null, chainName, accountName);
             TwoPCContract twoPCContract =
                     new TwoPCContract(proxyContract.getAccount(), proxyContract.getConnection());
@@ -134,16 +124,6 @@ public class TwoPCContractDeployment {
             File file = resolver.getResource(contractPath).getFile();
             AbstractClientWrapper clientWrapper = proxyContract.getConnection().getClientWrapper();
 
-            if (isWasm) {
-                DeployContractWasmHandler deployContractWasmHandler =
-                        new DeployContractWasmHandler();
-                deployContractWasmHandler.setAsyncBfsService(asyncBfsService);
-                twoPCContract.setDeployContractWasmHandler(deployContractWasmHandler);
-            } else {
-                DeployContractHandler deployContractHandler = new DeployContractHandler();
-                deployContractHandler.setAsyncBfsService(asyncBfsService);
-                twoPCContract.setDeployContractHandler(deployContractHandler);
-            }
             twoPCContract.deploy2PCContract(
                     contractName,
                     version,
@@ -151,8 +131,7 @@ public class TwoPCContractDeployment {
                     tps,
                     fromIndex,
                     toIndex,
-                    clientWrapper.getCryptoSuite(),
-                    isWasm);
+                    clientWrapper.getCryptoSuite());
 
         } catch (Exception e) {
             logger.error("e: ", e);

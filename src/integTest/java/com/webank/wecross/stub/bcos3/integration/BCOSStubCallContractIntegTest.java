@@ -24,9 +24,7 @@ import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import com.webank.wecross.stub.bcos3.common.BCOSStubException;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
-import com.webank.wecross.stub.bcos3.custom.CommandHandler;
 import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
-import com.webank.wecross.stub.bcos3.custom.DeployContractWasmHandler;
 import com.webank.wecross.stub.bcos3.performance.hellowecross.HelloWeCross;
 import com.webank.wecross.stub.bcos3.preparation.ProxyContract;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ContractCodecJsonWrapper;
@@ -34,7 +32,6 @@ import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
-import org.fisco.bcos.sdk.v3.utils.Numeric;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +61,6 @@ public class BCOSStubCallContractIntegTest {
     private Connection connection = null;
     private ResourceInfo resourceInfo = null;
     private BlockManager blockManager = null;
-    private boolean isWasm;
     private ConnectionEventHandlerImplMock connectionEventHandlerImplMock = new ConnectionEventHandlerImplMock();
     private CryptoSuite cryptoSuite = null;
     private AsyncBfsService asyncBfsService = null;
@@ -81,7 +77,6 @@ public class BCOSStubCallContractIntegTest {
                 new BCOSStubConfigParser("./chains/bcos/", "stub.toml");
         BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
 
-        isWasm = bcosStubConfig.isWASMStub();
         boolean isGMStub = bcosStubConfig.isGMStub();
         int cryptoType = isGMStub ? CryptoType.SM_TYPE : CryptoType.ECDSA_TYPE;
         String alg = isGMStub ? BCOSConstant.SM2P256V1 : BCOSConstant.SECP256K1;
@@ -99,8 +94,6 @@ public class BCOSStubCallContractIntegTest {
         blockManager = new ClientBlockManager(clientWrapper);
         asyncBfsService = ((BCOSDriver) driver).getAsyncBfsService();
         cryptoSuite = clientWrapper.getCryptoSuite();
-
-        logger.info(" === >> initial type is is Wasm:  {}", isWasm);
 
         helloWeCross =
                 HelloWeCross
@@ -422,14 +415,8 @@ public class BCOSStubCallContractIntegTest {
 
         AsyncToSync asyncToSync = new AsyncToSync();
 
-        CommandHandler commandHandler;
-        if (isWasm) {
-            commandHandler = new DeployContractWasmHandler();
-            ((DeployContractWasmHandler) commandHandler).setAsyncBfsService(asyncBfsService);
-        } else {
-            commandHandler = new DeployContractHandler();
-            ((DeployContractHandler) commandHandler).setAsyncBfsService(asyncBfsService);
-        }
+        DeployContractHandler commandHandler = new DeployContractHandler();
+        commandHandler.setAsyncBfsService(asyncBfsService);
 
         commandHandler.handle(Path.decode("a.b.HelloWorld"),
                 args,
@@ -470,14 +457,8 @@ public class BCOSStubCallContractIntegTest {
 
         AsyncToSync asyncToSync = new AsyncToSync();
 
-        CommandHandler commandHandler;
-        if (isWasm) {
-            commandHandler = new DeployContractWasmHandler();
-            ((DeployContractWasmHandler) commandHandler).setAsyncBfsService(asyncBfsService);
-        } else {
-            commandHandler = new DeployContractHandler();
-            ((DeployContractHandler) commandHandler).setAsyncBfsService(asyncBfsService);
-        }
+        DeployContractHandler commandHandler = new DeployContractHandler();
+        commandHandler.setAsyncBfsService(asyncBfsService);
 
         commandHandler.handle(Path.decode("a.b.TupleTest"), args, account, blockManager, connection, (error, response) -> {
             assertNull(error);
@@ -515,14 +496,9 @@ public class BCOSStubCallContractIntegTest {
         byte[] contractBytes;
         contractBytes = Files.readAllBytes(file.toPath());
 
-        CommandHandler commandHandler;
-        if (isWasm) {
-            commandHandler = new DeployContractWasmHandler();
-            ((DeployContractWasmHandler) commandHandler).setAsyncBfsService(asyncBfsService);
-        } else {
-            commandHandler = new DeployContractHandler();
-            ((DeployContractHandler) commandHandler).setAsyncBfsService(asyncBfsService);
-        }
+        DeployContractHandler commandHandler = new DeployContractHandler();
+        commandHandler.setAsyncBfsService(asyncBfsService);
+
         for (int i = 0; i < 3; i++) {
             String constructorParams = "constructor params";
             String baseName = "HelloWorld";

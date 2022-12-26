@@ -6,6 +6,8 @@ import com.webank.wecross.stub.StubConstant;
 public interface BCOSConstant {
     String ADMIN_ACCOUNT = "admin";
 
+    String BCOS3 = "bcos3_sol";
+
     String SECP256K1 = "secp256k1";
     String SM2P256V1 = "sm2p256v1";
 
@@ -13,9 +15,9 @@ public interface BCOSConstant {
 
     String WASM = "WASM";
     String GM = "GM";
+    String ECDSA = "ECDSA";
 
     String BCOS3_ACCOUNT = "BCOS3.0";
-    /** */
     String BCOS3_SM_ACCOUNT = "GM_BCOS3.0";
 
     String BCOS3_ECDSA_EVM_STUB_TYPE = "BCOS3_ECDSA_EVM";
@@ -35,7 +37,6 @@ public interface BCOSConstant {
     String BCOS_HUB_NAME = StubConstant.HUB_NAME;
 
     String CUSTOM_COMMAND_DEPLOY = "deploy";
-    String CUSTOM_COMMAND_DEPLOY_WASM = "deployWasm";
     String CUSTOM_COMMAND_REGISTER = "register";
     String DEFAULT_ADDRESS = "0x1111111111111111111111111111111111111111";
     String PROXY_METHOD_DEPLOY = "deployContractWithRegisterBFS";

@@ -1281,4 +1281,8 @@ public class BCOSDriver implements Driver {
     public void setAsyncBfsService(AsyncBfsService asyncBfsService) {
         this.asyncBfsService = asyncBfsService;
     }
+
+    public boolean isWasm() {
+        return isWasm;
+    }
 }

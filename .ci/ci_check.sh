@@ -39,7 +39,7 @@ prepare_environment()
     cp -r src/test/resources/accounts src/integTest/resources/
     mkdir -p src/integTest/resources/solidity
     cp -r src/test/resources/contract/* src/integTest/resources/solidity/
-    cp -r src/main/resources/* src/integTest/resources/solidity/
+    cp -r src/main/resources/bcos3_sol/* src/integTest/resources/solidity/
 
     if [ "${node_type}" == "sm" ];then
        sed_cmd=$(get_sed_cmd)
