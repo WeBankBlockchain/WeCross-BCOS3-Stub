@@ -53,8 +53,7 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
         BCOSStubConfig.Chain chainConfig = getChainConfig(chainConfigValue);
 
         // service
-        Map<String, Object> serviceConfigValue =
-                (Map<String, Object>) stubConfig.get("service");
+        Map<String, Object> serviceConfigValue = (Map<String, Object>) stubConfig.get("service");
         requireItemNotNull(serviceConfigValue, "service", getConfigPath());
         BCOSStubConfig.Service serviceConfig =
                 getServiceConfig(getConfigPath(), serviceConfigValue, stubType);
@@ -116,19 +115,16 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
             String gmCaCert = stubDir + File.separator + serviceConfigValue.get("gmCaCert");
             requireFieldNotNull(gmCaCert, "service", "gmCaCert", configFile);
 
-            String gmSslCert =
-                    stubDir + File.separator + serviceConfigValue.get("gmSslCert");
+            String gmSslCert = stubDir + File.separator + serviceConfigValue.get("gmSslCert");
             requireFieldNotNull(gmSslCert, "service", "gmSslCert", configFile);
 
             String gmSslKey = stubDir + File.separator + serviceConfigValue.get("gmSslKey");
             requireFieldNotNull(gmSslKey, "service", "gmSslKey", configFile);
 
-            String gmEnSslCert =
-                    stubDir + File.separator + serviceConfigValue.get("gmEnSslCert");
+            String gmEnSslCert = stubDir + File.separator + serviceConfigValue.get("gmEnSslCert");
             requireFieldNotNull(gmEnSslCert, "service", "gmEnSslCert", configFile);
 
-            String gmEnSslKey =
-                    stubDir + File.separator + serviceConfigValue.get("gmEnSslKey");
+            String gmEnSslKey = stubDir + File.separator + serviceConfigValue.get("gmEnSslKey");
             requireFieldNotNull(gmEnSslKey, "service", "gmEnSslKey", configFile);
 
             serviceConfig.setGmCaCert(gmCaCert);
@@ -153,8 +149,7 @@ public class BCOSStubConfigParser extends AbstractBCOSConfigParser {
                         : messageTimeout.intValue());
 
         // connectionsStr field
-        List<String> connectionsStr =
-                (List<String>) serviceConfigValue.get("connectionsStr");
+        List<String> connectionsStr = (List<String>) serviceConfigValue.get("connectionsStr");
         requireFieldNotNull(connectionsStr, "service", "connectionsStr", configFile);
         serviceConfig.setConnectionsStr(connectionsStr);
 

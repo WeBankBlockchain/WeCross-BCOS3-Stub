@@ -62,24 +62,18 @@ public class ClientUtility {
         }
         if (bcosStubConfig.isGMStub()) {
             // gm
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, serviceConfig.getGmCaCert(), "caCert");
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, serviceConfig.getGmSslCert(), "sslCert");
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, serviceConfig.getGmSslKey(), "sslKey");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getGmCaCert(), "caCert");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getGmSslCert(), "sslCert");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getGmSslKey(), "sslKey");
             checkCertExistAndPut(
                     resolver, cryptoMaterial, serviceConfig.getGmEnSslCert(), "enSslCert");
             checkCertExistAndPut(
                     resolver, cryptoMaterial, serviceConfig.getGmEnSslKey(), "enSslKey");
         } else {
             // not gm
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, serviceConfig.getCaCert(), "caCert");
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, serviceConfig.getSslCert(), "sslCert");
-            checkCertExistAndPut(
-                    resolver, cryptoMaterial, serviceConfig.getSslKey(), "sslKey");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getCaCert(), "caCert");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getSslCert(), "sslCert");
+            checkCertExistAndPut(resolver, cryptoMaterial, serviceConfig.getSslKey(), "sslKey");
         }
         return cryptoMaterial;
     }

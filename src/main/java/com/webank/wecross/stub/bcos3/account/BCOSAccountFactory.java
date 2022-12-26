@@ -3,13 +3,11 @@ package com.webank.wecross.stub.bcos3.account;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.config.BCOSAccountConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSAccountConfigParser;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;

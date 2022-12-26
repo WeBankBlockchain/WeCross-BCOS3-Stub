@@ -18,7 +18,6 @@ public interface BCOSConstant {
     String ECDSA = "ECDSA";
 
     String BCOS3_ACCOUNT = "BCOS3.0";
-    /** */
     String BCOS3_SM_ACCOUNT = "GM_BCOS3.0";
 
     String BCOS3_ECDSA_EVM_STUB_TYPE = "BCOS3_ECDSA_EVM";
@@ -38,7 +37,6 @@ public interface BCOSConstant {
     String BCOS_HUB_NAME = StubConstant.HUB_NAME;
 
     String CUSTOM_COMMAND_DEPLOY = "deploy";
-    String CUSTOM_COMMAND_DEPLOY_WASM = "deployWasm";
     String CUSTOM_COMMAND_REGISTER = "register";
     String DEFAULT_ADDRESS = "0x1111111111111111111111111111111111111111";
     String PROXY_METHOD_DEPLOY = "deployContractWithRegisterBFS";

@@ -12,14 +12,15 @@ import com.webank.wecross.stub.bcos3.AsyncBfsService;
 import com.webank.wecross.stub.bcos3.BCOSDriver;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
-import org.apache.commons.io.IOUtils;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import org.apache.commons.io.IOUtils;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinitionFactory;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIObject;
@@ -35,15 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
 public class DeployContractHandler implements CommandHandler {
     private static final Logger logger = LoggerFactory.getLogger(DeployContractHandler.class);
@@ -212,11 +204,7 @@ public class DeployContractHandler implements CommandHandler {
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace(
-                    "deploy contract, name: {}, bin: {}, abi:{}",
-                    bfsName,
-                    bin,
-                    abi);
+            logger.trace("deploy contract, name: {}, bin: {}, abi:{}", bfsName, bin, abi);
         }
 
         deployContractAndRegisterLink(
