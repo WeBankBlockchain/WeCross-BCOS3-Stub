@@ -6,6 +6,8 @@ import com.webank.wecross.stub.StubConstant;
 public interface BCOSConstant {
     String ADMIN_ACCOUNT = "admin";
 
+    String BCOS3 = "bcos3_sol";
+
     String SECP256K1 = "secp256k1";
     String SM2P256V1 = "sm2p256v1";
 

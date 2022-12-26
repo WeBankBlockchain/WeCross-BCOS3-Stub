@@ -281,7 +281,7 @@ public class BCOSBaseStubFactory implements StubFactory {
     public void generateProxyContract(String path) {
         try {
             String proxyPath = "WeCrossProxy.sol";
-            URL proxyDir = getClass().getResource(File.separator + proxyPath);
+            URL proxyDir = getClass().getResource(File.separator + BCOSConstant.BCOS3 + File.separator + proxyPath);
             File dest =
                     new File(path + File.separator + "WeCrossProxy" + File.separator + proxyPath);
             FileUtils.copyURLToFile(proxyDir, dest);
@@ -293,7 +293,7 @@ public class BCOSBaseStubFactory implements StubFactory {
     public void generateHubContract(String path) {
         try {
             String hubPath = "WeCrossHub.sol";
-            URL hubDir = getClass().getResource(File.separator + hubPath);
+            URL hubDir = getClass().getResource(File.separator + BCOSConstant.BCOS3 + File.separator  + hubPath);
             File dest = new File(path + File.separator + "WeCrossHub" + File.separator + hubPath);
             FileUtils.copyURLToFile(hubDir, dest);
         } catch (Exception e) {

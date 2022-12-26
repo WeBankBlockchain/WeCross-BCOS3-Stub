@@ -104,8 +104,8 @@ sourceSets {
             exclude '**/*.yml'
             exclude '**/*.crt'
             exclude '**/*.key'
-            include 'WeCrossProxy.sol'
-            include 'WeCrossHub.sol'
+            include 'bcos3_sol/WeCrossProxy.sol'
+            include 'bcos3_sol/WeCrossHub.sol'
         }
     }
 
