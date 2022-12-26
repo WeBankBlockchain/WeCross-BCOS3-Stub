@@ -36,10 +36,8 @@ public class BCOSAccountConfigParser extends AbstractBCOSConfigParser {
 
         String type = (String) accountValue.get("type");
         requireFieldNotNull(accountFile, "account", "type", getConfigPath());
-        if (!type.equals(BCOSConstant.BCOS3_ECDSA_EVM_STUB_TYPE)
-                && !type.equals(BCOSConstant.BCOS3_ECDSA_WASM_STUB_TYPE)
-                && !type.equals(BCOSConstant.BCOS3_GM_EVM_STUB_TYPE)
-                && !type.equals(BCOSConstant.BCOS3_GM_WASM_STUB_TYPE)) {
+        if (!type.equals(BCOSConstant.BCOS3_ACCOUNT)
+                && !type.equals(BCOSConstant.BCOS3_SM_ACCOUNT)) {
             throw new InvalidParameterException(" unrecognized type: " + type);
         }
 
