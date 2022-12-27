@@ -9,15 +9,18 @@ import com.webank.wecross.stub.ResourceInfo;
 import com.webank.wecross.stub.TransactionContext;
 import com.webank.wecross.stub.TransactionRequest;
 import com.webank.wecross.stub.bcos3.AsyncBfsService;
+import com.webank.wecross.stub.bcos3.BCOSDriver;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import org.apache.commons.io.IOUtils;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinitionFactory;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIObject;
@@ -31,6 +34,8 @@ import org.fisco.solc.compiler.CompilationResult;
 import org.fisco.solc.compiler.SolidityCompiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 public class DeployContractHandler implements CommandHandler {
     private static final Logger logger = LoggerFactory.getLogger(DeployContractHandler.class);
@@ -78,11 +83,12 @@ public class DeployContractHandler implements CommandHandler {
             return;
         }
 
-        String cnsName = (String) args[0];
+        String bfsName = (String) args[0];
         String sourceContent = (String) args[1];
         String className = (String) args[2];
 
-        Driver driver = getAsyncBfsService().getBcosDriver();
+        BCOSDriver driver = getAsyncBfsService().getBcosDriver();
+        boolean isWasm = driver.isWasm();
         /* constructor params */
         List<String> params = null;
         if (args.length > 4) {
@@ -92,44 +98,69 @@ public class DeployContractHandler implements CommandHandler {
             }
         }
 
-        /* First compile the contract source code */
-        CompilationResult.ContractMetadata metadata;
-        try {
-            boolean sm = (cryptoSuite.getCryptoTypeConfig() == CryptoType.SM_TYPE);
+        String abi;
+        String bin;
+        boolean sm = (cryptoSuite.getCryptoTypeConfig() == CryptoType.SM_TYPE);
+        if (isWasm) {
+            try {
+                Resource resource = new ClassPathResource(bfsName + ".abi");
+                InputStream inputStream = resource.getInputStream();
+                abi = IOUtils.toString(inputStream);
 
-            File sourceFile = File.createTempFile("BCOSContract-", "-" + cnsName + ".sol");
-            try (OutputStream outputStream = new FileOutputStream(sourceFile)) {
-                outputStream.write(sourceContent.getBytes());
-            }
-
-            // compile contract
-            SolidityCompiler.Result res =
-                    SolidityCompiler.compile(
-                            sourceFile,
-                            sm,
-                            true,
-                            SolidityCompiler.Options.ABI,
-                            SolidityCompiler.Options.BIN,
-                            SolidityCompiler.Options.INTERFACE,
-                            SolidityCompiler.Options.METADATA);
-
-            if (res.isFailed()) {
-                callback.onResponse(
-                        new Exception("compiling contract failed, " + res.getErrors()),
-                        res.getErrors());
+                Resource resourceBin;
+                if (sm) {
+                    resourceBin = new ClassPathResource(bfsName + "_gm" + ".wasm");
+                } else {
+                    resourceBin = new ClassPathResource(bfsName + ".wasm");
+                }
+                InputStream inputStreamBin = resourceBin.getInputStream();
+                bin = IOUtils.toString(inputStreamBin);
+            } catch (Exception e) {
+                logger.error("read file failed, e: ", e);
+                callback.onResponse(new Exception("read file failed"), null);
                 return;
             }
+        } else {
+            /* First compile the contract source code */
+            CompilationResult.ContractMetadata metadata;
+            try {
 
-            CompilationResult result = CompilationResult.parse(res.getOutput());
-            metadata = result.getContract(className);
-        } catch (Exception e) {
-            logger.error("compiling contract failed, e: ", e);
-            callback.onResponse(new Exception("compiling contract failed"), null);
-            return;
+                File sourceFile = File.createTempFile("BCOSContract-", "-" + bfsName + ".sol");
+                try (OutputStream outputStream = new FileOutputStream(sourceFile)) {
+                    outputStream.write(sourceContent.getBytes());
+                }
+
+                // compile contract
+                SolidityCompiler.Result res =
+                        SolidityCompiler.compile(
+                                sourceFile,
+                                sm,
+                                true,
+                                SolidityCompiler.Options.ABI,
+                                SolidityCompiler.Options.BIN,
+                                SolidityCompiler.Options.INTERFACE,
+                                SolidityCompiler.Options.METADATA);
+
+                if (res.isFailed()) {
+                    callback.onResponse(
+                            new Exception("compiling contract failed, " + res.getErrors()),
+                            res.getErrors());
+                    return;
+                }
+
+                CompilationResult result = CompilationResult.parse(res.getOutput());
+                metadata = result.getContract(className);
+                abi = metadata.abi;
+                bin = metadata.bin;
+            } catch (Exception e) {
+                logger.error("compiling contract failed, e: ", e);
+                callback.onResponse(new Exception("compiling contract failed"), null);
+                return;
+            }
         }
 
         ABIDefinitionFactory abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
-        ContractABIDefinition contractABIDefinition = abiDefinitionFactory.loadABI(metadata.abi);
+        ContractABIDefinition contractABIDefinition = abiDefinitionFactory.loadABI(abi);
         ABIDefinition constructor = contractABIDefinition.getConstructor();
 
         /* check if solidity constructor needs arguments */
@@ -173,17 +204,13 @@ public class DeployContractHandler implements CommandHandler {
         }
 
         if (logger.isTraceEnabled()) {
-            logger.trace(
-                    "deploy contract, name: {}, bin: {}, abi:{}",
-                    cnsName,
-                    metadata.bin,
-                    metadata.abi);
+            logger.trace("deploy contract, name: {}, bin: {}, abi:{}", bfsName, bin, abi);
         }
 
         deployContractAndRegisterLink(
                 path,
-                metadata.bin + Hex.toHexString(paramsABI),
-                metadata.abi,
+                bin + Hex.toHexString(paramsABI),
+                abi,
                 account,
                 connection,
                 driver,

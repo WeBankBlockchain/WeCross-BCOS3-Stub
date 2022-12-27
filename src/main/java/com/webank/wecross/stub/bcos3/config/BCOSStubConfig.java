@@ -17,8 +17,8 @@ public class BCOSStubConfig {
     private String type;
     /** chain */
     private Chain chain;
-    /** channelService, used for JavaSDK initialize */
-    private ChannelService channelService;
+    /** service, used for JavaSDK initialize */
+    private Service service;
     /** BCOS resource list */
     private List<Resource> resources;
 
@@ -56,7 +56,7 @@ public class BCOSStubConfig {
         }
     }
 
-    public static class ChannelService {
+    public static class Service {
 
         private String caCert;
         private String sslCert;
@@ -172,7 +172,7 @@ public class BCOSStubConfig {
 
         @Override
         public String toString() {
-            return "ChannelService{"
+            return "service{"
                     + "messageTimeout="
                     + messageTimeout
                     + ", caCert='"
@@ -245,12 +245,12 @@ public class BCOSStubConfig {
         this.type = type;
     }
 
-    public ChannelService getChannelService() {
-        return channelService;
+    public Service getService() {
+        return service;
     }
 
-    public void setChannelService(ChannelService channelService) {
-        this.channelService = channelService;
+    public void setService(Service service) {
+        this.service = service;
     }
 
     public List<Resource> getResources() {
@@ -275,8 +275,8 @@ public class BCOSStubConfig {
                 + "type='"
                 + type
                 + '\''
-                + ", channelService="
-                + channelService
+                + ", service="
+                + service
                 + ", resourceConfig="
                 + resources
                 + '}';

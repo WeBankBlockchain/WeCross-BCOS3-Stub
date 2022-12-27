@@ -1,8 +1,6 @@
 package com.webank.wecross.stub.bcos3.account;
 
-import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_ACCOUNT;
-import static com.webank.wecross.stub.bcos3.common.BCOSConstant.BCOS3_SM_ACCOUNT;
-
+import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.config.BCOSAccountConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSAccountConfigParser;
 import java.io.ByteArrayInputStream;
@@ -10,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.crypto.keystore.P12KeyStore;
@@ -45,14 +44,14 @@ public class BCOSAccountFactory {
         String address = (String) properties.get("ext0");
 
         if (cryptoSuite.getCryptoTypeConfig() == CryptoType.ECDSA_TYPE) {
-            if (!type.equals(BCOS3_ACCOUNT)) {
+            if (!StringUtils.containsIgnoreCase(type, BCOSConstant.ECDSA)) {
                 logger.error("Invalid account type: " + type);
                 return null;
             }
         }
 
         if (cryptoSuite.getCryptoTypeConfig() == CryptoType.SM_TYPE) {
-            if (!type.equals(BCOS3_SM_ACCOUNT)) {
+            if (!StringUtils.containsIgnoreCase(type, BCOSConstant.GM)) {
                 logger.error("Invalid account type: " + type);
                 return null;
             }
