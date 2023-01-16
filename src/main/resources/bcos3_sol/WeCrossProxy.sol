@@ -5,14 +5,8 @@
  *   main entrance of all contract call
  */
 
-pragma solidity >=0.6.0 <0.8.20;
+pragma solidity >=0.5.0 <0.8.20;
 pragma experimental ABIEncoderV2;
-
-struct BfsInfo {
-    string file_name;
-    string file_type;
-    string[] ext;
-}
 
 contract WeCrossProxy {
     string constant version = "v1.0.0";
@@ -164,7 +158,7 @@ contract WeCrossProxy {
     function readlink(string memory name) public view
     returns (string memory _version, string memory _address, string memory _abi){
         int32 ret;
-        BfsInfo[] memory bfsList;
+        BfsPrecompiled.BfsInfo[] memory bfsList;
         (ret, bfsList) = bfs.list(nameToBfsPath(name));
         if (
             ret < 0 ||
@@ -1217,28 +1211,33 @@ contract WeCrossProxy {
     }
 }
 
-abstract contract BfsPrecompiled {
+contract BfsPrecompiled {
+
+    struct BfsInfo {
+        string file_name;
+        string file_type;
+        string[] ext;
+    }
     // @return return BfsInfo at most 500, if you want more, try list with paging interface
     function list(string memory absolutePath)
     public
     view
-    virtual
-    returns (int32, BfsInfo[] memory);
+    returns (int32, BfsInfo[] memory){}
 
     // @return int, >=0 -> BfsInfo left, <0 -> errorCode
     function list(
         string memory absolutePath,
         uint256 offset,
         uint256 limit
-    ) public view virtual returns (int256, BfsInfo[] memory);
+    ) public view returns (int256, BfsInfo[] memory){}
 
-    function mkdir(string memory absolutePath) public virtual returns (int32);
+    function mkdir(string memory absolutePath) public  returns (int32){}
 
     function link(
         string memory absolutePath,
         string memory _address,
         string memory _abi
-    ) public virtual returns (int256);
+    ) public returns (int256){}
 
     // for cns compatibility
     function link(
@@ -1246,11 +1245,10 @@ abstract contract BfsPrecompiled {
         string memory version,
         string memory _address,
         string memory _abi
-    ) public virtual returns (int32);
+    ) public  returns (int32){}
 
     function readlink(string memory absolutePath)
     public
     view
-    virtual
-    returns (address);
+    returns (address){}
 }

@@ -5,7 +5,7 @@
  *   main entrance of interchain call
  */
 
-pragma solidity >=0.6.0 <0.8.20;
+pragma solidity >=0.5.0 <0.8.20;
 pragma experimental ABIEncoderV2;
 
 contract WeCrossHub {
