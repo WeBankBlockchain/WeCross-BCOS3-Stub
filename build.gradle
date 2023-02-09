@@ -82,7 +82,7 @@ dependencies {
 
     implementation ('org.fisco-bcos.java-sdk:fisco-bcos-java-sdk:3.2.0-SNAPSHOT')
 
-    implementation 'org.fisco-bcos:solcJ:0.6.10.1'
+    implementation 'org.fisco-bcos:solcJ:0.5.2.0'
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.13.2'

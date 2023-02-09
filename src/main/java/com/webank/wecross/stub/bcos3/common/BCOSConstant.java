@@ -17,9 +17,6 @@ public interface BCOSConstant {
     String GM = "GM";
     String ECDSA = "ECDSA";
 
-    String BCOS3_ACCOUNT = "BCOS3.0";
-    String BCOS3_SM_ACCOUNT = "GM_BCOS3.0";
-
     String BCOS3_ECDSA_EVM_STUB_TYPE = "BCOS3_ECDSA_EVM";
     String BCOS3_ECDSA_WASM_STUB_TYPE = "BCOS3_ECDSA_WASM";
     String BCOS3_GM_EVM_STUB_TYPE = "BCOS3_GM_EVM";
