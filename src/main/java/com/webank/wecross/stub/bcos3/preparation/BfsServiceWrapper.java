@@ -36,7 +36,7 @@ public class BfsServiceWrapper {
             List<BFSInfo> bfsInfos =
                     bfsService
                             .listBFSInfo(
-                                    absolutePath, BigInteger.valueOf(0L), BigInteger.valueOf(1L))
+                                    absolutePath, BigInteger.valueOf(0L), BigInteger.valueOf(500L))
                             .getValue2();
             if (Objects.isNull(bfsInfos) || bfsInfos.isEmpty()) {
                 logger.warn("BFS info empty.");
