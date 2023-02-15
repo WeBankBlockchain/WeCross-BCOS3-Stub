@@ -2,6 +2,7 @@ package com.webank.wecross.stub.bcos3.preparation;
 
 import com.webank.wecross.stub.bcos3.client.AbstractClientWrapper;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
@@ -32,7 +33,11 @@ public class BfsServiceWrapper {
         String absolutePath = "/apps/" + name + "/latest";
         logger.info("get bfs info, absolutePath: {}", absolutePath);
         try {
-            List<BFSInfo> bfsInfos = bfsService.listBFSInfo(absolutePath);
+            List<BFSInfo> bfsInfos =
+                    bfsService
+                            .listBFSInfo(
+                                    absolutePath, BigInteger.valueOf(0L), BigInteger.valueOf(500L))
+                            .getValue2();
             if (Objects.isNull(bfsInfos) || bfsInfos.isEmpty()) {
                 logger.warn("BFS info empty.");
                 return null;
