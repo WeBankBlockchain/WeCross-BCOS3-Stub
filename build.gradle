@@ -73,7 +73,7 @@ List logger = [
 
 dependencies {
     compile logger
-    implementation ('com.webank:wecross-java-stub:1.2.1') {
+    implementation ('com.webank:wecross-java-stub:1.3.0-SNAPSHOT') {
         exclude group: "io.netty"
         exclude group: 'org.fisco-bcos', module: 'tcnative'
     }
