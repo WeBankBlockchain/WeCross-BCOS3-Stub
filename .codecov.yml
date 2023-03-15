@@ -1,0 +1,20 @@
+codecov:
+  branch: *
+coverage:
+  ignore:
+    - "src/integTest/**/*"
+    - "src/java/com/webank/wecross/stub/bcos/performance/*"
+  status:
+    project:
+      default:
+        target: 70%
+        threshold: null
+        if_not_found: success
+    patch:
+      default:
+        enabled: no
+        if_not_found: success
+    changes:
+      default:
+        enabled: no
+        if_not_found: success

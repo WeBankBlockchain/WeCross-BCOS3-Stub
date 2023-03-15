@@ -1,0 +1,31 @@
+[common]
+    name = 'bcos-ut' # stub must be same with directory name
+    type = 'BCOS-UT' # BCOS
+
+[chain]
+    groupId = 'group0' # default group0
+    chainId = 'chain0' # default chain0
+
+[service]
+    caCert = 'ca.crt'
+    sslCert = 'sdk.crt'
+    sslKey = 'sdk.key'
+
+    disableSsl = false
+    messageTimeout = 111100
+    connectionsStr = ['127.0.0.1:20200']
+    threadPoolSize = 8
+
+# resources is a list
+[[resources]]
+    # name cannot be repeated
+    name = 'HelloWeCross'
+    type = 'BCOS_CONTRACT'
+    contractAddress = '0x8827cca7f0f38b861b62dae6d711efe92a1e3602'
+
+# resources is a list
+[[resources]]
+    # name cannot be repeated
+    name = 'Hello'
+    type = 'BCOS_CONTRACT' # BCOS_CONTRACT or BCOS_SM_CONTRACT
+    contractAddress = '0x8827cca7f0f38b861b62dae6d711efe92a1e3603'
