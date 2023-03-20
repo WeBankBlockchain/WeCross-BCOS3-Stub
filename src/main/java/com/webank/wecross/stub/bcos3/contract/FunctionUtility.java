@@ -42,14 +42,16 @@ public class FunctionUtility {
     public static final int MethodIDWithHexPrefixLength = MethodIDLength + 2;
 
     public static final String ProxySendTXMethod = "sendTransaction(string,string,bytes)";
+    public static final String ProxySendTXMethodName = "sendTransaction";
 
-    public static final String ProxySendTransactionTXMethod =
-            "sendTransaction(string,string,uint256,string,string,bytes)";
+    public static final String ProxySendTransactionTXMethod = "sendTransactionWithXa(string,string,uint256,string,string,bytes)";
+    public static final String ProxySendTransactionTXMethodName = "sendTransactionWithXa";
 
-    public static final String ProxyCallWithTransactionIdMethod =
-            "constantCall(string,string,string,bytes)";
+    public static final String ProxyCallWithTransactionIdMethod = "constantCallWithXa(string,string,string,bytes)";
+    public static final String ProxyCallWithTransactionIdMethodName = "constantCallWithXa";
 
     public static final String ProxyCallMethod = "constantCall(string,bytes)";
+    public static final String ProxyCallMethodName = "constantCall";
 
     public static final List<TypeReference<?>> abiTypeReferenceOutputs =
             Collections.singletonList(new TypeReference<DynamicArray<Utf8String>>() {});
@@ -81,9 +83,9 @@ public class FunctionUtility {
     }
 
     /**
-     * WeCrossProxy constantCall function <br>
-     * </>function sendTransaction(string memory _name, bytes memory _argsWithMethodId) public
-     * returns(bytes memory)
+     * WeCrossProxy constantCallWithXa function <br>
+     * </>function constantCallWithXa(string memory _XATransactionID, string memory _path, string memory _func, bytes memory _args) public
+     * returns (bytes memory)
      *
      * @param id
      * @param path
@@ -94,7 +96,7 @@ public class FunctionUtility {
     public static Function newConstantCallProxyFunction(
             String id, String path, String methodSignature, byte[] abi) {
         return new Function(
-                "constantCall",
+                ProxyCallWithTransactionIdMethodName,
                 Arrays.asList(
                         new Utf8String(id),
                         new Utf8String(path),
@@ -104,8 +106,9 @@ public class FunctionUtility {
     }
 
     /**
-     * WeCrossProxy constantCall function function sendTransaction(string memory _name, bytes memory
-     * _argsWithMethodId) public returns(bytes memory)
+     * WeCrossProxy constantCall
+     * function constantCall(string memory _name, bytes memory _argsWithMethodId) public
+     * returns (bytes memory)
      *
      * @param name
      * @param methodSignature
@@ -125,15 +128,15 @@ public class FunctionUtility {
             params.write(abi);
         }
         return new Function(
-                "constantCall",
+                ProxyCallMethodName,
                 Arrays.<Type>asList(new Utf8String(name), new DynamicBytes(params.toByteArray())),
                 Collections.emptyList());
     }
 
     /**
-     * WeCrossProxy sendTransaction function function sendTransaction(string memory _transactionID,
-     * uint256 _seq, string memory _path, string memory _func, bytes memory _args) public
-     * returns(bytes memory)
+     * WeCrossProxy sendTransactionWithXa
+     * function sendTransactionWithXa(string memory _uid, string memory _XATransactionID, uint256 _XATransactionSeq, string memory _path, string memory _func, bytes memory _args) public
+     * returns (bytes memory) {
      *
      * @param uid
      * @param tid
@@ -146,7 +149,7 @@ public class FunctionUtility {
     public static Function newSendTransactionProxyFunction(
             String uid, String tid, long seq, String path, String methodSignature, byte[] abi) {
         return new Function(
-                "sendTransaction",
+                ProxySendTransactionTXMethodName,
                 Arrays.asList(
                         new Utf8String(uid),
                         new Utf8String(tid),
@@ -158,8 +161,9 @@ public class FunctionUtility {
     }
 
     /**
-     * WeCrossProxy sendTransaction function function sendTransaction(string memory _name, bytes
-     * memory _argsWithMethodId) public returns(bytes memory)
+     * WeCrossProxy sendTransaction
+     * function sendTransaction(string memory _uid, string memory _name, bytes memory _argsWithMethodId) public
+     * returns (bytes memory)
      *
      * @param uid
      * @param name
@@ -181,7 +185,7 @@ public class FunctionUtility {
             params.write(abi);
         }
         return new Function(
-                "sendTransaction",
+                ProxySendTXMethodName,
                 Arrays.asList(
                         new Utf8String(uid),
                         new Utf8String(name),
@@ -200,7 +204,7 @@ public class FunctionUtility {
         String data = input.substring(Numeric.containsHexPrefix(input) ? 10 : 8);
         final Function function =
                 new Function(
-                        "constantCall",
+                        ProxyCallWithTransactionIdMethodName,
                         Collections.emptyList(),
                         Arrays.asList(
                                 new TypeReference<Utf8String>() {},
@@ -227,7 +231,7 @@ public class FunctionUtility {
         String data = input.substring(Numeric.containsHexPrefix(input) ? 10 : 8);
         final Function function =
                 new Function(
-                        "constantCall",
+                        ProxyCallMethodName,
                         Collections.emptyList(),
                         Arrays.asList(
                                 new TypeReference<Utf8String>() {},
@@ -250,7 +254,7 @@ public class FunctionUtility {
 
         final Function function =
                 new Function(
-                        "sendTransaction",
+                        ProxySendTransactionTXMethodName,
                         Collections.emptyList(),
                         Arrays.asList(
                                 new TypeReference<Utf8String>() {},
@@ -283,7 +287,7 @@ public class FunctionUtility {
 
         final Function function =
                 new Function(
-                        "sendTransaction",
+                        ProxySendTXMethodName,
                         Collections.emptyList(),
                         Arrays.asList(
                                 new TypeReference<Utf8String>() {},
