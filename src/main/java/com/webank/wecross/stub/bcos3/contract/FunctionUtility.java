@@ -44,10 +44,12 @@ public class FunctionUtility {
     public static final String ProxySendTXMethod = "sendTransaction(string,string,bytes)";
     public static final String ProxySendTXMethodName = "sendTransaction";
 
-    public static final String ProxySendTransactionTXMethod = "sendTransactionWithXa(string,string,uint256,string,string,bytes)";
+    public static final String ProxySendTransactionTXMethod =
+            "sendTransactionWithXa(string,string,uint256,string,string,bytes)";
     public static final String ProxySendTransactionTXMethodName = "sendTransactionWithXa";
 
-    public static final String ProxyCallWithTransactionIdMethod = "constantCallWithXa(string,string,string,bytes)";
+    public static final String ProxyCallWithTransactionIdMethod =
+            "constantCallWithXa(string,string,string,bytes)";
     public static final String ProxyCallWithTransactionIdMethodName = "constantCallWithXa";
 
     public static final String ProxyCallMethod = "constantCall(string,bytes)";
@@ -84,8 +86,8 @@ public class FunctionUtility {
 
     /**
      * WeCrossProxy constantCallWithXa function <br>
-     * </>function constantCallWithXa(string memory _XATransactionID, string memory _path, string memory _func, bytes memory _args) public
-     * returns (bytes memory)
+     * </>function constantCallWithXa(string memory _XATransactionID, string memory _path, string
+     * memory _func, bytes memory _args) public returns (bytes memory)
      *
      * @param id
      * @param path
@@ -106,9 +108,8 @@ public class FunctionUtility {
     }
 
     /**
-     * WeCrossProxy constantCall
-     * function constantCall(string memory _name, bytes memory _argsWithMethodId) public
-     * returns (bytes memory)
+     * WeCrossProxy constantCall function constantCall(string memory _name, bytes memory
+     * _argsWithMethodId) public returns (bytes memory)
      *
      * @param name
      * @param methodSignature
@@ -134,9 +135,9 @@ public class FunctionUtility {
     }
 
     /**
-     * WeCrossProxy sendTransactionWithXa
-     * function sendTransactionWithXa(string memory _uid, string memory _XATransactionID, uint256 _XATransactionSeq, string memory _path, string memory _func, bytes memory _args) public
-     * returns (bytes memory) {
+     * WeCrossProxy sendTransactionWithXa function sendTransactionWithXa(string memory _uid, string
+     * memory _XATransactionID, uint256 _XATransactionSeq, string memory _path, string memory _func,
+     * bytes memory _args) public returns (bytes memory) {
      *
      * @param uid
      * @param tid
@@ -161,9 +162,8 @@ public class FunctionUtility {
     }
 
     /**
-     * WeCrossProxy sendTransaction
-     * function sendTransaction(string memory _uid, string memory _name, bytes memory _argsWithMethodId) public
-     * returns (bytes memory)
+     * WeCrossProxy sendTransaction function sendTransaction(string memory _uid, string memory
+     * _name, bytes memory _argsWithMethodId) public returns (bytes memory)
      *
      * @param uid
      * @param name
