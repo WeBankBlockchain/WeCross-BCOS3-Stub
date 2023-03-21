@@ -174,7 +174,7 @@ contract WeCrossProxy {
     }
 
     // constant call with xaTransactionID
-    function constantCall(string memory _XATransactionID, string memory _path, string memory _func, bytes memory _args) public
+    function constantCallWithXa(string memory _XATransactionID, string memory _path, string memory _func, bytes memory _args) public
     returns (bytes memory) {
         address addr = getAddressByPath(_path);
 
@@ -221,7 +221,7 @@ contract WeCrossProxy {
     }
 
     // non-constant call with xaTransactionID
-    function sendTransaction(string memory _uid, string memory _XATransactionID, uint256 _XATransactionSeq, string memory _path, string memory _func, bytes memory _args) public
+    function sendTransactionWithXa(string memory _uid, string memory _XATransactionID, uint256 _XATransactionSeq, string memory _path, string memory _func, bytes memory _args) public
     returns (bytes memory) {
         if (transactions[_uid].existed) {
             return transactions[_uid].result;
@@ -427,6 +427,7 @@ contract WeCrossProxy {
         1000;
         xaTransactions[_xaTransactionID].status = XA_STATUS_COMMITTED;
         deleteLockedContracts(_xaTransactionID);
+        head++;
 
         return SUCCESS_FLAG;
     }
@@ -949,36 +950,6 @@ contract WeCrossProxy {
         }
     }
 
-    /* a famous algorithm for finding substring
-       match starts with tail, and the target must be "\"sserdda\""
-    */
-    function newKMP(bytes memory _str, bytes memory _target) internal pure
-    returns (uint256) {
-        int256 strLen = int256(_str.length);
-        int256 tarLen = int256(_target.length);
-
-        // next array for target "\"sserdda\""
-        int8[9] memory nextArray = [-1, 0, 0, 0, 0, 0, 0, 0, 0];
-
-        int256 i = strLen;
-        int256 j = 0;
-
-        while (i > 0 && j < tarLen) {
-            if (j == -1 || _str[uint256(i - 1)] == _target[uint256(j)]) {
-                i--;
-                j++;
-            } else {
-                j = int256(nextArray[uint256(j)]);
-            }
-        }
-
-        if (j == tarLen) {
-            return uint256(i + tarLen);
-        }
-
-        return 0;
-    }
-
     // func(string,uint256) => func_flag(string,uint256)
     function getRevertFunc(string memory _func, string memory _revertFlag) internal pure
     returns (string memory) {
@@ -1054,36 +1025,6 @@ contract WeCrossProxy {
         return keccak256(bytes(_str1)) == keccak256(bytes(_str2));
     }
 
-    function hexStringToBytes(string memory _hexStr) internal pure
-    returns (bytes memory)
-    {
-        bytes memory bts = bytes(_hexStr);
-        require(bts.length % 2 == 0);
-        bytes memory result = new bytes(bts.length / 2);
-        uint256 len = bts.length / 2;
-        for (uint256 i = 0; i < len; ++i) {
-            result[i] = bytes1(
-                fromHexChar(uint8(bts[2 * i])) *
-                16 +
-                fromHexChar(uint8(bts[2 * i + 1]))
-            );
-        }
-        return result;
-    }
-
-    function fromHexChar(uint8 _char) internal pure
-    returns (uint8) {
-        if (bytes1(_char) >= bytes1("0") && bytes1(_char) <= bytes1("9")) {
-            return _char - uint8(bytes1("0"));
-        }
-        if (bytes1(_char) >= bytes1("a") && bytes1(_char) <= bytes1("f")) {
-            return 10 + _char - uint8(bytes1("a"));
-        }
-        if (bytes1(_char) >= bytes1("A") && bytes1(_char) <= bytes1("F")) {
-            return 10 + _char - uint8(bytes1("A"));
-        }
-    }
-
     function stringToUint256(string memory _str) public pure returns (uint256) {
         bytes memory bts = bytes(_str);
         uint256 result = 0;
@@ -1135,47 +1076,6 @@ contract WeCrossProxy {
         }
 
         return string(result);
-    }
-
-    function bytesToAddress(bytes memory _address) internal pure
-    returns (address) {
-        if (_address.length != 42) {
-            revert(
-            string(
-                abi.encodePacked(
-                    "cannot covert ",
-                    _address,
-                    "to bcos address"
-                )
-            )
-            );
-        }
-
-        uint160 result = 0;
-        uint160 b1;
-        uint160 b2;
-        for (uint256 i = 2; i < 2 + 2 * 20; i += 2) {
-            result *= 256;
-            b1 = uint160(uint8(_address[i]));
-            b2 = uint160(uint8(_address[i + 1]));
-            if ((b1 >= 97) && (b1 <= 102)) {
-                b1 -= 87;
-            } else if ((b1 >= 65) && (b1 <= 70)) {
-                b1 -= 55;
-            } else if ((b1 >= 48) && (b1 <= 57)) {
-                b1 -= 48;
-            }
-
-            if ((b2 >= 97) && (b2 <= 102)) {
-                b2 -= 87;
-            } else if ((b2 >= 65) && (b2 <= 70)) {
-                b2 -= 55;
-            } else if ((b2 >= 48) && (b2 <= 57)) {
-                b2 -= 48;
-            }
-            result += (b1 * 16 + b2);
-        }
-        return address(result);
     }
 
     function addressToString(address _addr) internal pure
