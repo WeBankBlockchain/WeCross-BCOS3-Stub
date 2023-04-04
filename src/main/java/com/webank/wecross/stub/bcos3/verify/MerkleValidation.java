@@ -2,10 +2,14 @@ package com.webank.wecross.stub.bcos3.verify;
 
 import com.webank.wecross.stub.BlockHeader;
 import com.webank.wecross.stub.BlockManager;
+import com.webank.wecross.stub.Driver;
+import com.webank.wecross.stub.TransactionException;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import com.webank.wecross.stub.bcos3.common.BCOSStubException;
 import com.webank.wecross.stub.bcos3.protocol.response.TransactionProof;
+
 import java.util.Objects;
+
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.utils.MerkleProofUtility;
@@ -13,7 +17,7 @@ import org.fisco.bcos.sdk.v3.utils.MerkleProofUtility;
 public class MerkleValidation {
 
     /**
-     * @param hash transaction hash
+     * @param hash               transaction hash
      * @param transactionReceipt
      * @throws BCOSStubException
      */
@@ -32,7 +36,7 @@ public class MerkleValidation {
             throw new BCOSStubException(
                     BCOSStatusCode.TransactionReceiptProofVerifyFailed,
                     BCOSStatusCode.getStatusMessage(
-                                    BCOSStatusCode.TransactionReceiptProofVerifyFailed)
+                            BCOSStatusCode.TransactionReceiptProofVerifyFailed)
                             + ", hash="
                             + hash);
         }
@@ -56,13 +60,55 @@ public class MerkleValidation {
     }
 
     /**
+     * @param hash             transaction hash
+     * @param transactionProof proof of transaction
+     * @throws BCOSStubException
+     */
+    public static void verifyTransactionProof(
+            String hash,
+            BlockHeader blockHeader,
+            TransactionProof transactionProof,
+            CryptoSuite cryptoSuite)
+            throws BCOSStubException {
+
+
+        // verify transaction
+        if (!MerkleProofUtility.verifyMerkle(
+                blockHeader.getReceiptRoot(),
+                transactionProof.getReceiptWithProof().getTxReceiptProof(),
+                transactionProof.getReceiptWithProof().getReceiptHash(),
+                cryptoSuite)) {
+            throw new BCOSStubException(
+                    BCOSStatusCode.TransactionReceiptProofVerifyFailed,
+                    BCOSStatusCode.getStatusMessage(
+                            BCOSStatusCode.TransactionReceiptProofVerifyFailed)
+                            + ", hash="
+                            + hash);
+        }
+
+        // verify transaction
+        if (!MerkleProofUtility.verifyMerkle(
+                blockHeader.getTransactionRoot(),
+                transactionProof.getTransWithProof().getTxProof(),
+                transactionProof.getTransWithProof().getHash(),
+                cryptoSuite)) {
+            throw new BCOSStubException(
+                    BCOSStatusCode.TransactionProofVerifyFailed,
+                    BCOSStatusCode.getStatusMessage(BCOSStatusCode.TransactionProofVerifyFailed)
+                            + ", hash="
+                            + hash);
+        }
+    }
+
+
+    /**
      * @param blockNumber
-     * @param hash transaction hash
+     * @param hash             transaction hash
      * @param blockManager
      * @param transactionProof proof of transaction
      * @param callback
      */
-    public static void verifyTransactionProof(
+    public static void verifyTransactionProofWithCallback(
             long blockNumber,
             String hash,
             BlockManager blockManager,
@@ -78,7 +124,7 @@ public class MerkleValidation {
                                 new BCOSStubException(
                                         BCOSStatusCode.FetchBlockHeaderFailed,
                                         BCOSStatusCode.getStatusMessage(
-                                                        BCOSStatusCode.FetchBlockHeaderFailed)
+                                                BCOSStatusCode.FetchBlockHeaderFailed)
                                                 + ", blockNumber: "
                                                 + blockNumber));
                         return;
@@ -94,8 +140,8 @@ public class MerkleValidation {
                                 new BCOSStubException(
                                         BCOSStatusCode.TransactionReceiptProofVerifyFailed,
                                         BCOSStatusCode.getStatusMessage(
-                                                        BCOSStatusCode
-                                                                .TransactionReceiptProofVerifyFailed)
+                                                BCOSStatusCode
+                                                        .TransactionReceiptProofVerifyFailed)
                                                 + ", hash="
                                                 + hash));
                         return;
@@ -112,7 +158,7 @@ public class MerkleValidation {
                                 new BCOSStubException(
                                         BCOSStatusCode.TransactionProofVerifyFailed,
                                         BCOSStatusCode.getStatusMessage(
-                                                        BCOSStatusCode.TransactionProofVerifyFailed)
+                                                BCOSStatusCode.TransactionProofVerifyFailed)
                                                 + ", hash="
                                                 + hash));
                         return;

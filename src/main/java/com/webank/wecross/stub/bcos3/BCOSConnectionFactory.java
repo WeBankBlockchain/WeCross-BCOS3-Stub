@@ -6,9 +6,14 @@ import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
 import com.webank.wecross.stub.bcos3.preparation.BfsServiceWrapper;
+
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosGroupInfo;
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosGroupNodeInfo;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +69,14 @@ public class BCOSConnectionFactory {
         if (Objects.nonNull(proxyBFSInfo)) {
             bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_NAME, proxyBFSInfo.getAddress());
             bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_ABI, proxyBFSInfo.getAbi());
+        }
+
+        BcosGroupInfo bcosGroupInfo = clientWrapper.getGroupInfo();
+        if (Objects.nonNull(bcosGroupInfo)) {
+            List<BcosGroupNodeInfo.GroupNodeInfo> nodeList = bcosGroupInfo.getResult().getNodeList();
+            if ( nodeList.size() > 0){
+                bcosConnection.addProperty(BCOSConstant.BCOS_NODE_VERSION, nodeList.get(0).getIniConfig().getBinaryInfo().getVersion());
+            }
         }
 
         BFSInfo hubBFSInfo = BfsServiceWrapper.queryHubBFSInfo(clientWrapper);

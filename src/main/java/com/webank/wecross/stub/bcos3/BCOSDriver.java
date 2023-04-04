@@ -17,12 +17,7 @@ import com.webank.wecross.stub.TransactionException;
 import com.webank.wecross.stub.TransactionRequest;
 import com.webank.wecross.stub.TransactionResponse;
 import com.webank.wecross.stub.bcos3.account.BCOSAccount;
-import com.webank.wecross.stub.bcos3.common.BCOSBlockHeader;
-import com.webank.wecross.stub.bcos3.common.BCOSConstant;
-import com.webank.wecross.stub.bcos3.common.BCOSRequestType;
-import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
-import com.webank.wecross.stub.bcos3.common.BCOSStubException;
-import com.webank.wecross.stub.bcos3.common.ObjectMapperFactory;
+import com.webank.wecross.stub.bcos3.common.*;
 import com.webank.wecross.stub.bcos3.contract.BlockUtility;
 import com.webank.wecross.stub.bcos3.contract.FunctionUtility;
 import com.webank.wecross.stub.bcos3.contract.RevertMessage;
@@ -68,7 +63,9 @@ import org.fisco.bcos.sdk.v3.utils.Numeric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Driver implementation for BCOS */
+/**
+ * Driver implementation for BCOS
+ */
 public class BCOSDriver implements Driver {
 
     private static final Logger logger = LoggerFactory.getLogger(BCOSDriver.class);
@@ -712,6 +709,10 @@ public class BCOSDriver implements Driver {
                 req,
                 response -> {
                     try {
+                        Map<String, String> properties = connection.getProperties();
+                        // bcos node version
+                        String nodeVersion = properties.get(BCOSConstant.BCOS_NODE_VERSION);
+
                         TransactionResponse transactionResponse = new TransactionResponse();
                         if (response.getErrorCode() != BCOSStatusCode.Success) {
                             throw new BCOSStubException(
@@ -724,78 +725,74 @@ public class BCOSDriver implements Driver {
                         if (logger.isDebugEnabled()) {
                             logger.debug("TransactionReceipt: {}", receipt);
                         }
-
                         if (receipt.isStatusOK()) {
-
                             BlockManager blockManager = context.getBlockManager();
-
                             blockManager.asyncGetBlock(
                                     receipt.getBlockNumber().longValue(),
                                     (blockException, block) -> {
-                                        try {
-                                            if (Objects.nonNull(blockException)) {
+
+                                        if (Objects.nonNull(blockException)) {
+                                            callback.onTransactionResponse(
+                                                    new TransactionException(
+                                                            BCOSStatusCode.HandleGetBlockNumberFailed,
+                                                            blockException.getMessage()),
+                                                    null);
+                                            return;
+                                        }
+
+                                        if (FeatureSupport.isSupportGetTxProof(nodeVersion)
+                                                && receipt.getTxProof() == null) {
+                                            //3.2+ txProof == null verifyTransactionProof
+                                            asyncRequestTransactionProof(
+                                                    receipt.getTransactionHash(),
+                                                    connection,
+                                                    (exception, proof) -> {
+                                                        if (Objects.nonNull(exception)) {
+                                                            callback.onTransactionResponse(
+                                                                    new TransactionException(
+                                                                            BCOSStatusCode
+                                                                                    .HandleGetTransactionProofFailed,
+                                                                            exception.getMessage()),
+                                                                    null);
+                                                        }
+                                                        try {
+                                                            MerkleValidation.verifyTransactionProof(
+                                                                    receipt.getTransactionHash(),
+                                                                    block.getBlockHeader(),
+                                                                    proof,
+                                                                    cryptoSuite);
+                                                            assembleTransactionResponse(receipt, callback, functions);
+                                                        } catch (BCOSStubException e) {
+                                                            logger.warn(" e: ", e);
+                                                            callback.onTransactionResponse(
+                                                                    new TransactionException(
+                                                                            e.getErrorCode(), e.getMessage()),
+                                                                    null);
+                                                        }
+
+                                                    }
+                                            );
+                                            return;
+                                        } else if (FeatureSupport.isSupportGetTxProof(nodeVersion)
+                                                && receipt.getTxProof() != null) {
+                                            //3.2+ txProof != null verifyTransactionReceiptProof
+                                            try {
+                                                MerkleValidation.verifyTransactionReceiptProof(
+                                                        receipt.getTransactionHash(),
+                                                        block.getBlockHeader(),
+                                                        receipt,
+                                                        cryptoSuite);
+                                            } catch (BCOSStubException e) {
+                                                logger.warn(" e: ", e);
                                                 callback.onTransactionResponse(
                                                         new TransactionException(
-                                                                BCOSStatusCode
-                                                                        .HandleGetBlockNumberFailed,
-                                                                blockException.getMessage()),
+                                                                e.getErrorCode(), e.getMessage()),
                                                         null);
-                                                return;
                                             }
-
-                                            MerkleValidation.verifyTransactionReceiptProof(
-                                                    receipt.getTransactionHash(),
-                                                    block.getBlockHeader(),
-                                                    receipt,
-                                                    cryptoSuite);
-
-                                            transactionResponse.setBlockNumber(
-                                                    receipt.getBlockNumber().longValue());
-                                            transactionResponse.setHash(
-                                                    receipt.getTransactionHash());
-                                            // decode 130
-                                            String output = receipt.getOutput().substring(130);
-
-                                            ABIObject outputObj =
-                                                    ABIObjectFactory.createOutputObject(
-                                                            functions.get(0));
-                                            transactionResponse.setResult(
-                                                    contractCodecJsonWrapper
-                                                            .decode(
-                                                                    outputObj,
-                                                                    Hex.decode(output),
-                                                                    isWasm)
-                                                            .toArray(new String[0]));
-
-                                            transactionResponse.setErrorCode(
-                                                    BCOSStatusCode.Success);
-                                            transactionResponse.setMessage(
-                                                    BCOSStatusCode.getStatusMessage(
-                                                            BCOSStatusCode.Success));
-                                            callback.onTransactionResponse(
-                                                    null, transactionResponse);
-                                            if (logger.isDebugEnabled()) {
-                                                logger.debug(
-                                                        " hash: {}, response: {}",
-                                                        receipt.getTransactionHash(),
-                                                        transactionResponse);
-                                            }
-                                        } catch (BCOSStubException e) {
-                                            logger.warn(" e: ", e);
-                                            callback.onTransactionResponse(
-                                                    new TransactionException(
-                                                            e.getErrorCode(), e.getMessage()),
-                                                    null);
-                                        } catch (Exception e) {
-                                            logger.warn(" e: ", e);
-                                            callback.onTransactionResponse(
-                                                    new TransactionException(
-                                                            BCOSStatusCode.UnclassifiedError,
-                                                            e.getMessage()),
-                                                    null);
                                         }
+                                        // 3.0 3.1 need not verify
+                                        assembleTransactionResponse(receipt, callback, functions);
                                     });
-
                         } else {
                             transactionResponse.setErrorCode(
                                     BCOSStatusCode.SendTransactionNotSuccessStatus);
@@ -816,7 +813,6 @@ public class BCOSDriver implements Driver {
                                                         receipt.getStatus(), "Unknown error")
                                                 .getMessage());
                             }
-
                             callback.onTransactionResponse(null, transactionResponse);
                         }
                     } catch (BCOSStubException e) {
@@ -831,6 +827,50 @@ public class BCOSDriver implements Driver {
                                 null);
                     }
                 });
+    }
+
+    public void assembleTransactionResponse(TransactionReceipt receipt, Callback callback, List<ABIDefinition> functions) {
+        try {
+            TransactionResponse transactionResponse = new TransactionResponse();
+            transactionResponse.setBlockNumber(
+                    receipt.getBlockNumber().longValue());
+            transactionResponse.setHash(
+                    receipt.getTransactionHash());
+            // decode 130
+            String output = receipt.getOutput().substring(130);
+
+            ABIObject outputObj =
+                    ABIObjectFactory.createOutputObject(
+                            functions.get(0));
+            transactionResponse.setResult(
+                    contractCodecJsonWrapper
+                            .decode(
+                                    outputObj,
+                                    Hex.decode(output),
+                                    isWasm)
+                            .toArray(new String[0]));
+
+            transactionResponse.setErrorCode(
+                    BCOSStatusCode.Success);
+            transactionResponse.setMessage(
+                    BCOSStatusCode.getStatusMessage(
+                            BCOSStatusCode.Success));
+            callback.onTransactionResponse(
+                    null, transactionResponse);
+            if (logger.isDebugEnabled()) {
+                logger.debug(
+                        " hash: {}, response: {}",
+                        receipt.getTransactionHash(),
+                        transactionResponse);
+            }
+        } catch (Exception e) {
+            logger.warn(" e: ", e);
+            callback.onTransactionResponse(
+                    new TransactionException(
+                            BCOSStatusCode.UnclassifiedError,
+                            e.getMessage()),
+                    null);
+        }
     }
 
     @Override
@@ -930,7 +970,7 @@ public class BCOSDriver implements Driver {
                     JsonTransactionResponse transaction = proof.getTransWithProof();
 
                     if (isVerified) {
-                        MerkleValidation.verifyTransactionProof(
+                        MerkleValidation.verifyTransactionProofWithCallback(
                                 blockNumber,
                                 transactionHash,
                                 blockManager,
