@@ -788,6 +788,7 @@ public class BCOSDriver implements Driver {
                                                         new TransactionException(
                                                                 e.getErrorCode(), e.getMessage()),
                                                         null);
+                                                return;
                                             }
                                         }
                                         // 3.0 3.1 need not verify
