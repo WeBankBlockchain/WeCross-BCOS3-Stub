@@ -20,69 +20,71 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 public class BCOSConnectionFactory {
-    private static final Logger logger = LoggerFactory.getLogger(BCOSConnectionFactory.class);
+  private static final Logger logger = LoggerFactory.getLogger(BCOSConnectionFactory.class);
 
-    public static BCOSConnection build(String stubConfigPath, String configName) throws Exception {
-        ScheduledExecutorService executorService =
-                new ScheduledThreadPoolExecutor(4, new CustomizableThreadFactory("tmpBCOSConn-"));
-        return build(stubConfigPath, configName, executorService);
+  public static BCOSConnection build(String stubConfigPath, String configName) throws Exception {
+    ScheduledExecutorService executorService =
+        new ScheduledThreadPoolExecutor(4, new CustomizableThreadFactory("tmpBCOSConn-"));
+    return build(stubConfigPath, configName, executorService);
+  }
+
+  public static BCOSConnection build(
+      String stubConfigPath, String configName, ScheduledExecutorService executorService)
+      throws Exception {
+    logger.info(" stubConfigPath: {} ", stubConfigPath);
+
+    BCOSStubConfigParser bcosStubConfigParser =
+        new BCOSStubConfigParser(stubConfigPath, configName);
+    BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
+
+    AbstractClientWrapper clientWrapper =
+        ClientWrapperFactory.createClientWrapperInstance(bcosStubConfig);
+    return build(bcosStubConfig, clientWrapper, executorService);
+  }
+
+  public static BCOSConnection build(
+      BCOSStubConfig bcosStubConfig, AbstractClientWrapper clientWrapper) {
+    ScheduledExecutorService scheduledExecutorService =
+        new ScheduledThreadPoolExecutor(4, new CustomizableThreadFactory("tmpBCOSConn-"));
+    return build(bcosStubConfig, clientWrapper, scheduledExecutorService);
+  }
+
+  public static BCOSConnection build(
+      BCOSStubConfig bcosStubConfig,
+      AbstractClientWrapper clientWrapper,
+      ScheduledExecutorService executorService) {
+
+    logger.info("bcosStubConfig: {}", bcosStubConfig);
+    BCOSConnection bcosConnection = new BCOSConnection(clientWrapper, executorService);
+    bcosConnection.setResourceInfoList(bcosStubConfig.convertToResourceInfos());
+
+    bcosConnection.addProperty(
+        BCOSConstant.BCOS_GROUP_ID, String.valueOf(bcosStubConfig.getChain().getGroupID()));
+    bcosConnection.addProperty(
+        BCOSConstant.BCOS_CHAIN_ID, String.valueOf(bcosStubConfig.getChain().getChainID()));
+    bcosConnection.addProperty(
+        BCOSConstant.BCOS_STUB_TYPE, String.valueOf(bcosStubConfig.getType()));
+
+    BFSInfo proxyBFSInfo = BfsServiceWrapper.queryProxyBFSInfo(clientWrapper);
+    if (Objects.nonNull(proxyBFSInfo)) {
+      bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_NAME, proxyBFSInfo.getAddress());
+      bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_ABI, proxyBFSInfo.getAbi());
     }
 
-    public static BCOSConnection build(
-            String stubConfigPath, String configName, ScheduledExecutorService executorService)
-            throws Exception {
-        logger.info(" stubConfigPath: {} ", stubConfigPath);
-
-        BCOSStubConfigParser bcosStubConfigParser =
-                new BCOSStubConfigParser(stubConfigPath, configName);
-        BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
-
-        AbstractClientWrapper clientWrapper =
-                ClientWrapperFactory.createClientWrapperInstance(bcosStubConfig);
-        return build(bcosStubConfig, clientWrapper, executorService);
-    }
-
-    public static BCOSConnection build(
-            BCOSStubConfig bcosStubConfig, AbstractClientWrapper clientWrapper) {
-        ScheduledExecutorService scheduledExecutorService =
-                new ScheduledThreadPoolExecutor(4, new CustomizableThreadFactory("tmpBCOSConn-"));
-        return build(bcosStubConfig, clientWrapper, scheduledExecutorService);
-    }
-
-    public static BCOSConnection build(
-            BCOSStubConfig bcosStubConfig,
-            AbstractClientWrapper clientWrapper,
-            ScheduledExecutorService executorService) {
-
-        logger.info("bcosStubConfig: {}", bcosStubConfig);
-        BCOSConnection bcosConnection = new BCOSConnection(clientWrapper, executorService);
-        bcosConnection.setResourceInfoList(bcosStubConfig.convertToResourceInfos());
-
+    BcosGroupInfo bcosGroupInfo = clientWrapper.getGroupInfo();
+    if (Objects.nonNull(bcosGroupInfo)) {
+      List<BcosGroupNodeInfo.GroupNodeInfo> nodeList = bcosGroupInfo.getResult().getNodeList();
+      if (nodeList.size() > 0) {
         bcosConnection.addProperty(
-                BCOSConstant.BCOS_GROUP_ID, String.valueOf(bcosStubConfig.getChain().getGroupID()));
-        bcosConnection.addProperty(
-                BCOSConstant.BCOS_CHAIN_ID, String.valueOf(bcosStubConfig.getChain().getChainID()));
-        bcosConnection.addProperty(
-                BCOSConstant.BCOS_STUB_TYPE, String.valueOf(bcosStubConfig.getType()));
-
-        BFSInfo proxyBFSInfo = BfsServiceWrapper.queryProxyBFSInfo(clientWrapper);
-        if (Objects.nonNull(proxyBFSInfo)) {
-            bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_NAME, proxyBFSInfo.getAddress());
-            bcosConnection.addProperty(BCOSConstant.BCOS_PROXY_ABI, proxyBFSInfo.getAbi());
-        }
-
-        BcosGroupInfo bcosGroupInfo = clientWrapper.getGroupInfo();
-        if (Objects.nonNull(bcosGroupInfo)) {
-            List<BcosGroupNodeInfo.GroupNodeInfo> nodeList = bcosGroupInfo.getResult().getNodeList();
-            if ( nodeList.size() > 0){
-                bcosConnection.addProperty(BCOSConstant.BCOS_NODE_VERSION, nodeList.get(0).getIniConfig().getBinaryInfo().getVersion());
-            }
-        }
-
-        BFSInfo hubBFSInfo = BfsServiceWrapper.queryHubBFSInfo(clientWrapper);
-        if (Objects.nonNull(hubBFSInfo)) {
-            bcosConnection.addProperty(BCOSConstant.BCOS_HUB_NAME, hubBFSInfo.getAddress());
-        }
-        return bcosConnection;
+            BCOSConstant.BCOS_NODE_VERSION,
+            nodeList.get(0).getIniConfig().getBinaryInfo().getVersion());
+      }
     }
+
+    BFSInfo hubBFSInfo = BfsServiceWrapper.queryHubBFSInfo(clientWrapper);
+    if (Objects.nonNull(hubBFSInfo)) {
+      bcosConnection.addProperty(BCOSConstant.BCOS_HUB_NAME, hubBFSInfo.getAddress());
+    }
+    return bcosConnection;
+  }
 }
