@@ -109,6 +109,7 @@ public class BCOSDriverTest {
                                 + "\"97af395f31cd52868162c790c2248e23f65c85a64cd0581d323515f6afffc0138279292a55f7bd706f8f1602f142b12a3407a45334eb0cf7daeb064dcec69369\"]}");
 
         connection.getProperties().put(BCOSConstant.BCOS_STUB_TYPE, "BCOS3_ECDSA_EVM");
+        connection.getProperties().put(BCOSConstant.BCOS_NODE_VERSION, "3.2.0");
         exceptionConnection =
                 BCOSConnectionFactory.build(bcosStubConfig, new ClientWrapperWithExceptionMock());
         nonExistConnection =

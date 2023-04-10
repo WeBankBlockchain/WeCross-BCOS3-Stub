@@ -73,7 +73,7 @@ public class BCOSConnectionFactory {
         if (Objects.nonNull(bcosGroupInfo)) {
             List<BcosGroupNodeInfo.GroupNodeInfo> nodeList =
                     bcosGroupInfo.getResult().getNodeList();
-            if (nodeList.size() > 0) {
+            if (nodeList.size() > 0 && nodeList.get(0).getIniConfig() != null) {
                 bcosConnection.addProperty(
                         BCOSConstant.BCOS_NODE_VERSION,
                         nodeList.get(0).getIniConfig().getBinaryInfo().getVersion());
