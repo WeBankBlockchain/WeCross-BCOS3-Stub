@@ -8,6 +8,7 @@ import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.request.Transaction;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlockHeader;
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosGroupInfo;
 import org.fisco.bcos.sdk.v3.client.protocol.response.Call;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
@@ -79,6 +80,11 @@ public abstract class AbstractClientWrapper implements ClientWrapper {
             throws IOException {
         Transaction transaction = new Transaction(accountAddress, contractAddress, data);
         return getClient().call(transaction).getCallResult();
+    }
+
+    @Override
+    public BcosGroupInfo getGroupInfo() {
+        return getClient().getGroupInfo();
     }
 
     public Client getClient() {
