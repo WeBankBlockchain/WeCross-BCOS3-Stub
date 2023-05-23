@@ -34,12 +34,24 @@ prepare_environment()
     local node_type="${1}"
     # integration testing
     mkdir -p src/integTest/resources/chains/bcos
+    mkdir src/integTest/resources/chains/bcos/WeCrossHub
+    mkdir src/integTest/resources/chains/bcos/WeCrossProxy
     cp -r nodes/127.0.0.1/sdk/* src/integTest/resources/chains/bcos
     cp src/test/resources/stub.toml src/integTest/resources/chains/bcos/
     cp -r src/test/resources/accounts src/integTest/resources/
     mkdir -p src/integTest/resources/solidity
     cp -r src/test/resources/contract/* src/integTest/resources/solidity/
-    cp -r src/main/resources/bcos3_sol/* src/integTest/resources/solidity/
+    cp src/main/resources/bcos3_sol/HelloWorld.sol src/integTest/resources/solidity/
+
+    cp src/main/resources/bcos3_sol/WeCrossHub.sol src/integTest/resources/chains/bcos/WeCrossHub/
+    cp src/main/resources/bcos3_liquid/we_cross_hub/we_cross_hub.abi src/integTest/resources/chains/bcos/WeCrossHub/
+    cp src/main/resources/bcos3_liquid/we_cross_hub/we_cross_hub.wasm src/integTest/resources/chains/bcos/WeCrossHub/
+    cp src/main/resources/bcos3_liquid/we_cross_hub/we_cross_hub_gm.wasm src/integTest/resources/chains/bcos/WeCrossHub/
+
+    cp src/main/resources/bcos3_sol/WeCrossProxy.sol src/integTest/resources/chains/bcos/WeCrossProxy/
+    cp src/main/resources/bcos3_liquid/we_cross_proxy/we_cross_proxy.abi src/integTest/resources/chains/bcos/WeCrossProxy/
+    cp src/main/resources/bcos3_liquid/we_cross_proxy/we_cross_proxy.wasm src/integTest/resources/chains/bcos/WeCrossProxy/
+    cp src/main/resources/bcos3_liquid/we_cross_proxy/we_cross_proxy_gm.wasm src/integTest/resources/chains/bcos/WeCrossProxy/
 
     if [ "${node_type}" == "sm" ];then
        sed_cmd=$(get_sed_cmd)
