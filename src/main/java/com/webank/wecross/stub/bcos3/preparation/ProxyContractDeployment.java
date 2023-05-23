@@ -118,14 +118,8 @@ public class ProxyContractDeployment {
 
     public static void deploy(String chainPath, String accountName) {
         try {
-            String proxyContractFile =
-                    chainPath
-                            + File.separator
-                            + "WeCrossProxy"
-                            + File.separator
-                            + "WeCrossProxy.sol";
             ProxyContract proxyContract =
-                    new ProxyContract(proxyContractFile, chainPath, accountName);
+                    new ProxyContract(chainPath, accountName);
             proxyContract.deploy();
         } catch (Exception e) {
             logger.error("deploy, e: ", e);
@@ -136,14 +130,8 @@ public class ProxyContractDeployment {
 
     public static void upgrade(String chainPath, String accountName) {
         try {
-            String proxyContractFile =
-                    chainPath
-                            + File.separator
-                            + "WeCrossProxy"
-                            + File.separator
-                            + "WeCrossProxy.sol";
             ProxyContract proxyContract =
-                    new ProxyContract(proxyContractFile, chainPath, accountName);
+                    new ProxyContract(chainPath, accountName);
             proxyContract.upgrade();
         } catch (Exception e) {
             logger.error("upgrade, e: ", e);

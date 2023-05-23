@@ -16,7 +16,7 @@ mod we_cross_hub {
     const CALL_TYPE_QUERY: &str = "0";
     const CALL_TYPE_INVOKE: &str = "1";
 
-    /// Defines the state variables of your contract.
+    /// Defines the state variables
     #[liquid(storage)]
     struct WeCrossHub {
         increment: storage::Value<u256>,
@@ -25,7 +25,7 @@ mod we_cross_hub {
         callback_results: storage::Mapping<String, Vec<String>>,
     }
 
-    /// Defines the methods of your contract.
+    /// Defines the methods
     #[liquid(methods)]
     impl WeCrossHub {
         pub fn new(&mut self) {

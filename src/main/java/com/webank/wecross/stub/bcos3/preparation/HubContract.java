@@ -10,12 +10,16 @@ import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.io.FileUtils;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.client.Client;
@@ -35,24 +39,27 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
+
 public class HubContract {
 
     private static final Logger logger = LoggerFactory.getLogger(HubContract.class);
 
-    private String hubContractFile;
     private String chainPath;
 
     private BCOSAccount account;
     private BCOSConnection connection;
 
-    public HubContract(String hubContractFile, String chainPath, String accountName)
+    private BCOSStubConfig bcosStubConfig;
+
+    public HubContract(String chainPath, String accountName)
             throws Exception {
-        this.hubContractFile = hubContractFile;
         this.chainPath = chainPath;
 
         BCOSStubConfigParser bcosStubConfigParser =
                 new BCOSStubConfigParser(chainPath, "stub.toml");
-        BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
+        bcosStubConfig = bcosStubConfigParser.loadConfig();
 
         boolean isGMStub = bcosStubConfig.isGMStub();
         int cryptoType = isGMStub ? CryptoType.SM_TYPE : CryptoType.ECDSA_TYPE;
@@ -92,8 +99,6 @@ public class HubContract {
         }
     }
 
-    public HubContract() {}
-
     public BCOSAccount getAccount() {
         return account;
     }
@@ -110,35 +115,66 @@ public class HubContract {
         this.connection = connection;
     }
 
+    public CompilationResult.ContractMetadata getHubContractAbiAndBin() throws IOException {
+        PathMatchingResourcePatternResolver resolver =
+                new PathMatchingResourcePatternResolver();
+        String hubContractDir = chainPath
+                + File.separator
+                + BCOSConstant.BCOS_HUB_NAME
+                + File.separator;
+        if (bcosStubConfig.isWASMStub()) {
+            CompilationResult.ContractMetadata metadata = new CompilationResult.ContractMetadata();
+
+            String hubContractAbiFile = hubContractDir + "we_cross_hub.abi";
+            String hubContractBinFile = hubContractDir + "we_cross_hub.wasm";
+            String hubContractGmBinFile = hubContractDir + "we_cross_hub_gm.wasm";
+            metadata.abi = FileUtils.readFileToString(resolver.getResource("classpath:" + hubContractAbiFile).getFile(), Charset.defaultCharset());
+
+            if (bcosStubConfig.isGMStub()) {
+                metadata.bin = FileUtils.readFileToString(resolver.getResource("classpath:" + hubContractGmBinFile).getFile(), Charset.defaultCharset());
+            } else {
+                metadata.bin = FileUtils.readFileToString(resolver.getResource("classpath:" + hubContractBinFile).getFile(), Charset.defaultCharset());
+            }
+
+            return metadata;
+        } else {
+            String proxyContractFile = hubContractDir + "WeCrossHub.sol";
+            File solFile = resolver.getResource("classpath:" + proxyContractFile).getFile();
+
+            /** First compile the contract source code */
+            SolidityCompiler.Result res =
+                    SolidityCompiler.compile(
+                            solFile,
+                            bcosStubConfig.isGMStub(),
+                            true,
+                            SolidityCompiler.Options.ABI,
+                            SolidityCompiler.Options.BIN,
+                            SolidityCompiler.Options.INTERFACE,
+                            SolidityCompiler.Options.METADATA);
+
+            if (res.isFailed()) {
+                throw new RuntimeException(" compiling contract failed, " + res.getErrors());
+            }
+
+            CompilationResult.ContractMetadata metadata =
+                    CompilationResult.parse(res.getOutput()).getContract(BCOSConstant.BCOS_HUB_NAME);
+
+            return metadata;
+        }
+    }
+
     /**
-     * @param solFile, String contractName
      * @return
      */
-    public BFSInfo deployContractAndLinkBFS(File solFile, String contractName, String linkName)
+    public BFSInfo deployContractAndLinkBFS()
             throws Exception {
 
-        logger.info("linkName: {}", linkName);
+        logger.info("linkName: {}", BCOSConstant.BCOS_HUB_NAME);
 
         AbstractClientWrapper clientWrapper = connection.getClientWrapper();
         Client client = clientWrapper.getClient();
 
-        /** First compile the contract source code */
-        SolidityCompiler.Result res =
-                SolidityCompiler.compile(
-                        solFile,
-                        client.getCryptoSuite().getCryptoTypeConfig() == CryptoType.SM_TYPE,
-                        true,
-                        SolidityCompiler.Options.ABI,
-                        SolidityCompiler.Options.BIN,
-                        SolidityCompiler.Options.INTERFACE,
-                        SolidityCompiler.Options.METADATA);
-
-        if (res.isFailed()) {
-            throw new RuntimeException(" compiling contract failed, " + res.getErrors());
-        }
-
-        CompilationResult.ContractMetadata metadata =
-                CompilationResult.parse(res.getOutput()).getContract(contractName);
+        CompilationResult.ContractMetadata metadata = this.getHubContractAbiAndBin();
 
         /** deploy the contract by sendTransaction */
         // groupId
@@ -159,16 +195,23 @@ public class HubContract {
 
         CryptoKeyPair credentials = account.getCredentials();
 
+        int txAttribute = 0;
+        String to = "";
+        if (client.isWASM()) {
+            txAttribute = LIQUID_CREATE | LIQUID_SCALE_CODEC;
+            to = BCOSConstant.BCOS_HUB_NAME + System.currentTimeMillis();
+        }
+
         TxPair signedTransaction =
                 TransactionBuilderJniObj.createSignedTransaction(
                         credentials.getJniKeyPair(),
                         groupID,
                         chainID,
-                        "",
+                        to,
                         metadata.bin,
                         metadata.abi,
                         blockLimit.longValue(),
-                        0);
+                        txAttribute);
         String signTx = signedTransaction.getSignedTx();
 
         CompletableFuture<String> completableFuture = new CompletableFuture<>();
@@ -199,13 +242,13 @@ public class HubContract {
             throw new Exception("Failed to deploy hub contract.");
         }
         BFSService bfsService = new BFSService(client, account.getCredentials().generateKeyPair());
-        RetCode retCode = bfsService.link(linkName, "latest", contractAddress, metadata.abi);
+        RetCode retCode = bfsService.link(BCOSConstant.BCOS_HUB_NAME, BCOSConstant.CONTRACT_DEFAULT_VERSION, contractAddress, metadata.abi);
 
         if (retCode.getCode() < PrecompiledRetCode.CODE_SUCCESS.getCode()) {
             throw new RuntimeException(" registerBfs failed, error message: " + retCode);
         }
 
-        BFSInfo bfsInfo = new BFSInfo("latest", "link");
+        BFSInfo bfsInfo = new BFSInfo(BCOSConstant.CONTRACT_DEFAULT_VERSION, "link");
         bfsInfo.setAddress(contractAddress);
         bfsInfo.setAbi(metadata.abi);
         return bfsInfo;
@@ -215,11 +258,7 @@ public class HubContract {
         if (!connection.hasHubDeployed()) {
             System.out.println("Deploy WeCrossHub to chain " + chainPath + " ...");
 
-            PathMatchingResourcePatternResolver resolver =
-                    new PathMatchingResourcePatternResolver();
-            File file = resolver.getResource("classpath:" + hubContractFile).getFile();
-
-            deployContractAndLinkBFS(file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
+            deployContractAndLinkBFS();
             System.out.println(
                     "SUCCESS: WeCrossHub: /apps/WeCrossHub/latest has been deployed! chain: "
                             + chainPath);
@@ -230,14 +269,9 @@ public class HubContract {
     }
 
     public void upgrade() throws Exception {
-
         System.out.println("Upgrade WeCrossHub to chain " + chainPath + " ...");
 
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        File file = resolver.getResource("classpath:" + hubContractFile).getFile();
-
-        deployContractAndLinkBFS(file, BCOSConstant.BCOS_HUB_NAME, BCOSConstant.BCOS_HUB_NAME);
-
+        deployContractAndLinkBFS();
         System.out.println(
                 "SUCCESS: WeCrossHub: /apps/WeCrossHub/latest has been upgraded! chain: "
                         + chainPath);

@@ -166,7 +166,6 @@ public class AsyncBfsService {
     public void linkBFSByProxy(
             Path path,
             String address,
-            String version,
             String abi,
             Account account,
             BlockManager blockManager,
@@ -179,7 +178,7 @@ public class AsyncBfsService {
         TransactionRequest transactionRequest =
                 new TransactionRequest(
                         BCOSConstant.PROXY_METHOD_REGISTER,
-                        Arrays.asList(path.toString(), version, address, abi)
+                        Arrays.asList(path.toString(), address, abi)
                                 .toArray(new String[0]));
 
         TransactionContext requestTransactionContext =
@@ -192,14 +191,14 @@ public class AsyncBfsService {
                 connection,
                 (exception, res) -> {
                     if (Objects.nonNull(exception)) {
-                        logger.error(" registerCNS e: ", exception);
+                        logger.error(" registerBfs e: ", exception);
                         callback.onResponse(exception);
                         return;
                     }
 
                     if (res.getErrorCode() != BCOSStatusCode.Success) {
                         logger.error(
-                                " deployAndRegisterCNS, error: {}, message: {}",
+                                " deployAndRegisterBfs, error: {}, message: {}",
                                 res.getErrorCode(),
                                 res.getMessage());
                         callback.onResponse(new Exception(res.getMessage()));
@@ -209,9 +208,8 @@ public class AsyncBfsService {
                     addAbiToCache(path.getResource(), abi);
 
                     logger.info(
-                            " registerCNS successfully, name: {}, version: {}, address: {} ",
+                            " registerBfs successfully, name: {}, address: {} ",
                             path.getResource(),
-                            version,
                             address);
 
                     callback.onResponse(null);

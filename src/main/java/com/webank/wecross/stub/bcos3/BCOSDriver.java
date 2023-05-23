@@ -63,6 +63,9 @@ import org.fisco.bcos.sdk.v3.utils.Numeric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
+
 /** Driver implementation for BCOS */
 public class BCOSDriver implements Driver {
 
@@ -647,6 +650,11 @@ public class BCOSDriver implements Driver {
                         }
 
                         byte[] encodedAbi = functionEncoder.encode(function);
+
+                        int txAttribute = 0;
+                        if (this.isWasm) {
+                            txAttribute = LIQUID_SCALE_CODEC;
+                        }
                         // get signed transaction hex string
                         TxPair signedTransaction =
                                 TransactionBuilderJniObj.createSignedTransaction(
@@ -657,7 +665,7 @@ public class BCOSDriver implements Driver {
                                         Hex.toHexString(encodedAbi),
                                         abi,
                                         blockNumber + 1000,
-                                        0);
+                                        txAttribute);
                         String signTx = signedTransaction.getSignedTx();
 
                         TransactionParams transaction =

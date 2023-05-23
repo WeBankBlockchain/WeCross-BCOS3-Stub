@@ -58,27 +58,17 @@ public class LinkBfsHandler implements CommandHandler {
         String sourceContent = (String) args[2];
         String address = (String) args[3];
         String contractName = (String) args[4];
-        String version = (String) args[5];
 
         if (logger.isDebugEnabled()) {
             logger.debug(
-                    " cnsName: {}, sourceType: {}, address: {}, contractName: {}, version: {} ",
+                    " cnsName: {}, sourceType: {}, address: {}, contractName: {} ",
                     cnsName,
                     sourceType,
                     address,
-                    contractName,
-                    version);
+                    contractName);
         }
 
         String abi = sourceContent;
-
-        /* Parameter calibration */
-        if (version.length() > BfsServiceWrapper.MAX_VERSION_LENGTH) {
-            callback.onResponse(
-                    new Exception("The length of version field must be less than or equal to 40"),
-                    null);
-            return;
-        }
 
         try {
             if (!address.startsWith("0x") || address.length() < 6) {
@@ -140,7 +130,6 @@ public class LinkBfsHandler implements CommandHandler {
         asyncBfsService.linkBFSByProxy(
                 path,
                 address,
-                version,
                 abi,
                 account,
                 blockManager,
@@ -153,10 +142,9 @@ public class LinkBfsHandler implements CommandHandler {
                     }
 
                     logger.info(
-                            " register cns successfully, cnsName: {}, contractName: {}, version: {}, address: {}, abi: {}",
+                            " register cns successfully, cnsName: {}, contractName: {}, address: {}, abi: {}",
                             cnsName,
                             contractName,
-                            version,
                             finalAddress,
                             finalAbi);
 

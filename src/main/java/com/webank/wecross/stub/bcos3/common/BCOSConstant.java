@@ -41,4 +41,6 @@ public interface BCOSConstant {
     String PROXY_METHOD_REGISTER = "linkBFS";
     String PROXY_METHOD_GETPATHS = "getPaths";
     String PROXY_METHOD_READLINK = "readlink";
+
+    String CONTRACT_DEFAULT_VERSION = "latest";
 }
