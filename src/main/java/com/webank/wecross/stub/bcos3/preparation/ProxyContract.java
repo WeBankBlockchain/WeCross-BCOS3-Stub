@@ -124,7 +124,7 @@ public class ProxyContract {
     public CompilationResult.ContractMetadata getProxyContractAbiAndBin() throws IOException {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         String proxyContractDir =
-                chainPath + File.separator + BCOSConstant.BCOS_HUB_NAME + File.separator;
+                chainPath + File.separator + BCOSConstant.BCOS_PROXY_NAME + File.separator;
 
         if (bcosStubConfig.isWASMStub()) {
             CompilationResult.ContractMetadata metadata = new CompilationResult.ContractMetadata();

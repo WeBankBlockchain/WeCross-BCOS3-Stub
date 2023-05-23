@@ -142,8 +142,8 @@ public class HubContract {
 
             return metadata;
         } else {
-            String proxyContractFile = hubContractDir + "WeCrossHub.sol";
-            File solFile = resolver.getResource("classpath:" + proxyContractFile).getFile();
+            String hubContractFile = hubContractDir + "WeCrossHub.sol";
+            File solFile = resolver.getResource("classpath:" + hubContractFile).getFile();
 
             /** First compile the contract source code */
             SolidityCompiler.Result res =
