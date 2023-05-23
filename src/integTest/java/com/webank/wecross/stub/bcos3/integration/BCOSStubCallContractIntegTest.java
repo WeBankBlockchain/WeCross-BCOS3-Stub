@@ -120,14 +120,10 @@ public class BCOSStubCallContractIntegTest {
     private void deployProxy() throws Exception {
         PathMatchingResourcePatternResolver resolver =
                 new PathMatchingResourcePatternResolver();
-        File file =
-                resolver.getResource("classpath:solidity/WeCrossProxy.sol")
-                        .getFile();
-
-        ProxyContract proxyContract = new ProxyContract();
+        ProxyContract proxyContract = new ProxyContract("./chains/bcos/","IntegBCOSAccount");
         proxyContract.setAccount((BCOSAccount) account);
         proxyContract.setConnection((BCOSConnection) connection);
-        BFSInfo bfsInfo = proxyContract.deployContractAndLinkBFS(file, "WeCrossProxy", "WeCrossProxy");
+        BFSInfo bfsInfo = proxyContract.deployContractAndLinkBFS();
         connection.getProperties().put(BCOSConstant.BCOS_PROXY_NAME, bfsInfo.getAddress());
         connection.getProperties().put(BCOSConstant.BCOS_PROXY_ABI, bfsInfo.getAbi());
     }
