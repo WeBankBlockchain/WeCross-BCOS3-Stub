@@ -1,5 +1,8 @@
 package com.webank.wecross.stub.bcos3.custom;
 
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
+
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.BlockManager;
 import com.webank.wecross.stub.Connection;
@@ -16,18 +19,12 @@ import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-
-import org.apache.commons.io.IOUtils;
-import org.fisco.bcos.sdk.jni.common.JniException;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
@@ -46,11 +43,6 @@ import org.fisco.solc.compiler.CompilationResult;
 import org.fisco.solc.compiler.SolidityCompiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
 
 public class DeployContractHandler implements CommandHandler {
     private static final Logger logger = LoggerFactory.getLogger(DeployContractHandler.class);
@@ -320,6 +312,7 @@ public class DeployContractHandler implements CommandHandler {
                     callback.onResponse(null, res.getResult()[0]);
                 });
     }
+
     private void deployLiquidContractAndRegisterLink(
             Path path,
             String bin,
@@ -336,7 +329,8 @@ public class DeployContractHandler implements CommandHandler {
         String chainID = connection.getProperties().get(BCOSConstant.BCOS_CHAIN_ID);
 
         try {
-            BigInteger blockLimit = ((BCOSConnection) connection).getClientWrapper().getBlockNumber();
+            BigInteger blockLimit =
+                    ((BCOSConnection) connection).getClientWrapper().getBlockNumber();
 
             TxPair signedTransaction =
                     TransactionBuilderJniObj.createSignedTransaction(
@@ -350,48 +344,53 @@ public class DeployContractHandler implements CommandHandler {
                             LIQUID_CREATE | LIQUID_SCALE_CODEC);
             String signTx = signedTransaction.getSignedTx();
 
-            ((BCOSConnection) connection).getClientWrapper().sendTransaction(
-                    signTx,
-                    new TransactionCallback() {
-                        @Override
-                        public void onResponse(TransactionReceipt receipt) {
-                            if (!receipt.isStatusOK()) {
-                                logger.error(
-                                        " deploy contract failed, error status: {}, error message: {} ",
-                                        receipt.getStatus(),
-                                        TransactionReceiptStatus.getStatusMessage(
-                                                        receipt.getStatus(), "Unknown error")
-                                                .getMessage());
-                                callback.onResponse(new Exception(receipt.getMessage()), null);
-                            } else {
-                                logger.info(
-                                        " deploy contract success, contractAddress: {}",
-                                        receipt.getContractAddress());
-                                asyncBfsService.linkBFSByProxy(
-                                        path,
-                                        receipt.getContractAddress(),
-                                        abi,
-                                        account,
-                                        blockManager,
-                                        connection,
-                                        e -> {
-                                            if (Objects.nonNull(e)) {
-                                                logger.warn("registering abi failed", e);
-                                                callback.onResponse(e, null);
-                                                return;
-                                            }
+            ((BCOSConnection) connection)
+                    .getClientWrapper()
+                    .sendTransaction(
+                            signTx,
+                            new TransactionCallback() {
+                                @Override
+                                public void onResponse(TransactionReceipt receipt) {
+                                    if (!receipt.isStatusOK()) {
+                                        logger.error(
+                                                " deploy contract failed, error status: {}, error message: {} ",
+                                                receipt.getStatus(),
+                                                TransactionReceiptStatus.getStatusMessage(
+                                                                receipt.getStatus(),
+                                                                "Unknown error")
+                                                        .getMessage());
+                                        callback.onResponse(
+                                                new Exception(receipt.getMessage()), null);
+                                    } else {
+                                        logger.info(
+                                                " deploy contract success, contractAddress: {}",
+                                                receipt.getContractAddress());
+                                        asyncBfsService.linkBFSByProxy(
+                                                path,
+                                                receipt.getContractAddress(),
+                                                abi,
+                                                account,
+                                                blockManager,
+                                                connection,
+                                                e -> {
+                                                    if (Objects.nonNull(e)) {
+                                                        logger.warn("registering abi failed", e);
+                                                        callback.onResponse(e, null);
+                                                        return;
+                                                    }
 
-                                            logger.info(
-                                                    " register bfs successfully path: {}, address: {}, abi: {}",
-                                                    path,
-                                                    receipt.getContractAddress(),
-                                                    abi);
+                                                    logger.info(
+                                                            " register bfs successfully path: {}, address: {}, abi: {}",
+                                                            path,
+                                                            receipt.getContractAddress(),
+                                                            abi);
 
-                                            callback.onResponse(null, receipt.getContractAddress());
-                                        });
-                            }
-                        }
-                    });
+                                                    callback.onResponse(
+                                                            null, receipt.getContractAddress());
+                                                });
+                                    }
+                                }
+                            });
         } catch (Exception e) {
             callback.onResponse(e, null);
         }

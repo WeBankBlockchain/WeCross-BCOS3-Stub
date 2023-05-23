@@ -1,5 +1,8 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
+
 import com.webank.wecross.stub.bcos3.BCOSBaseStubFactory;
 import com.webank.wecross.stub.bcos3.BCOSConnection;
 import com.webank.wecross.stub.bcos3.BCOSConnectionFactory;
@@ -18,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.io.FileUtils;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
@@ -39,9 +41,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
-
 public class HubContract {
 
     private static final Logger logger = LoggerFactory.getLogger(HubContract.class);
@@ -53,8 +52,7 @@ public class HubContract {
 
     private BCOSStubConfig bcosStubConfig;
 
-    public HubContract(String chainPath, String accountName)
-            throws Exception {
+    public HubContract(String chainPath, String accountName) throws Exception {
         this.chainPath = chainPath;
 
         BCOSStubConfigParser bcosStubConfigParser =
@@ -116,24 +114,30 @@ public class HubContract {
     }
 
     public CompilationResult.ContractMetadata getHubContractAbiAndBin() throws IOException {
-        PathMatchingResourcePatternResolver resolver =
-                new PathMatchingResourcePatternResolver();
-        String hubContractDir = chainPath
-                + File.separator
-                + BCOSConstant.BCOS_HUB_NAME
-                + File.separator;
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        String hubContractDir =
+                chainPath + File.separator + BCOSConstant.BCOS_HUB_NAME + File.separator;
         if (bcosStubConfig.isWASMStub()) {
             CompilationResult.ContractMetadata metadata = new CompilationResult.ContractMetadata();
 
             String hubContractAbiFile = hubContractDir + "we_cross_hub.abi";
             String hubContractBinFile = hubContractDir + "we_cross_hub.wasm";
             String hubContractGmBinFile = hubContractDir + "we_cross_hub_gm.wasm";
-            metadata.abi = FileUtils.readFileToString(resolver.getResource("classpath:" + hubContractAbiFile).getFile(), Charset.defaultCharset());
+            metadata.abi =
+                    FileUtils.readFileToString(
+                            resolver.getResource("classpath:" + hubContractAbiFile).getFile(),
+                            Charset.defaultCharset());
 
             if (bcosStubConfig.isGMStub()) {
-                metadata.bin = FileUtils.readFileToString(resolver.getResource("classpath:" + hubContractGmBinFile).getFile(), Charset.defaultCharset());
+                metadata.bin =
+                        FileUtils.readFileToString(
+                                resolver.getResource("classpath:" + hubContractGmBinFile).getFile(),
+                                Charset.defaultCharset());
             } else {
-                metadata.bin = FileUtils.readFileToString(resolver.getResource("classpath:" + hubContractBinFile).getFile(), Charset.defaultCharset());
+                metadata.bin =
+                        FileUtils.readFileToString(
+                                resolver.getResource("classpath:" + hubContractBinFile).getFile(),
+                                Charset.defaultCharset());
             }
 
             return metadata;
@@ -157,17 +161,15 @@ public class HubContract {
             }
 
             CompilationResult.ContractMetadata metadata =
-                    CompilationResult.parse(res.getOutput()).getContract(BCOSConstant.BCOS_HUB_NAME);
+                    CompilationResult.parse(res.getOutput())
+                            .getContract(BCOSConstant.BCOS_HUB_NAME);
 
             return metadata;
         }
     }
 
-    /**
-     * @return
-     */
-    public BFSInfo deployContractAndLinkBFS()
-            throws Exception {
+    /** @return */
+    public BFSInfo deployContractAndLinkBFS() throws Exception {
 
         logger.info("linkName: {}", BCOSConstant.BCOS_HUB_NAME);
 
@@ -242,7 +244,12 @@ public class HubContract {
             throw new Exception("Failed to deploy hub contract.");
         }
         BFSService bfsService = new BFSService(client, account.getCredentials().generateKeyPair());
-        RetCode retCode = bfsService.link(BCOSConstant.BCOS_HUB_NAME, BCOSConstant.CONTRACT_DEFAULT_VERSION, contractAddress, metadata.abi);
+        RetCode retCode =
+                bfsService.link(
+                        BCOSConstant.BCOS_HUB_NAME,
+                        BCOSConstant.CONTRACT_DEFAULT_VERSION,
+                        contractAddress,
+                        metadata.abi);
 
         if (retCode.getCode() < PrecompiledRetCode.CODE_SUCCESS.getCode()) {
             throw new RuntimeException(" registerBfs failed, error message: " + retCode);

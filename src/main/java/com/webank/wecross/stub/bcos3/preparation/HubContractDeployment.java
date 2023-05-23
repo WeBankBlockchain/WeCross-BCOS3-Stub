@@ -1,7 +1,6 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
-import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

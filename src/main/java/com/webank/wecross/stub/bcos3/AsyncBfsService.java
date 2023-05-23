@@ -178,8 +178,7 @@ public class AsyncBfsService {
         TransactionRequest transactionRequest =
                 new TransactionRequest(
                         BCOSConstant.PROXY_METHOD_REGISTER,
-                        Arrays.asList(path.toString(), address, abi)
-                                .toArray(new String[0]));
+                        Arrays.asList(path.toString(), address, abi).toArray(new String[0]));
 
         TransactionContext requestTransactionContext =
                 new TransactionContext(account, proxyPath, null, blockManager);

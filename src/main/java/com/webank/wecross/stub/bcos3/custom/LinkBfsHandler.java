@@ -8,7 +8,6 @@ import com.webank.wecross.stub.Path;
 import com.webank.wecross.stub.TransactionException;
 import com.webank.wecross.stub.bcos3.AsyncBfsService;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
-import com.webank.wecross.stub.bcos3.preparation.BfsServiceWrapper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
