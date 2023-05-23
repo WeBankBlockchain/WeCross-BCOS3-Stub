@@ -54,6 +54,9 @@ import static junit.framework.TestCase.assertTrue;
 public class BCOSStubCallContractIntegTest {
 
     private static final Logger logger = LoggerFactory.getLogger(BCOSStubCallContractIntegTest.class);
+    public static final String CHAINS_PATH = "./chains/bcos/";
+    public static final String INTEG_BCOS_ACCOUNT_GM = "IntegBCOSAccount_GM";
+    public static final String INTEG_BCOS_ACCOUNT = "IntegBCOSAccount";
 
     private HelloWeCross helloWeCross = null;
     private Driver driver = null;
@@ -71,10 +74,10 @@ public class BCOSStubCallContractIntegTest {
         System.setProperty("jdk.tls.namedGroups", "SM2,secp256k1,x25519,secp256r1,secp384r1,secp521r1,x448");
 
         /** load stub.toml config */
-        connection = BCOSConnectionFactory.build("./chains/bcos/", "stub.toml");
+        connection = BCOSConnectionFactory.build(CHAINS_PATH, "stub.toml");
 
         BCOSStubConfigParser bcosStubConfigParser =
-                new BCOSStubConfigParser("./chains/bcos/", "stub.toml");
+                new BCOSStubConfigParser(CHAINS_PATH, "stub.toml");
         BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
 
         boolean isGMStub = bcosStubConfig.isGMStub();
@@ -84,7 +87,11 @@ public class BCOSStubCallContractIntegTest {
         BCOSBaseStubFactory stubFactory = new BCOSBaseStubFactory(cryptoType, alg, stubType);
 
         driver = stubFactory.newDriver();
-        account = stubFactory.newAccount("IntegBCOSAccount", isGMStub ? "classpath:/accounts/gm_bcos" : "classpath:/accounts/bcos");
+        if (isGMStub) {
+            account = stubFactory.newAccount(INTEG_BCOS_ACCOUNT_GM, "classpath:/chains/bcos/" + INTEG_BCOS_ACCOUNT_GM);
+        } else {
+            account = stubFactory.newAccount(INTEG_BCOS_ACCOUNT, "classpath:/chains/bcos/" + INTEG_BCOS_ACCOUNT);
+        }
 
         connection.setConnectionEventHandler(connectionEventHandlerImplMock);
 
@@ -118,11 +125,11 @@ public class BCOSStubCallContractIntegTest {
     }
 
     private void deployProxy() throws Exception {
-        PathMatchingResourcePatternResolver resolver =
-                new PathMatchingResourcePatternResolver();
-        ProxyContract proxyContract = new ProxyContract("./chains/bcos/","IntegBCOSAccount");
-        proxyContract.setAccount((BCOSAccount) account);
-        proxyContract.setConnection((BCOSConnection) connection);
+        String accountName = INTEG_BCOS_ACCOUNT;
+        if (cryptoSuite.getCryptoTypeConfig() == CryptoType.SM_TYPE) {
+            accountName = INTEG_BCOS_ACCOUNT_GM;
+        }
+        ProxyContract proxyContract = new ProxyContract(CHAINS_PATH,accountName);
         BFSInfo bfsInfo = proxyContract.deployContractAndLinkBFS();
         connection.getProperties().put(BCOSConstant.BCOS_PROXY_NAME, bfsInfo.getAddress());
         connection.getProperties().put(BCOSConstant.BCOS_PROXY_ABI, bfsInfo.getAbi());
