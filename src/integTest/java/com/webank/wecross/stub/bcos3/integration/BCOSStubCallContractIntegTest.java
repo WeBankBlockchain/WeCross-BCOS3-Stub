@@ -453,7 +453,7 @@ public class BCOSStubCallContractIntegTest {
         String params3 = "HelloWorld";
         Object[] args =
                 new Object[]{
-                        "TupleTest", new String(contractBytes), "TupleTest", String.valueOf(System.currentTimeMillis()), params1, params2, params3
+                        "TupleTest", new String(contractBytes), "TupleTest", params1, params2, params3
                 };
 
 
@@ -509,7 +509,6 @@ public class BCOSStubCallContractIntegTest {
                             baseName + i,
                             new String(contractBytes),
                             "HelloWorld",
-                            String.valueOf(System.currentTimeMillis()),
                             constructorParams
                     };
 
