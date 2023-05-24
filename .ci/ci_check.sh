@@ -34,10 +34,10 @@ prepare_environment()
     local node_type="${1}"
     # integration testing
     mkdir -p src/integTest/resources/chains/bcos
-    mkdir src/integTest/resources/chains/bcos/WeCrossHub
-    mkdir src/integTest/resources/chains/bcos/WeCrossProxy
-    mkdir src/integTest/resources/chains/bcos/IntegBCOSAccount_GM
-    mkdir src/integTest/resources/chains/bcos/IntegBCOSAccount
+    mkdir -p src/integTest/resources/chains/bcos/WeCrossHub
+    mkdir -p src/integTest/resources/chains/bcos/WeCrossProxy
+    mkdir -p src/integTest/resources/chains/bcos/IntegBCOSAccount_GM
+    mkdir -p src/integTest/resources/chains/bcos/IntegBCOSAccount
     cp -r nodes/127.0.0.1/sdk/* src/integTest/resources/chains/bcos
     cp src/test/resources/stub.toml src/integTest/resources/chains/bcos/
     cp -r src/test/resources/accounts/bcos/* src/integTest/resources/chains/bcos/IntegBCOSAccount/
