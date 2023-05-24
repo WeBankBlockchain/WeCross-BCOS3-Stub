@@ -411,7 +411,6 @@ public class BCOSStubCallContractIntegTest {
                         "HelloWorld",
                         new String(contractBytes),
                         "HelloWorld",
-                        String.valueOf(System.currentTimeMillis()),
                         constructorParams
                 };
 
