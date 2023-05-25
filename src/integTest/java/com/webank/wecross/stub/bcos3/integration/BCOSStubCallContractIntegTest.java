@@ -26,12 +26,16 @@ import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
 import com.webank.wecross.stub.bcos3.custom.DeployContractHandler;
 import com.webank.wecross.stub.bcos3.performance.hellowecross.HelloWeCross;
+import com.webank.wecross.stub.bcos3.performance.hellowecross.HelloWeCrossLiquid;
 import com.webank.wecross.stub.bcos3.preparation.ProxyContract;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ContractCodecJsonWrapper;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
+import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
@@ -59,6 +64,7 @@ public class BCOSStubCallContractIntegTest {
     public static final String INTEG_BCOS_ACCOUNT = "IntegBCOSAccount";
 
     private HelloWeCross helloWeCross = null;
+    private HelloWeCrossLiquid helloWeCrossLiquid = null;
     private Driver driver = null;
     private Account account = null;
     private Connection connection = null;
@@ -68,6 +74,7 @@ public class BCOSStubCallContractIntegTest {
     private CryptoSuite cryptoSuite = null;
     private AsyncBfsService asyncBfsService = null;
 
+    private BCOSStubConfig bcosStubConfig = null;
 
     @Before
     public void initializer() throws Exception {
@@ -78,7 +85,7 @@ public class BCOSStubCallContractIntegTest {
 
         BCOSStubConfigParser bcosStubConfigParser =
                 new BCOSStubConfigParser(CHAINS_PATH, "stub.toml");
-        BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
+        bcosStubConfig = bcosStubConfigParser.loadConfig();
 
         boolean isGMStub = bcosStubConfig.isGMStub();
         int cryptoType = isGMStub ? CryptoType.SM_TYPE : CryptoType.ECDSA_TYPE;
@@ -102,16 +109,30 @@ public class BCOSStubCallContractIntegTest {
         asyncBfsService = ((BCOSDriver) driver).getAsyncBfsService();
         cryptoSuite = clientWrapper.getCryptoSuite();
 
-        helloWeCross =
-                HelloWeCross
-                        .deploy(
-                                clientWrapper.getClient(),
-                                bcosAccount.getCredentials());
+        if (bcosStubConfig.isWASMStub()) {
+            helloWeCrossLiquid =
+                    HelloWeCrossLiquid
+                            .deploy(
+                                    clientWrapper.getClient(),
+                                    bcosAccount.getCredentials(),
+                                    "HelloWeCross" + System.currentTimeMillis());
 
-        logger.info(" HelloWeCross address: {}", helloWeCross.getContractAddress());
+            logger.info(" HelloWeCross address: {}", helloWeCross.getContractAddress());
 
-        resourceInfo = ((BCOSConnection) connection).getResourceInfoList().get(0);
-        resourceInfo.getProperties().put(resourceInfo.getName(), helloWeCross.getContractAddress());
+            resourceInfo = ((BCOSConnection) connection).getResourceInfoList().get(0);
+            resourceInfo.getProperties().put(resourceInfo.getName(), helloWeCross.getContractAddress());
+        } else {
+            helloWeCross =
+                    HelloWeCross
+                            .deploy(
+                                    clientWrapper.getClient(),
+                                    bcosAccount.getCredentials());
+
+            logger.info(" HelloWeCross address: {}", helloWeCross.getContractAddress());
+
+            resourceInfo = ((BCOSConnection) connection).getResourceInfoList().get(0);
+            resourceInfo.getProperties().put(resourceInfo.getName(), helloWeCross.getContractAddress());
+        }
 
         logger.info(
                 " ResourceInfo name: {}, type: {}, properties: {}",
@@ -137,7 +158,12 @@ public class BCOSStubCallContractIntegTest {
 
     @Test
     public void deployContractTxGetTest() throws InterruptedException {
-        TransactionReceipt transactionReceipt = helloWeCross.getDeployReceipt();
+        TransactionReceipt transactionReceipt;
+        if (bcosStubConfig.isWASMStub()) {
+            transactionReceipt = helloWeCrossLiquid.getDeployReceipt();
+        } else {
+            transactionReceipt = helloWeCross.getDeployReceipt();
+        }
         AsyncToSync asyncToSync = new AsyncToSync();
 
         driver.asyncGetTransaction(transactionReceipt.getTransactionHash(), transactionReceipt.getBlockNumber().longValue(), blockManager, true, connection, (e, transaction) -> {
@@ -154,6 +180,10 @@ public class BCOSStubCallContractIntegTest {
 
     @Test
     public void deployContractByProxyTest() throws Exception {
+        if (bcosStubConfig.isWASMStub()) {
+            return;
+        }
+
         String[] params = new String[3];
 
         params[0] = "a.b.HelloWeCross";
@@ -396,24 +426,38 @@ public class BCOSStubCallContractIntegTest {
     public void deployHelloWorldTest() throws Exception {
         PathMatchingResourcePatternResolver resolver =
                 new PathMatchingResourcePatternResolver();
-        String path =
-                resolver.getResource("classpath:solidity/HelloWorld.sol")
-                        .getFile()
-                        .getAbsolutePath();
-
-        File file = new File(path);
-        byte[] contractBytes;
-        contractBytes = Files.readAllBytes(file.toPath());
-
         String constructorParams = "constructor params";
-        Object[] args =
-                new Object[]{
-                        "HelloWorld",
-                        new String(contractBytes),
-                        "HelloWorld",
-                        constructorParams
-                };
+        Object[] args;
+        if (bcosStubConfig.isWASMStub()) {
+            File abiFile = resolver.getResource("classpath:liquid/hello_world.abi").getFile();
+            String abi = FileUtils.readFileToString(abiFile, Charset.defaultCharset());
+            File wasmFile;
+            if (bcosStubConfig.isGMStub()) {
+                wasmFile = resolver.getResource("classpath:liquid/hello_world_gm.wasm").getFile();
+            } else {
+                wasmFile = resolver.getResource("classpath:liquid/hello_world.wasm").getFile();
+            }
+            byte[] bytes = FileUtils.readFileToByteArray(wasmFile);
+            String wasm = Hex.toHexString(bytes);
 
+            args = new Object[]{
+                    "HelloWorld",
+                    abi,
+                    "HelloWorld",
+                    wasm,
+                    constructorParams
+            };
+        } else {
+            File file = resolver.getResource("classpath:solidity/HelloWorld.sol").getFile();
+            byte[] contractBytes = Files.readAllBytes(file.toPath());
+
+            args = new Object[]{
+                            "HelloWorld",
+                            new String(contractBytes),
+                            "HelloWorld",
+                            constructorParams
+                    };
+        }
 
         AsyncToSync asyncToSync = new AsyncToSync();
 
@@ -439,26 +483,46 @@ public class BCOSStubCallContractIntegTest {
     public void deployTupleTestContract() throws Exception {
         PathMatchingResourcePatternResolver resolver =
                 new PathMatchingResourcePatternResolver();
-        String path =
-                resolver.getResource("classpath:solidity/TupleTest.sol")
-                        .getFile()
-                        .getAbsolutePath();
-
-        File file = new File(path);
-        byte[] contractBytes;
-        contractBytes = Files.readAllBytes(file.toPath());
-
+        Object[] args;
         String params1 = "1";
         String params2 = "[1,2,3]";
         String params3 = "HelloWorld";
-        Object[] args =
-                new Object[]{
-                        "TupleTest", new String(contractBytes), "TupleTest", params1, params2, params3
-                };
+        if (bcosStubConfig.isWASMStub()) {
+            File abiFile = resolver.getResource("classpath:liquid/tuple_test.abi").getFile();
+            String abi = FileUtils.readFileToString(abiFile, Charset.defaultCharset());
+            File wasmFile;
+            if (bcosStubConfig.isGMStub()) {
+                wasmFile = resolver.getResource("classpath:liquid/tuple_test_gm.wasm").getFile();
+            } else {
+                wasmFile = resolver.getResource("classpath:liquid/tuple_test.wasm").getFile();
+            }
+            byte[] bytes = FileUtils.readFileToByteArray(wasmFile);
+            String wasm = Hex.toHexString(bytes);
 
+            args = new Object[] {
+                    "TupleTest",
+                    abi,
+                    "TupleTest",
+                    wasm,
+                    params1,
+                    params2,
+                    params3
+            };
+        } else {
+            File file = resolver.getResource("classpath:solidity/TupleTest.sol").getFile();
+            byte[] contractBytes = Files.readAllBytes(file.toPath());
+
+            args = new Object[]{
+                        "TupleTest",
+                        new String(contractBytes),
+                        "TupleTest",
+                        params1,
+                        params2,
+                        params3
+                    };
+        }
 
         AsyncToSync asyncToSync = new AsyncToSync();
-
         DeployContractHandler commandHandler = new DeployContractHandler();
         commandHandler.setAsyncBfsService(asyncBfsService);
 
@@ -489,29 +553,46 @@ public class BCOSStubCallContractIntegTest {
     public void bfsServiceLoopTest() throws Exception {
         PathMatchingResourcePatternResolver resolver =
                 new PathMatchingResourcePatternResolver();
-        String path =
-                resolver.getResource("classpath:solidity/HelloWorld.sol")
-                        .getFile()
-                        .getAbsolutePath();
+        String constructorParams = "constructor params";
+        String baseName = "HelloWorld";
+        Object[] args;
+        if (bcosStubConfig.isWASMStub()) {
+            File abiFile = resolver.getResource("classpath:liquid/hello_world.abi").getFile();
+            String abi = FileUtils.readFileToString(abiFile, Charset.defaultCharset());
+            File wasmFile;
+            if (bcosStubConfig.isGMStub()) {
+                wasmFile = resolver.getResource("classpath:liquid/hello_world_gm.wasm").getFile();
+            } else {
+                wasmFile = resolver.getResource("classpath:liquid/hello_world.wasm").getFile();
+            }
+            byte[] bytes = FileUtils.readFileToByteArray(wasmFile);
+            String wasm = Hex.toHexString(bytes);
 
-        File file = new File(path);
-        byte[] contractBytes;
-        contractBytes = Files.readAllBytes(file.toPath());
+            args = new Object[]{
+                    baseName,
+                    abi,
+                    baseName,
+                    wasm,
+                    constructorParams
+            };
+        } else {
+            File file = resolver.getResource("classpath:solidity/HelloWorld.sol").getFile();
+            byte[] contractBytes = Files.readAllBytes(file.toPath());
+
+            args = new Object[]{
+                    baseName,
+                    new String(contractBytes),
+                    baseName,
+                    constructorParams
+            };
+        }
+
 
         DeployContractHandler commandHandler = new DeployContractHandler();
         commandHandler.setAsyncBfsService(asyncBfsService);
 
         for (int i = 0; i < 3; i++) {
-            String constructorParams = "constructor params";
-            String baseName = "HelloWorld";
-            Object[] args =
-                    new Object[]{
-                            baseName + i,
-                            new String(contractBytes),
-                            "HelloWorld",
-                            constructorParams
-                    };
-
+            args[0] = baseName + i;
             AsyncToSync asyncToSync = new AsyncToSync();
             commandHandler.handle(Path.decode("a.b." + baseName + i),
                     args,
