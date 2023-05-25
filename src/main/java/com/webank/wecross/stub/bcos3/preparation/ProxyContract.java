@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -220,7 +221,7 @@ public class ProxyContract {
 
         TransactionResponse transactionResponse =
                 assembleTransactionProcessor.deployAndGetResponse(
-                        metadata.abi, metadata.bin, null, to);
+                        metadata.abi, metadata.bin, new ArrayList<>(), to);
         String contractAddress = null;
         if (!transactionResponse.getTransactionReceipt().isStatusOK()) {
             logger.error(
