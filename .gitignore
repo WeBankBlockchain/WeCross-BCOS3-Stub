@@ -52,7 +52,5 @@ out/
 .LSOverride
 
 # ignore temp file for liquid contract
-.liquid/
 .vscode/
 target/
-Cargo.lock
