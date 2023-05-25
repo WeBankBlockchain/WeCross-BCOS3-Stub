@@ -34,6 +34,7 @@ import org.fisco.bcos.sdk.v3.model.RetCode;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
 import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
+import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.fisco.solc.compiler.CompilationResult;
 import org.fisco.solc.compiler.SolidityCompiler;
 import org.slf4j.Logger;
@@ -129,15 +130,17 @@ public class HubContract {
                             Charset.defaultCharset());
 
             if (bcosStubConfig.isGMStub()) {
-                metadata.bin =
-                        FileUtils.readFileToString(
-                                resolver.getResource("classpath:" + hubContractGmBinFile).getFile(),
-                                Charset.defaultCharset());
+                byte[] bytes =
+                        FileUtils.readFileToByteArray(
+                                resolver.getResource("classpath:" + hubContractGmBinFile)
+                                        .getFile());
+                metadata.bin = Hex.toHexString(bytes);
+                ;
             } else {
-                metadata.bin =
-                        FileUtils.readFileToString(
-                                resolver.getResource("classpath:" + hubContractBinFile).getFile(),
-                                Charset.defaultCharset());
+                byte[] bytes =
+                        FileUtils.readFileToByteArray(
+                                resolver.getResource("classpath:" + hubContractBinFile).getFile());
+                metadata.bin = Hex.toHexString(bytes);
             }
 
             return metadata;
