@@ -117,10 +117,10 @@ public class BCOSStubCallContractIntegTest {
                                     bcosAccount.getCredentials(),
                                     "HelloWeCross" + System.currentTimeMillis());
 
-            logger.info(" HelloWeCross address: {}", helloWeCross.getContractAddress());
+            logger.info(" HelloWeCross address: {}", helloWeCrossLiquid.getContractAddress());
 
             resourceInfo = ((BCOSConnection) connection).getResourceInfoList().get(0);
-            resourceInfo.getProperties().put(resourceInfo.getName(), helloWeCross.getContractAddress());
+            resourceInfo.getProperties().put(resourceInfo.getName(), helloWeCrossLiquid.getContractAddress());
         } else {
             helloWeCross =
                     HelloWeCross
