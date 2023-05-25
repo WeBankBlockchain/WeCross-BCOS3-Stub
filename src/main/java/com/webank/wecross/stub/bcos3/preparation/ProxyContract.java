@@ -17,13 +17,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
-import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
-import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.client.Client;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSService;
@@ -31,9 +27,7 @@ import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.model.PrecompiledRetCode;
 import org.fisco.bcos.sdk.v3.model.RetCode;
-import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
-import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
 import org.fisco.bcos.sdk.v3.transaction.manager.AssembleTransactionProcessor;
 import org.fisco.bcos.sdk.v3.transaction.manager.TransactionProcessorFactory;
 import org.fisco.bcos.sdk.v3.transaction.model.dto.TransactionResponse;
@@ -224,57 +218,60 @@ public class ProxyContract {
             to = BCOSConstant.BCOS_PROXY_NAME + System.currentTimeMillis();
         }
 
-        TransactionResponse transactionResponse = assembleTransactionProcessor.deployAndGetResponse(metadata.abi, metadata.bin, null, to);
+        TransactionResponse transactionResponse =
+                assembleTransactionProcessor.deployAndGetResponse(
+                        metadata.abi, metadata.bin, null, to);
         String contractAddress = null;
         if (!transactionResponse.getTransactionReceipt().isStatusOK()) {
             logger.error(
                     " deploy contract failed, error status: {}, error message: {} ",
                     transactionResponse.getTransactionReceipt().getStatus(),
                     TransactionReceiptStatus.getStatusMessage(
-                                    transactionResponse.getTransactionReceipt().getStatus(), "Unknown error")
+                                    transactionResponse.getTransactionReceipt().getStatus(),
+                                    "Unknown error")
                             .getMessage());
         } else {
             contractAddress = transactionResponse.getTransactionReceipt().getContractAddress();
-            logger.info(
-                    " deploy contract success, contractAddress: {}",contractAddress);
+            logger.info(" deploy contract success, contractAddress: {}", contractAddress);
         }
 
-//        TxPair signedTransaction =
-//                TransactionBuilderJniObj.createSignedTransaction(
-//                        credentials.getJniKeyPair(),
-//                        groupID,
-//                        chainID,
-//                        to,
-//                        metadata.bin,
-//                        metadata.abi,
-//                        blockLimit.longValue(),
-//                        txAttribute);
-//        String signTx = signedTransaction.getSignedTx();
+        //        TxPair signedTransaction =
+        //                TransactionBuilderJniObj.createSignedTransaction(
+        //                        credentials.getJniKeyPair(),
+        //                        groupID,
+        //                        chainID,
+        //                        to,
+        //                        metadata.bin,
+        //                        metadata.abi,
+        //                        blockLimit.longValue(),
+        //                        txAttribute);
+        //        String signTx = signedTransaction.getSignedTx();
 
-//        CompletableFuture<String> completableFuture = new CompletableFuture<>();
-//        clientWrapper.sendTransaction(
-//                signTx,
-//                new TransactionCallback() {
-//                    @Override
-//                    public void onResponse(TransactionReceipt receipt) {
-//                        if (!receipt.isStatusOK()) {
-//                            logger.error(
-//                                    " deploy contract failed, error status: {}, error message: {} ",
-//                                    receipt.getStatus(),
-//                                    TransactionReceiptStatus.getStatusMessage(
-//                                                    receipt.getStatus(), "Unknown error")
-//                                            .getMessage());
-//                            completableFuture.complete(null);
-//                        } else {
-//                            logger.info(
-//                                    " deploy contract success, contractAddress: {}",
-//                                    receipt.getContractAddress());
-//                            completableFuture.complete(receipt.getContractAddress());
-//                        }
-//                    }
-//                });
+        //        CompletableFuture<String> completableFuture = new CompletableFuture<>();
+        //        clientWrapper.sendTransaction(
+        //                signTx,
+        //                new TransactionCallback() {
+        //                    @Override
+        //                    public void onResponse(TransactionReceipt receipt) {
+        //                        if (!receipt.isStatusOK()) {
+        //                            logger.error(
+        //                                    " deploy contract failed, error status: {}, error
+        // message: {} ",
+        //                                    receipt.getStatus(),
+        //                                    TransactionReceiptStatus.getStatusMessage(
+        //                                                    receipt.getStatus(), "Unknown error")
+        //                                            .getMessage());
+        //                            completableFuture.complete(null);
+        //                        } else {
+        //                            logger.info(
+        //                                    " deploy contract success, contractAddress: {}",
+        //                                    receipt.getContractAddress());
+        //                            completableFuture.complete(receipt.getContractAddress());
+        //                        }
+        //                    }
+        //                });
 
-//        String contractAddress = completableFuture.get(1000, TimeUnit.SECONDS);
+        //        String contractAddress = completableFuture.get(1000, TimeUnit.SECONDS);
         if (Objects.isNull(contractAddress)) {
             throw new Exception("Failed to deploy proxy contract.");
         }
