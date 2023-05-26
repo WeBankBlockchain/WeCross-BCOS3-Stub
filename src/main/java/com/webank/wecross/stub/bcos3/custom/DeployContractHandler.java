@@ -225,6 +225,7 @@ public class DeployContractHandler implements CommandHandler {
                     blockManager,
                     (e, address) -> {
                         if (Objects.nonNull(e)) {
+                            logger.error("deploy failed ", e);
                             callback.onResponse(e, null);
                             return;
                         }
