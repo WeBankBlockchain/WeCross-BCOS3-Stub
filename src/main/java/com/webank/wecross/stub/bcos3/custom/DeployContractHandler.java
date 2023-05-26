@@ -331,7 +331,10 @@ public class DeployContractHandler implements CommandHandler {
 
         try {
             BigInteger blockLimit =
-                    ((BCOSConnection) connection).getClientWrapper().getBlockNumber();
+                    ((BCOSConnection) connection)
+                            .getClientWrapper()
+                            .getBlockNumber()
+                            .add(BigInteger.valueOf(1000));
 
             TxPair signedTransaction =
                     TransactionBuilderJniObj.createSignedTransaction(

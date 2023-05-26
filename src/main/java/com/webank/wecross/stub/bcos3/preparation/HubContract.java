@@ -1,8 +1,5 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
-
 import com.webank.wecross.stub.bcos3.BCOSBaseStubFactory;
 import com.webank.wecross.stub.bcos3.BCOSConnection;
 import com.webank.wecross.stub.bcos3.BCOSConnectionFactory;
@@ -16,24 +13,21 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
-import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
-import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.client.Client;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSService;
-import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.model.PrecompiledRetCode;
 import org.fisco.bcos.sdk.v3.model.RetCode;
-import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
-import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
+import org.fisco.bcos.sdk.v3.transaction.manager.AssembleTransactionProcessor;
+import org.fisco.bcos.sdk.v3.transaction.manager.TransactionProcessorFactory;
+import org.fisco.bcos.sdk.v3.transaction.model.dto.TransactionResponse;
 import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.fisco.solc.compiler.CompilationResult;
 import org.fisco.solc.compiler.SolidityCompiler;
@@ -52,6 +46,8 @@ public class HubContract {
     private BCOSConnection connection;
 
     private BCOSStubConfig bcosStubConfig;
+
+    private AssembleTransactionProcessor assembleTransactionProcessor;
 
     public HubContract(String chainPath, String accountName) throws Exception {
         this.chainPath = chainPath;
@@ -88,7 +84,9 @@ public class HubContract {
         connection =
                 BCOSConnectionFactory.build(
                         bcosStubConfig, clientWrapper, scheduledExecutorService);
-
+        this.assembleTransactionProcessor =
+                TransactionProcessorFactory.createAssembleTransactionProcessor(
+                        connection.getClientWrapper().getClient(), account.getCredentials());
         if (account == null) {
             throw new Exception("Account " + accountName + " not found");
         }
@@ -197,52 +195,29 @@ public class HubContract {
                 account.getCredentials().getAddress(),
                 metadata.bin,
                 metadata.abi);
-
-        CryptoKeyPair credentials = account.getCredentials();
-
-        int txAttribute = 0;
         String to = "";
         if (client.isWASM()) {
-            txAttribute = LIQUID_CREATE | LIQUID_SCALE_CODEC;
             to = BCOSConstant.BCOS_HUB_NAME + System.currentTimeMillis();
         }
 
-        TxPair signedTransaction =
-                TransactionBuilderJniObj.createSignedTransaction(
-                        credentials.getJniKeyPair(),
-                        groupID,
-                        chainID,
-                        to,
-                        metadata.bin,
-                        metadata.abi,
-                        blockLimit.longValue(),
-                        txAttribute);
-        String signTx = signedTransaction.getSignedTx();
+        TransactionResponse transactionResponse =
+                assembleTransactionProcessor.deployAndGetResponse(
+                        metadata.abi, metadata.bin, new ArrayList<>(), to);
 
-        CompletableFuture<String> completableFuture = new CompletableFuture<>();
-        clientWrapper.sendTransaction(
-                signTx,
-                new TransactionCallback() {
-                    @Override
-                    public void onResponse(TransactionReceipt receipt) {
-                        if (!receipt.isStatusOK()) {
-                            logger.error(
-                                    " deploy contract failed, error status: {}, error message: {} ",
-                                    receipt.getStatus(),
-                                    TransactionReceiptStatus.getStatusMessage(
-                                                    receipt.getStatus(), "Unknown error")
-                                            .getMessage());
-                            completableFuture.complete(null);
-                        } else {
-                            logger.info(
-                                    " deploy contract success, contractAddress: {}",
-                                    receipt.getContractAddress());
-                            completableFuture.complete(receipt.getContractAddress());
-                        }
-                    }
-                });
+        String contractAddress = null;
+        if (!transactionResponse.getTransactionReceipt().isStatusOK()) {
+            logger.error(
+                    " deploy contract failed, error status: {}, error message: {} ",
+                    transactionResponse.getTransactionReceipt().getStatus(),
+                    TransactionReceiptStatus.getStatusMessage(
+                                    transactionResponse.getTransactionReceipt().getStatus(),
+                                    "Unknown error")
+                            .getMessage());
+        } else {
+            contractAddress = transactionResponse.getTransactionReceipt().getContractAddress();
+            logger.info(" deploy contract success, contractAddress: {}", contractAddress);
+        }
 
-        String contractAddress = completableFuture.get(10, TimeUnit.SECONDS);
         if (Objects.isNull(contractAddress)) {
             throw new Exception("Failed to deploy hub contract.");
         }

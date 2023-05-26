@@ -1,8 +1,5 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
-
 import com.webank.wecross.stub.bcos3.BCOSBaseStubFactory;
 import com.webank.wecross.stub.bcos3.BCOSConnection;
 import com.webank.wecross.stub.bcos3.BCOSConnectionFactory;
@@ -24,7 +21,6 @@ import org.apache.commons.io.FileUtils;
 import org.fisco.bcos.sdk.v3.client.Client;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSService;
-import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.model.PrecompiledRetCode;
 import org.fisco.bcos.sdk.v3.model.RetCode;
@@ -209,13 +205,8 @@ public class ProxyContract {
                 account.getCredentials().getAddress(),
                 metadata.bin,
                 metadata.abi);
-
-        CryptoKeyPair credentials = account.getCredentials();
-
-        int txAttribute = 0;
         String to = "";
         if (bcosStubConfig.isWASMStub()) {
-            txAttribute = LIQUID_CREATE | LIQUID_SCALE_CODEC;
             to = BCOSConstant.BCOS_PROXY_NAME + System.currentTimeMillis();
         }
 
@@ -236,48 +227,11 @@ public class ProxyContract {
             logger.info(" deploy contract success, contractAddress: {}", contractAddress);
         }
 
-        //        TxPair signedTransaction =
-        //                TransactionBuilderJniObj.createSignedTransaction(
-        //                        credentials.getJniKeyPair(),
-        //                        groupID,
-        //                        chainID,
-        //                        to,
-        //                        metadata.bin,
-        //                        metadata.abi,
-        //                        blockLimit.longValue(),
-        //                        txAttribute);
-        //        String signTx = signedTransaction.getSignedTx();
-
-        //        CompletableFuture<String> completableFuture = new CompletableFuture<>();
-        //        clientWrapper.sendTransaction(
-        //                signTx,
-        //                new TransactionCallback() {
-        //                    @Override
-        //                    public void onResponse(TransactionReceipt receipt) {
-        //                        if (!receipt.isStatusOK()) {
-        //                            logger.error(
-        //                                    " deploy contract failed, error status: {}, error
-        // message: {} ",
-        //                                    receipt.getStatus(),
-        //                                    TransactionReceiptStatus.getStatusMessage(
-        //                                                    receipt.getStatus(), "Unknown error")
-        //                                            .getMessage());
-        //                            completableFuture.complete(null);
-        //                        } else {
-        //                            logger.info(
-        //                                    " deploy contract success, contractAddress: {}",
-        //                                    receipt.getContractAddress());
-        //                            completableFuture.complete(receipt.getContractAddress());
-        //                        }
-        //                    }
-        //                });
-
-        //        String contractAddress = completableFuture.get(1000, TimeUnit.SECONDS);
         if (Objects.isNull(contractAddress)) {
             throw new Exception("Failed to deploy proxy contract.");
         }
 
-        BFSService bfsService = new BFSService(client, credentials.generateKeyPair());
+        BFSService bfsService = new BFSService(client, account.getCredentials().generateKeyPair());
         RetCode retCode =
                 bfsService.link(
                         BCOSConstant.BCOS_PROXY_NAME,
