@@ -470,10 +470,10 @@ public class BCOSStubCallContractIntegTest {
                 blockManager,
                 connection,
                 (error, response) -> {
+                    asyncToSync.getSemaphore().release();
                     assertNull(error);
                     assertNotNull(response);
                     assertEquals(42, ((String) response).length());
-                    asyncToSync.getSemaphore().release();
                 }, cryptoSuite);
         asyncToSync.getSemaphore().acquire();
 
