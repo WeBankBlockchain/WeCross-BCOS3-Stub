@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSService;
+import org.fisco.bcos.sdk.v3.contract.precompiled.model.PrecompiledVersionCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,10 @@ public class BfsServiceWrapper {
         String absolutePath = "/apps/" + name + "/latest";
         logger.info("get bfs info, absolutePath: {}", absolutePath);
         try {
+            logger.info("current version: {}", bfsService.getCurrentVersion().getVersionString());
+            logger.info("LS_PAGE_VERSION:{} - {}",
+                    PrecompiledVersionCheck.LS_PAGE_VERSION.getMaxVersion(),
+                    PrecompiledVersionCheck.LS_PAGE_VERSION.getMinVersion());
             List<BFSInfo> bfsInfos =
                     bfsService
                             .listBFSInfo(
