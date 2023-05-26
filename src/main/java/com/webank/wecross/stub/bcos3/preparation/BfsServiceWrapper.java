@@ -35,7 +35,8 @@ public class BfsServiceWrapper {
         logger.info("get bfs info, absolutePath: {}", absolutePath);
         try {
             logger.info("current version: {}", bfsService.getCurrentVersion().getVersionString());
-            logger.info("LS_PAGE_VERSION:{} - {}",
+            logger.info(
+                    "LS_PAGE_VERSION:{} - {}",
                     PrecompiledVersionCheck.LS_PAGE_VERSION.getMaxVersion(),
                     PrecompiledVersionCheck.LS_PAGE_VERSION.getMinVersion());
             List<BFSInfo> bfsInfos =
