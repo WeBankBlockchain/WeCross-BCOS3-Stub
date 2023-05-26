@@ -118,7 +118,7 @@ mod we_cross_proxy {
         }
 
         pub fn getVersion(&self) -> String {
-            return VERSION.to_string();
+            return String::from(VERSION);
         }
 
         pub fn addPath(&mut self, _path: String) {
@@ -187,7 +187,7 @@ mod we_cross_proxy {
                 bfsList.first().unwrap().file_type != "link" ||
                 bfsList.first().unwrap().ext.len() < 2 {
                 
-                return ("".to_string(), "".to_string(), "".to_string());
+                return (String::from(""), String::from(""), String::from(""));
             }
 
             let bfsInfo = bfsList.first().unwrap();
@@ -511,7 +511,7 @@ mod we_cross_proxy {
                             r#"","paths":"# +
                             &self.pathsToJson(&xaTransactionID) +
                             r#","timestamp":"# +
-                            &self.xaTransactions[&xaTransactionID].startTimestamp.to_string() +
+                            &self.u256_to_string(&self.xaTransactions[&xaTransactionID].startTimestamp) +
                             "},";
                 i += 1;
             }
@@ -529,7 +529,7 @@ mod we_cross_proxy {
                         r#"","paths":"# +
                         &self.pathsToJson(&xaTransactionID) +
                         r#","timestamp":"# +
-                        &self.xaTransactions[&xaTransactionID].startTimestamp.to_string() +
+                        &self.u256_to_string(&self.xaTransactions[&xaTransactionID].startTimestamp) +
                         "}]";
 
             jsonStr = r#"{"total":"#.to_string() +
@@ -558,11 +558,11 @@ mod we_cross_proxy {
                             r#"","paths":"# +
                             &self.pathsToJson(&_xaTransactionID) +
                             r#","startTimestamp":"# +
-                            &self.xaTransactions[&_xaTransactionID].startTimestamp.to_string() +
+                            &self.u256_to_string(&self.xaTransactions[&_xaTransactionID].startTimestamp) +
                             r#","commitTimestamp":"# +
-                            &self.xaTransactions[&_xaTransactionID].commitTimestamp.to_string() +
+                            &self.u256_to_string(&self.xaTransactions[&_xaTransactionID].commitTimestamp) +
                             r#","rollbackTimestamp":"# +
-                            &self.xaTransactions[&_xaTransactionID].rollbackTimestamp.to_string() +
+                            &self.u256_to_string(&self.xaTransactions[&_xaTransactionID].rollbackTimestamp) +
                             r#","xaTransactionSteps":"# +
                             &self.xaTransactionStepArrayToJson(
                                 &_xaTransactionID,
@@ -613,7 +613,7 @@ mod we_cross_proxy {
                         let xaTransactionID = status.xaTransactionID.clone();
                         match self.xaTransactions[&xaTransactionID].seqs.last() {
                             Some(seq) => {
-                                return xaTransactionID + &" " + &seq.to_string();
+                                return xaTransactionID + &" " + &self.u256_to_string(seq);
                             },
                             None => return xaTransactionID + &" 0",
                         }
@@ -760,13 +760,13 @@ mod we_cross_proxy {
             _XATransactionSeq: &u256
         ) -> String {
             let jsonStr = r#"{"xaTransactionSeq":"#.to_string() + 
-                            &_XATransactionSeq.to_string() +
+                            &self.u256_to_string(_XATransactionSeq) +
                             r#","accountIdentity":""# + 
                             &_xaTransactionStep.accountIdentity +
                             r#"","path":""# + 
                             &_xaTransactionStep.path + 
                             r#"","timestamp":"# + 
-                            &_xaTransactionStep.timestamp.to_string() +
+                            &self.u256_to_string(&_xaTransactionStep.timestamp) +
                             r#","method":""# + 
                             &self.getMethodFromFunc(&_xaTransactionStep.func) + 
                             r#"","args":""# + 
@@ -828,7 +828,7 @@ mod we_cross_proxy {
             _transactionID: &String,
             _transactionSeq: &u256
         ) -> String {
-            return _transactionID.to_string() + &_transactionSeq.to_string();
+            return _transactionID.to_string() + &self.u256_to_string(_transactionSeq);
         }
 
         fn bytesToHexString(
@@ -867,6 +867,15 @@ mod we_cross_proxy {
             match binding.first() {
                 Some(i) => i.clone(),
                 None => 0
+            }
+        }
+
+        fn u256_to_string(&self, num: &u256) -> String {
+            let binding = num.to_u64_digits();
+
+            match binding.first() {
+                Some(i) => i.to_string(),
+                None => String::from("0"),
             }
         }
     }

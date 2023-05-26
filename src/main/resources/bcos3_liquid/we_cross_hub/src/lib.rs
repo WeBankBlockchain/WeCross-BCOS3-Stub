@@ -72,7 +72,7 @@ mod we_cross_hub {
             _callback_method: String) -> String {
 
             self.increment += 1.into();
-            let uid = self.increment.get().to_string();
+            let uid = self.u256_to_string(self.increment.get());
 
             let mut request: Vec<String> = Vec::new();
             request.push(uid.clone());
@@ -160,6 +160,15 @@ mod we_cross_hub {
         
         fn json_escape(&self, value: String) -> String {
             return value.replace("\\", "\\\\").replace("\"", "\\\"");
+        }
+
+        fn u256_to_string(&self, num: &u256) -> String {
+            let binding = num.to_u64_digits();
+
+            match binding.first() {
+                Some(i) => i.to_string(),
+                None => String::from("0"),
+            }
         }
     }
 
