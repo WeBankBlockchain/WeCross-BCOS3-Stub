@@ -389,7 +389,8 @@ public class DeployContractHandler implements CommandHandler {
                                                             receipt.getContractAddress(),
                                                             abi);
 
-                                                    asyncBfsService.addAbiToCache(path.getResource(), abi);
+                                                    asyncBfsService.addAbiToCache(
+                                                            path.getResource(), abi);
                                                     callback.onResponse(
                                                             null, receipt.getContractAddress());
                                                 });
