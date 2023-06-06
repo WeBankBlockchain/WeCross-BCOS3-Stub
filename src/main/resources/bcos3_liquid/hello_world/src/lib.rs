@@ -14,8 +14,8 @@ mod hello_world {
 
     #[liquid(methods)]
     impl HelloWorld {
-        pub fn new(&mut self) {
-            self.name.initialize(String::from("HelloWorld!"));
+        pub fn new(&mut self, n: String) {
+            self.name.initialize(n);
         }
 
         pub fn get(&self) -> String {
@@ -42,7 +42,7 @@ mod hello_world {
 
         #[test]
         fn test_all() {
-            let mut contract = HelloWorld::new();
+            let mut contract = HelloWorld::new("HelloWorld!".to_string());
             assert_eq!(contract.get(), "HelloWorld!");
             contract.set(String::from("Hello WeCross"));
             assert_eq!(contract.get(), "Hello WeCross");

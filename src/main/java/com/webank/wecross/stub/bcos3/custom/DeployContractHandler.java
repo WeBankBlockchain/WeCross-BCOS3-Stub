@@ -1,8 +1,5 @@
 package com.webank.wecross.stub.bcos3.custom;
 
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
-import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
-
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.BlockManager;
 import com.webank.wecross.stub.Connection;
@@ -20,13 +17,10 @@ import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
-import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIDefinitionFactory;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ABIObject;
@@ -35,9 +29,10 @@ import org.fisco.bcos.sdk.v3.codec.wrapper.ContractABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ContractCodecJsonWrapper;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
-import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
-import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
+import org.fisco.bcos.sdk.v3.transaction.manager.AssembleTransactionProcessor;
+import org.fisco.bcos.sdk.v3.transaction.manager.TransactionProcessorFactory;
+import org.fisco.bcos.sdk.v3.transaction.model.dto.TransactionResponse;
 import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.fisco.solc.compiler.CompilationResult;
 import org.fisco.solc.compiler.SolidityCompiler;
@@ -166,50 +161,6 @@ public class DeployContractHandler implements CommandHandler {
             }
         }
 
-        /* constructor params */
-        ABIDefinitionFactory abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
-        ContractABIDefinition contractABIDefinition = abiDefinitionFactory.loadABI(abi);
-        ABIDefinition constructor = contractABIDefinition.getConstructor();
-        /* check if solidity constructor needs arguments */
-        byte[] paramsABI = new byte[0];
-        if (!Objects.isNull(constructor)
-                && !Objects.isNull(constructor.getInputs())
-                && !constructor.getInputs().isEmpty()) {
-
-            if (Objects.isNull(params)) {
-                logger.error(" {} constructor needs arguments", className);
-                callback.onResponse(
-                        new Exception(className + " constructor needs arguments"), null);
-                return;
-            }
-
-            ABIObject constructorABIObject = ABIObjectFactory.createInputObject(constructor);
-            try {
-                ABIObject abiObject = contractCodecJsonWrapper.encode(constructorABIObject, params);
-                paramsABI = abiObject.encode(isWasm);
-                if (logger.isTraceEnabled()) {
-                    logger.trace(
-                            " className: {}, params: {}, abi: {}",
-                            className,
-                            params.toArray(new String[0]),
-                            Hex.toHexString(paramsABI));
-                }
-            } catch (Exception e) {
-                logger.error(
-                        "{} constructor arguments encode failed, params: {}, e: ",
-                        className,
-                        params.toArray(new String[0]),
-                        e);
-                callback.onResponse(
-                        new Exception(
-                                className
-                                        + " constructor arguments encode failed, e: "
-                                        + e.getMessage()),
-                        null);
-                return;
-            }
-        }
-
         if (logger.isTraceEnabled()) {
             logger.trace("deploy contract, name: {}, bin: {}, abi:{}", bfsName, bin, abi);
         }
@@ -217,11 +168,11 @@ public class DeployContractHandler implements CommandHandler {
         if (isWasm) {
             deployLiquidContractAndRegisterLink(
                     path,
-                    bin + Hex.toHexString(paramsABI),
+                    bin,
                     abi,
+                    params,
                     account,
                     connection,
-                    driver,
                     blockManager,
                     (e, address) -> {
                         if (Objects.nonNull(e)) {
@@ -234,6 +185,51 @@ public class DeployContractHandler implements CommandHandler {
                         callback.onResponse(null, address);
                     });
         } else {
+            /* constructor params */
+            ABIDefinitionFactory abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
+            ContractABIDefinition contractABIDefinition = abiDefinitionFactory.loadABI(abi);
+            ABIDefinition constructor = contractABIDefinition.getConstructor();
+            /* check if solidity constructor needs arguments */
+            byte[] paramsABI = new byte[0];
+            if (!Objects.isNull(constructor)
+                    && !Objects.isNull(constructor.getInputs())
+                    && !constructor.getInputs().isEmpty()) {
+
+                if (Objects.isNull(params)) {
+                    logger.error(" {} constructor needs arguments", className);
+                    callback.onResponse(
+                            new Exception(className + " constructor needs arguments"), null);
+                    return;
+                }
+
+                ABIObject constructorABIObject = ABIObjectFactory.createInputObject(constructor);
+                try {
+                    ABIObject abiObject =
+                            contractCodecJsonWrapper.encode(constructorABIObject, params);
+                    paramsABI = abiObject.encode(isWasm);
+                    if (logger.isTraceEnabled()) {
+                        logger.trace(
+                                " className: {}, params: {}, abi: {}",
+                                className,
+                                params.toArray(new String[0]),
+                                Hex.toHexString(paramsABI));
+                    }
+                } catch (Exception e) {
+                    logger.error(
+                            "{} constructor arguments encode failed, params: {}, e: ",
+                            className,
+                            params.toArray(new String[0]),
+                            e);
+                    callback.onResponse(
+                            new Exception(
+                                    className
+                                            + " constructor arguments encode failed, e: "
+                                            + e.getMessage()),
+                            null);
+                    return;
+                }
+            }
+
             deploySolContractAndRegisterLink(
                     path,
                     bin + Hex.toHexString(paramsABI),
@@ -318,86 +314,69 @@ public class DeployContractHandler implements CommandHandler {
             Path path,
             String bin,
             String abi,
+            List<String> params,
             Account account,
             Connection connection,
-            Driver driver,
             BlockManager blockManager,
             DeployContractCallback callback) {
-        /** deploy the contract by sendTransaction */
-        // groupId
-        String groupID = connection.getProperties().get(BCOSConstant.BCOS_GROUP_ID);
-        // chainId
-        String chainID = connection.getProperties().get(BCOSConstant.BCOS_CHAIN_ID);
 
         try {
-            BigInteger blockLimit =
-                    ((BCOSConnection) connection)
-                            .getClientWrapper()
-                            .getBlockNumber()
-                            .add(BigInteger.valueOf(1000));
+            AssembleTransactionProcessor assembleTransactionProcessor =
+                    TransactionProcessorFactory.createAssembleTransactionProcessor(
+                            ((BCOSConnection) connection).getClientWrapper().getClient(),
+                            ((BCOSAccount) account).getCredentials());
 
-            TxPair signedTransaction =
-                    TransactionBuilderJniObj.createSignedTransaction(
-                            ((BCOSAccount) account).getCredentials().getJniKeyPair(),
-                            groupID,
-                            chainID,
-                            path.getResource() + System.currentTimeMillis(),
-                            bin,
-                            abi,
-                            blockLimit.longValue(),
-                            LIQUID_CREATE | LIQUID_SCALE_CODEC);
-            String signTx = signedTransaction.getSignedTx();
+            TransactionResponse transactionResponse =
+                    assembleTransactionProcessor.deployAndGetResponseWithStringParams(
+                            abi, bin, params, path.getResource() + System.currentTimeMillis());
 
-            ((BCOSConnection) connection)
-                    .getClientWrapper()
-                    .sendTransaction(
-                            signTx,
-                            new TransactionCallback() {
-                                @Override
-                                public void onResponse(TransactionReceipt receipt) {
-                                    if (!receipt.isStatusOK()) {
-                                        logger.error(
-                                                " deploy contract failed, error status: {}, error message: {} ",
-                                                receipt.getStatus(),
-                                                TransactionReceiptStatus.getStatusMessage(
-                                                                receipt.getStatus(),
-                                                                "Unknown error")
-                                                        .getMessage());
-                                        callback.onResponse(
-                                                new Exception(receipt.getMessage()), null);
-                                    } else {
-                                        logger.info(
-                                                " deploy contract success, contractAddress: {}",
-                                                receipt.getContractAddress());
-                                        asyncBfsService.linkBFSByProxy(
-                                                path,
-                                                receipt.getContractAddress(),
-                                                abi,
-                                                account,
-                                                blockManager,
-                                                connection,
-                                                e -> {
-                                                    if (Objects.nonNull(e)) {
-                                                        logger.warn("registering abi failed", e);
-                                                        callback.onResponse(e, null);
-                                                        return;
-                                                    }
+            if (transactionResponse.getTransactionReceipt().isStatusOK()) {
+                logger.info(
+                        " deploy contract success, contractAddress: {}",
+                        transactionResponse.getTransactionReceipt().getContractAddress());
 
-                                                    logger.info(
-                                                            " register bfs successfully path: {}, address: {}, abi: {}",
-                                                            path,
-                                                            receipt.getContractAddress(),
-                                                            abi);
+                asyncBfsService.linkBFSByProxy(
+                        path,
+                        transactionResponse.getTransactionReceipt().getContractAddress(),
+                        abi,
+                        account,
+                        blockManager,
+                        connection,
+                        e -> {
+                            if (Objects.nonNull(e)) {
+                                logger.warn("registering abi failed", e);
+                                callback.onResponse(e, null);
+                                return;
+                            }
 
-                                                    asyncBfsService.addAbiToCache(
-                                                            path.getResource(), abi);
-                                                    callback.onResponse(
-                                                            null, receipt.getContractAddress());
-                                                });
-                                    }
-                                }
-                            });
+                            logger.info(
+                                    " register bfs successfully path: {}, address: {}, abi: {}",
+                                    path,
+                                    transactionResponse
+                                            .getTransactionReceipt()
+                                            .getContractAddress(),
+                                    abi);
+
+                            callback.onResponse(
+                                    null,
+                                    transactionResponse
+                                            .getTransactionReceipt()
+                                            .getContractAddress());
+                        });
+            } else {
+                logger.error(
+                        " deploy contract failed, error status: {}, error message: {} ",
+                        transactionResponse.getTransactionReceipt().getStatus(),
+                        TransactionReceiptStatus.getStatusMessage(
+                                        transactionResponse.getTransactionReceipt().getStatus(),
+                                        "Unknown error")
+                                .getMessage());
+                callback.onResponse(
+                        new Exception(transactionResponse.getTransactionReceipt().getMessage()),
+                        null);
+            }
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             callback.onResponse(e, null);
         }
     }

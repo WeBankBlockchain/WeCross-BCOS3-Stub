@@ -23,12 +23,25 @@ mod bfs {
 
     extern "liquid" {
         fn list(&self, absolutePath: String) -> (i32, Vec<BfsInfo>);
-        // ISSUE： 预编译合约有方法名一样该如何处理？ 
-        // fn list(&self, absolutePath: String, offset: u256, limit: u256) -> (i256, Vec<BfsInfo>);
         fn mkdir(&mut self, absolutePath: String) -> i32;
-        // fn link(&mut self, absolutePath: String, _address: String, _abi: String) -> i32;
         fn link(&mut self, name: String, version: String, _address: String, _abi: String) -> i32;
         fn readlink(&self, absolutePath: String) -> Address;
+    }
+}
+
+mod sys {
+    #[link(wasm_import_module = "bcos")]
+    extern "C" {
+        pub fn call(
+            address_offset: u32,
+            address_length: u32,
+            data_offset: u32,
+            data_length: u32,
+        ) -> u32;
+
+        pub fn getReturnDataSize() -> u32;
+
+        pub fn getReturnData(result_offset: u32);
     }
 }
 
@@ -212,7 +225,7 @@ mod we_cross_proxy {
                     if status.xaTransactionID != _XATransactionID {
                         liquid::env::revert(&(_path + " is unregistered in xa transaction: " + &_XATransactionID));
                     }
-                },
+                }
                 None => liquid::env::revert(&(_path + " is unregistered in xa transaction: " + &_XATransactionID)),
             }
 
@@ -231,7 +244,7 @@ mod we_cross_proxy {
                     if status.locked {
                         liquid::env::revert(&("resource is locked by unfinished xa transaction: ".to_string() + &status.xaTransactionID));
                     }
-                },
+                }
                 None => (),
             }
 
@@ -253,7 +266,7 @@ mod we_cross_proxy {
                     if trans.existed {
                         return trans.result.clone();
                     }
-                },
+                }
                 None => (),
             }
 
@@ -276,7 +289,7 @@ mod we_cross_proxy {
                     if status.xaTransactionID != _XATransactionID {
                         liquid::env::revert(&(_path.clone() + " is unregistered in xa transaction " + &_XATransactionID));
                     }
-                },
+                }
                 None => liquid::env::revert(&(_path.clone() + " is unregistered in xa transaction " + &_XATransactionID)),
             }
 
@@ -321,7 +334,7 @@ mod we_cross_proxy {
                     if trans.existed {
                         return trans.result.clone();
                     }
-                },
+                }
                 None => (),
             }
 
@@ -332,7 +345,7 @@ mod we_cross_proxy {
                     if status.locked {
                         liquid::env::revert(&(_name + " is locked by unfinished xa transaction: " + &status.xaTransactionID));
                     }
-                },
+                }
                 None => (),
             }
 
@@ -369,7 +382,7 @@ mod we_cross_proxy {
                         if status.locked {
                             liquid::env::revert(&(self_path.to_string() + " is locked by unfinished xa transaction: " + &status.xaTransactionID));
                         }
-                    },
+                    }
                     None => (),
                 }
 
@@ -449,21 +462,18 @@ mod we_cross_proxy {
             while i > 0.into() {
                 let seq = &self.xaTransactions[&_xaTransactionID].seqs[self.u256_to_usize(&(i.clone() - 1.into()))];
                 let key = self.getXATransactionStepKey(&_xaTransactionID, seq);
-                let func = &self.xaTransactionSteps[&key].func;
-                let contractAddress = &self.xaTransactionSteps[&key].contractAddress;
+                let func = self.xaTransactionSteps[&key].func.clone();
+                let contractAddress = self.xaTransactionSteps[&key].contractAddress.clone();
                 let args = &self.xaTransactionSteps[&key].args;
 
-                let mut data = hash(self.getRevertFunc(func, REVERT_FLAG).as_bytes()).to_vec();
+                let mut data = hash(self.getRevertFunc(&func, REVERT_FLAG).as_bytes()).to_vec();
                 data.truncate(4);
                 data.extend(&(args).encode());
 
-                // ISSUE: call的使用是否正确
-                match liquid::env::call::<Bytes>(contractAddress, &data) {
-                    Ok(_) => (),
-                    Err(_) => {
-                        message =  message + " revert \"" + func + "\" failed.'";
-                        result = message.clone();
-                    }
+                let status = self.sys_call(&contractAddress.as_bytes(), &data);
+                if status != 0 {
+                    message =  message + " revert \"" + &func + "\" failed.'";
+                    result = message.clone();
                 }
 
                 i = i - 1.into();
@@ -614,7 +624,7 @@ mod we_cross_proxy {
                         match self.xaTransactions[&xaTransactionID].seqs.last() {
                             Some(seq) => {
                                 return xaTransactionID + &" " + &self.u256_to_string(seq);
-                            },
+                            }
                             None => return xaTransactionID + &" 0",
                         }
                     }
@@ -656,13 +666,8 @@ mod we_cross_proxy {
             let mut data: Vec<u8> = hash(_sig.as_bytes()).to_vec();
             data.truncate(4);
             data.extend(&(_args).encode());
-            match liquid::env::call::<Bytes>(&_contractAddress, &data) {
-                Ok(ret) => ret,
-                Err(_) => {
-                    liquid::env::revert(&("call contract failed: ".to_string() + &_contractAddress.to_string()));
-                    Bytes::new()
-                }
-            }
+            
+            return self.call_with_address_data(_contractAddress, &data);
         }
 
         fn callContract_internal_with_data(
@@ -670,13 +675,7 @@ mod we_cross_proxy {
             _contractAddress: &Address,
             _argsWithMethodId: &Bytes
         ) -> Bytes {
-            match liquid::env::call::<Bytes>(&_contractAddress, &_argsWithMethodId) {
-                Ok(ret) => ret,
-                Err(_) => {
-                    liquid::env::revert(&("call contract failed: ".to_string() + &_contractAddress.to_string()));
-                    Bytes::new()
-                }
-            }
+            return self.call_with_address_data(_contractAddress, _argsWithMethodId);
         }
 
         fn getAddressByName(
@@ -854,7 +853,7 @@ mod we_cross_proxy {
 
             match binding.first() {
                 Some(i) => usize::try_from(i.clone()).unwrap(),
-                None => 0
+                None => 0,
             }
         }
 
@@ -866,7 +865,7 @@ mod we_cross_proxy {
 
             match binding.first() {
                 Some(i) => i.clone(),
-                None => 0
+                None => 0,
             }
         }
 
@@ -876,6 +875,38 @@ mod we_cross_proxy {
             match binding.first() {
                 Some(i) => i.to_string(),
                 None => String::from("0"),
+            }
+        }
+
+        fn call_with_address_data(&mut self, address: &Address, data: &[u8]) -> Bytes {
+            let status = self.sys_call(address.as_bytes(), data);
+            if status != 0 {
+                liquid::env::revert(&("call contract failed: ".to_string() + &address.to_string()));
+            }
+            let return_data_size = self.sys_get_return_data_size();
+            let mut return_data_buffer = liquid_prelude::vec::from_elem(0u8, return_data_size as usize);
+            self.sys_get_return_data(&mut return_data_buffer);
+            return Bytes::from(return_data_buffer);
+        }
+
+        fn sys_call(&mut self, address: &[u8], data: &[u8]) -> u32 {
+            unsafe {
+                sys::call(
+                    address.as_ptr() as u32,
+                    address.len() as u32,
+                    data.as_ptr() as u32,
+                    data.len() as u32,
+                )
+            }
+        }
+        
+        fn sys_get_return_data_size(&mut self) -> u32 {
+            unsafe { sys::getReturnDataSize() }
+        }
+        
+        fn sys_get_return_data(&mut self, result: &mut [u8]) {
+            unsafe {
+                sys::getReturnData(result.as_ptr() as u32);
             }
         }
     }
