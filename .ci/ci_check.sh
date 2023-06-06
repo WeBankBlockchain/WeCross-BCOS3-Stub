@@ -77,7 +77,7 @@ prepare_environment()
        $sed_cmd 's/BCOS3_ECDSA_EVM/BCOS3_ECDSA_WASM/g' ./src/integTest/resources/chains/bcos/IntegBCOSAccount/account.toml
     elif [ "${node_type}" == "sm_wasm" ];then
        $sed_cmd 's/BCOS3_ECDSA_EVM/BCOS3_GM_WASM/g' ./src/integTest/resources/chains/bcos/stub.toml
-       $sed_cmd 's/BCOS3_ECDSA_EVM/BCOS3_GM_WASM/g' ./src/integTest/resources/chains/bcos/IntegBCOSAccount_GM/account.toml
+       $sed_cmd 's/BCOS3_GM_EVM/BCOS3_GM_WASM/g' ./src/integTest/resources/chains/bcos/IntegBCOSAccount_GM/account.toml
     fi
 }
 
