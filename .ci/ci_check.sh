@@ -44,20 +44,21 @@ prepare_environment()
 
     mkdir -p src/integTest/resources/solidity
     mkdir -p src/integTest/resources/liquid
-    cp -r src/test/resources/contract/* src/integTest/resources/solidity/
-    cp src/main/resources/bcos3_sol/HelloWorld.sol src/integTest/resources/solidity/
 
+    cp src/main/resources/bcos3_sol/HelloWorld.sol src/integTest/resources/solidity/
     cp src/main/resources/bcos3_liquid/hello_world/hello_world.abi src/integTest/resources/liquid/
     cp src/main/resources/bcos3_liquid/hello_world/hello_world.wasm src/integTest/resources/liquid/
-    cp src/main/resources/bcos3_liquid/hello_world/hello_world.wasm src/integTest/resources/liquid/
+    cp src/main/resources/bcos3_liquid/hello_world/hello_world_gm.wasm src/integTest/resources/liquid/
 
+    cp src/test/resources/contract/HelloWeCross.sol src/integTest/resources/solidity/
     cp src/test/resources/contract/hello_we_cross/hello_we_cross.abi src/integTest/resources/liquid/
     cp src/test/resources/contract/hello_we_cross/hello_we_cross.wasm src/integTest/resources/liquid/
-    cp src/test/resources/contract/hello_we_cross/hello_we_cross.wasm src/integTest/resources/liquid/
+    cp src/test/resources/contract/hello_we_cross/hello_we_cross_gm.wasm src/integTest/resources/liquid/
 
+    cp src/test/resources/contract/TupleTest.sol src/integTest/resources/solidity/
     cp src/test/resources/contract/tuple_test/tuple_test.abi src/integTest/resources/liquid/
     cp src/test/resources/contract/tuple_test/tuple_test.wasm src/integTest/resources/liquid/
-    cp src/test/resources/contract/tuple_test/tuple_test.wasm src/integTest/resources/liquid/
+    cp src/test/resources/contract/tuple_test/tuple_test_gm.wasm src/integTest/resources/liquid/
 
     cp src/main/resources/bcos3_sol/WeCrossHub.sol src/integTest/resources/chains/bcos/WeCrossHub/
     cp src/main/resources/bcos3_liquid/we_cross_hub/we_cross_hub.abi src/integTest/resources/chains/bcos/WeCrossHub/
