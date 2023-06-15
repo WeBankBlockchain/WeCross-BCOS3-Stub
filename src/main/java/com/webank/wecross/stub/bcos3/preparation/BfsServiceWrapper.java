@@ -34,7 +34,7 @@ public class BfsServiceWrapper {
         String absolutePath = "/apps/" + name + "/latest";
         logger.info("get bfs info, absolutePath: {}", absolutePath);
         try {
-            logger.info("current version: {}", bfsService.getCurrentVersion().getVersionString());
+            // logger.info("current version: {}", bfsService.getCurrentVersion().getVersionString());
             logger.info(
                     "LS_PAGE_VERSION:{} - {}",
                     PrecompiledVersionCheck.LS_PAGE_VERSION.getMaxVersion(),
