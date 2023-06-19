@@ -38,7 +38,7 @@ public class BCOSStubFactoryTest {
                 bcosAccount.getCredentials().getAddress(),
                 "0x4c9e341a015ce8200060a028ce45dfea8bf33e15");
         assertEquals(bcosAccount.getName(), "bcos");
-        assertEquals(bcosAccount.getType(), "BCOS3.0");
+        assertEquals(bcosAccount.getType(), "BCOS3_ECDSA_EVM");
     }
 
     @Test

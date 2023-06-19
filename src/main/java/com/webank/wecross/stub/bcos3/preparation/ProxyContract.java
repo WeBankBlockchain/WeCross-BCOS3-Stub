@@ -10,24 +10,25 @@ import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfig;
 import com.webank.wecross.stub.bcos3.config.BCOSStubConfigParser;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
-import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
+import org.apache.commons.io.FileUtils;
 import org.fisco.bcos.sdk.v3.client.Client;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSInfo;
 import org.fisco.bcos.sdk.v3.contract.precompiled.bfs.BFSService;
-import org.fisco.bcos.sdk.v3.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
 import org.fisco.bcos.sdk.v3.model.PrecompiledRetCode;
 import org.fisco.bcos.sdk.v3.model.RetCode;
-import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
-import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
+import org.fisco.bcos.sdk.v3.transaction.manager.AssembleTransactionProcessor;
+import org.fisco.bcos.sdk.v3.transaction.manager.TransactionProcessorFactory;
+import org.fisco.bcos.sdk.v3.transaction.model.dto.TransactionResponse;
+import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.fisco.solc.compiler.CompilationResult;
 import org.fisco.solc.compiler.SolidityCompiler;
 import org.slf4j.Logger;
@@ -39,19 +40,20 @@ public class ProxyContract {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyContract.class);
 
-    private String proxyContractFile;
     private String chainPath;
 
     private BCOSAccount account;
     private BCOSConnection connection;
 
-    public ProxyContract(String proxyContractFile, String chainPath, String accountName)
-            throws Exception {
-        this.proxyContractFile = proxyContractFile;
+    private BCOSStubConfig bcosStubConfig;
+
+    private AssembleTransactionProcessor assembleTransactionProcessor;
+
+    public ProxyContract(String chainPath, String accountName) throws Exception {
         this.chainPath = chainPath;
         BCOSStubConfigParser bcosStubConfigParser =
                 new BCOSStubConfigParser(chainPath, "stub.toml");
-        BCOSStubConfig bcosStubConfig = bcosStubConfigParser.loadConfig();
+        bcosStubConfig = bcosStubConfigParser.loadConfig();
 
         boolean isGMStub = bcosStubConfig.isGMStub();
         AbstractClientWrapper clientWrapper =
@@ -82,6 +84,11 @@ public class ProxyContract {
         connection =
                 BCOSConnectionFactory.build(
                         bcosStubConfig, clientWrapper, scheduledExecutorService);
+
+        this.assembleTransactionProcessor =
+                TransactionProcessorFactory.createAssembleTransactionProcessor(
+                        connection.getClientWrapper().getClient(), account.getCredentials());
+
         if (account == null) {
             throw new Exception("Account " + accountName + " not found");
         }
@@ -100,8 +107,6 @@ public class ProxyContract {
         }
     }
 
-    public ProxyContract() {}
-
     public BCOSAccount getAccount() {
         return account;
     }
@@ -118,35 +123,71 @@ public class ProxyContract {
         this.connection = connection;
     }
 
-    /**
-     * @param solFile, String contractName
-     * @return
-     */
-    public BFSInfo deployContractAndLinkBFS(File solFile, String contractName, String linkName)
-            throws Exception {
+    public CompilationResult.ContractMetadata getProxyContractAbiAndBin() throws IOException {
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        String proxyContractDir =
+                chainPath + File.separator + BCOSConstant.BCOS_PROXY_NAME + File.separator;
 
-        logger.info("linkName: {}", linkName);
+        if (bcosStubConfig.isWASMStub()) {
+            CompilationResult.ContractMetadata metadata = new CompilationResult.ContractMetadata();
+            String proxyContractAbiFile = proxyContractDir + "we_cross_proxy.abi";
+            String proxyContractBinFile = proxyContractDir + "we_cross_proxy.wasm";
+            String proxyContractGmBinFile = proxyContractDir + "we_cross_proxy_gm.wasm";
+            metadata.abi =
+                    FileUtils.readFileToString(
+                            resolver.getResource("classpath:" + proxyContractAbiFile).getFile(),
+                            Charset.defaultCharset());
+
+            if (bcosStubConfig.isGMStub()) {
+                byte[] bytes =
+                        FileUtils.readFileToByteArray(
+                                resolver.getResource("classpath:" + proxyContractGmBinFile)
+                                        .getFile());
+                metadata.bin = Hex.toHexString(bytes);
+            } else {
+                byte[] bytes =
+                        FileUtils.readFileToByteArray(
+                                resolver.getResource("classpath:" + proxyContractBinFile)
+                                        .getFile());
+                metadata.bin = Hex.toHexString(bytes);
+            }
+
+            return metadata;
+        } else {
+            String proxyContractFile = proxyContractDir + "WeCrossProxy.sol";
+            File solFile = resolver.getResource("classpath:" + proxyContractFile).getFile();
+
+            /** First compile the contract source code */
+            SolidityCompiler.Result res =
+                    SolidityCompiler.compile(
+                            solFile,
+                            bcosStubConfig.isGMStub(),
+                            true,
+                            SolidityCompiler.Options.ABI,
+                            SolidityCompiler.Options.BIN,
+                            SolidityCompiler.Options.INTERFACE,
+                            SolidityCompiler.Options.METADATA);
+
+            if (res.isFailed()) {
+                throw new RuntimeException(" compiling contract failed, " + res.getErrors());
+            }
+
+            CompilationResult.ContractMetadata metadata =
+                    CompilationResult.parse(res.getOutput()).getContract("WeCrossProxy");
+
+            return metadata;
+        }
+    }
+
+    /** @return */
+    public BFSInfo deployContractAndLinkBFS() throws Exception {
+
+        logger.info("linkName: {}", BCOSConstant.BCOS_PROXY_NAME);
 
         AbstractClientWrapper clientWrapper = connection.getClientWrapper();
         Client client = clientWrapper.getClient();
 
-        /** First compile the contract source code */
-        SolidityCompiler.Result res =
-                SolidityCompiler.compile(
-                        solFile,
-                        client.getCryptoSuite().getCryptoTypeConfig() == CryptoType.SM_TYPE,
-                        true,
-                        SolidityCompiler.Options.ABI,
-                        SolidityCompiler.Options.BIN,
-                        SolidityCompiler.Options.INTERFACE,
-                        SolidityCompiler.Options.METADATA);
-
-        if (res.isFailed()) {
-            throw new RuntimeException(" compiling contract failed, " + res.getErrors());
-        }
-
-        CompilationResult.ContractMetadata metadata =
-                CompilationResult.parse(res.getOutput()).getContract(contractName);
+        CompilationResult.ContractMetadata metadata = this.getProxyContractAbiAndBin();
 
         /** deploy the contract by sendTransaction */
         // groupId
@@ -164,57 +205,45 @@ public class ProxyContract {
                 account.getCredentials().getAddress(),
                 metadata.bin,
                 metadata.abi);
+        String to = "";
+        if (bcosStubConfig.isWASMStub()) {
+            to = BCOSConstant.BCOS_PROXY_NAME + System.currentTimeMillis();
+        }
 
-        CryptoKeyPair credentials = account.getCredentials();
+        TransactionResponse transactionResponse =
+                assembleTransactionProcessor.deployAndGetResponse(
+                        metadata.abi, metadata.bin, new ArrayList<>(), to);
+        String contractAddress = null;
+        if (!transactionResponse.getTransactionReceipt().isStatusOK()) {
+            logger.error(
+                    " deploy contract failed, error status: {}, error message: {} ",
+                    transactionResponse.getTransactionReceipt().getStatus(),
+                    TransactionReceiptStatus.getStatusMessage(
+                                    transactionResponse.getTransactionReceipt().getStatus(),
+                                    "Unknown error")
+                            .getMessage());
+        } else {
+            contractAddress = transactionResponse.getTransactionReceipt().getContractAddress();
+            logger.info(" deploy contract success, contractAddress: {}", contractAddress);
+        }
 
-        TxPair signedTransaction =
-                TransactionBuilderJniObj.createSignedTransaction(
-                        credentials.getJniKeyPair(),
-                        groupID,
-                        chainID,
-                        "",
-                        metadata.bin,
-                        metadata.abi,
-                        blockLimit.longValue(),
-                        0);
-        String signTx = signedTransaction.getSignedTx();
-
-        CompletableFuture<String> completableFuture = new CompletableFuture<>();
-        clientWrapper.sendTransaction(
-                signTx,
-                new TransactionCallback() {
-                    @Override
-                    public void onResponse(TransactionReceipt receipt) {
-                        if (!receipt.isStatusOK()) {
-                            logger.error(
-                                    " deploy contract failed, error status: {}, error message: {} ",
-                                    receipt.getStatus(),
-                                    TransactionReceiptStatus.getStatusMessage(
-                                                    receipt.getStatus(), "Unknown error")
-                                            .getMessage());
-                            completableFuture.complete(null);
-                        } else {
-                            logger.info(
-                                    " deploy contract success, contractAddress: {}",
-                                    receipt.getContractAddress());
-                            completableFuture.complete(receipt.getContractAddress());
-                        }
-                    }
-                });
-
-        String contractAddress = completableFuture.get(1000, TimeUnit.SECONDS);
         if (Objects.isNull(contractAddress)) {
             throw new Exception("Failed to deploy proxy contract.");
         }
 
-        BFSService bfsService = new BFSService(client, credentials.generateKeyPair());
-        RetCode retCode = bfsService.link(linkName, "latest", contractAddress, metadata.abi);
+        BFSService bfsService = new BFSService(client, account.getCredentials().generateKeyPair());
+        RetCode retCode =
+                bfsService.link(
+                        BCOSConstant.BCOS_PROXY_NAME,
+                        BCOSConstant.CONTRACT_DEFAULT_VERSION,
+                        contractAddress,
+                        metadata.abi);
 
         if (retCode.getCode() < PrecompiledRetCode.CODE_SUCCESS.getCode()) {
             throw new RuntimeException(" registerBfs failed, error message: " + retCode);
         }
 
-        BFSInfo bfsInfo = new BFSInfo("latest", "link");
+        BFSInfo bfsInfo = new BFSInfo(BCOSConstant.CONTRACT_DEFAULT_VERSION, "link");
         bfsInfo.setAddress(contractAddress);
         bfsInfo.setAbi(metadata.abi);
         return bfsInfo;
@@ -224,11 +253,7 @@ public class ProxyContract {
         if (!connection.hasProxyDeployed()) {
             System.out.println("Deploy WeCrossProxy to chain " + chainPath + " ...");
 
-            PathMatchingResourcePatternResolver resolver =
-                    new PathMatchingResourcePatternResolver();
-            File file = resolver.getResource("classpath:" + proxyContractFile).getFile();
-
-            deployContractAndLinkBFS(file, "WeCrossProxy", "WeCrossProxy");
+            deployContractAndLinkBFS();
             System.out.println(
                     "SUCCESS: WeCrossProxy: /apps/WeCrossProxy/latest has been deployed! chain: "
                             + chainPath);
@@ -242,10 +267,7 @@ public class ProxyContract {
 
         System.out.println("Upgrade WeCrossProxy to chain " + chainPath + " ...");
 
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        File file = resolver.getResource("classpath:" + proxyContractFile).getFile();
-
-        deployContractAndLinkBFS(file, "WeCrossProxy", "WeCrossProxy");
+        deployContractAndLinkBFS();
 
         System.out.println(
                 "SUCCESS: WeCrossProxy: /apps/WeCrossProxy/latest has been upgraded! chain: "

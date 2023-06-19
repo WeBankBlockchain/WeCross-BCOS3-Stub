@@ -50,3 +50,7 @@ out/
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# ignore temp file for liquid contract
+.vscode/
+target/

@@ -110,7 +110,7 @@ public class TwoPCContractDeployment {
             int fromIndex,
             int toIndex) {
         try {
-            ProxyContract proxyContract = new ProxyContract(null, chainName, accountName);
+            ProxyContract proxyContract = new ProxyContract(chainName, accountName);
             TwoPCContract twoPCContract =
                     new TwoPCContract(proxyContract.getAccount(), proxyContract.getConnection());
 

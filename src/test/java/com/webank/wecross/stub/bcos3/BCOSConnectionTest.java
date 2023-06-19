@@ -250,7 +250,7 @@ public class BCOSConnectionTest {
 
                     String data = callOutput.getOutput();
 
-                    String[] strings = FunctionUtility.decodeDefaultOutput(data);
+                    String[] strings = FunctionUtility.decodeDefaultOutput(data, false);
                     assertEquals(strings.length, params.length);
 
                     for (int i = 0; i < params.length; i++) {

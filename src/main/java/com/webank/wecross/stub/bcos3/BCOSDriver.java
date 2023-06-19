@@ -1,5 +1,7 @@
 package com.webank.wecross.stub.bcos3;
 
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.webank.wecross.stub.Account;
@@ -139,7 +141,7 @@ public class BCOSDriver implements Driver {
                                         sendTransactionProxyFunctionInput =
                                                 FunctionUtility
                                                         .getSendTransactionProxyFunctionInput(
-                                                                input);
+                                                                input, isWasm);
                                 abi =
                                         Hex.toHexString(
                                                 sendTransactionProxyFunctionInput.getValue6());
@@ -147,7 +149,7 @@ public class BCOSDriver implements Driver {
                                 Tuple3<String, String, byte[]> sendTransactionProxyFunctionInput =
                                         FunctionUtility
                                                 .getSendTransactionProxyWithoutTxIdFunctionInput(
-                                                        input);
+                                                        input, isWasm);
                                 abi =
                                         Hex.toHexString(
                                                 sendTransactionProxyFunctionInput.getValue3());
@@ -164,12 +166,12 @@ public class BCOSDriver implements Driver {
                                 Tuple4<String, String, String, byte[]>
                                         constantCallProxyFunctionInput =
                                                 FunctionUtility.getConstantCallProxyFunctionInput(
-                                                        transactionParams.getData());
+                                                        transactionParams.getData(), isWasm);
                                 abi = Hex.toHexString(constantCallProxyFunctionInput.getValue4());
                             } else {
                                 Tuple2<String, byte[]> sendTransactionProxyFunctionInput =
                                         FunctionUtility.getConstantCallFunctionInput(
-                                                transactionParams.getData());
+                                                transactionParams.getData(), isWasm);
                                 abi =
                                         Hex.toHexString(
                                                 sendTransactionProxyFunctionInput.getValue2());
@@ -426,15 +428,15 @@ public class BCOSDriver implements Driver {
                                                 ABIObject outputObj =
                                                         ABIObjectFactory.createOutputObject(
                                                                 functions.get(0));
+                                                byte[] outputBytes =
+                                                        FunctionUtility.decodeProxyBytesOutput(
+                                                                callOutput.getOutput(), isWasm);
 
-                                                // decode 130
-                                                String output =
-                                                        callOutput.getOutput().substring(130);
                                                 transactionResponse.setResult(
                                                         contractCodecJsonWrapper
                                                                 .decode(
                                                                         outputObj,
-                                                                        Hex.decode(output),
+                                                                        outputBytes,
                                                                         isWasm)
                                                                 .toArray(new String[0]));
                                             } else {
@@ -647,6 +649,11 @@ public class BCOSDriver implements Driver {
                         }
 
                         byte[] encodedAbi = functionEncoder.encode(function);
+
+                        int txAttribute = 0;
+                        if (this.isWasm) {
+                            txAttribute = LIQUID_SCALE_CODEC;
+                        }
                         // get signed transaction hex string
                         TxPair signedTransaction =
                                 TransactionBuilderJniObj.createSignedTransaction(
@@ -657,7 +664,7 @@ public class BCOSDriver implements Driver {
                                         Hex.toHexString(encodedAbi),
                                         abi,
                                         blockNumber + 1000,
-                                        0);
+                                        txAttribute);
                         String signTx = signedTransaction.getSignedTx();
 
                         TransactionParams transaction =
@@ -834,13 +841,13 @@ public class BCOSDriver implements Driver {
             TransactionResponse transactionResponse = new TransactionResponse();
             transactionResponse.setBlockNumber(receipt.getBlockNumber().longValue());
             transactionResponse.setHash(receipt.getTransactionHash());
-            // decode 130
-            String output = receipt.getOutput().substring(130);
+            byte[] outputBytes =
+                    FunctionUtility.decodeProxyBytesOutput(receipt.getOutput(), isWasm);
 
             ABIObject outputObj = ABIObjectFactory.createOutputObject(functions.get(0));
             transactionResponse.setResult(
                     contractCodecJsonWrapper
-                            .decode(outputObj, Hex.decode(output), isWasm)
+                            .decode(outputObj, outputBytes, isWasm)
                             .toArray(new String[0]));
 
             transactionResponse.setErrorCode(BCOSStatusCode.Success);
@@ -1023,7 +1030,8 @@ public class BCOSDriver implements Driver {
                     Hex.toHexStringWithPrefix(
                             functionEncoder.buildMethodId(FunctionUtility.ProxySendTXMethod)))) {
                 Tuple3<String, String, byte[]> proxyResult =
-                        FunctionUtility.getSendTransactionProxyWithoutTxIdFunctionInput(proxyInput);
+                        FunctionUtility.getSendTransactionProxyWithoutTxIdFunctionInput(
+                                proxyInput, isWasm);
                 resource = proxyResult.getValue2();
                 input = Numeric.toHexString(proxyResult.getValue3());
                 methodId = input.substring(0, FunctionUtility.MethodIDWithHexPrefixLength);
@@ -1037,7 +1045,7 @@ public class BCOSDriver implements Driver {
                             functionEncoder.buildMethodId(
                                     FunctionUtility.ProxySendTransactionTXMethod)))) {
                 Tuple6<String, String, BigInteger, String, String, byte[]> proxyInputResult =
-                        FunctionUtility.getSendTransactionProxyFunctionInput(proxyInput);
+                        FunctionUtility.getSendTransactionProxyFunctionInput(proxyInput, isWasm);
 
                 xaTransactionID = proxyInputResult.getValue2();
                 xaTransactionSeq = proxyInputResult.getValue3().longValue();
@@ -1076,6 +1084,8 @@ public class BCOSDriver implements Driver {
             // query ABI
             String finalMethodId = methodId;
             String finalInput = input;
+            byte[] finalOutputBytes = FunctionUtility.decodeProxyBytesOutput(proxyOutput, isWasm);
+            ;
             asyncBfsService.queryABI(
                     resource,
                     this,
@@ -1131,9 +1141,7 @@ public class BCOSDriver implements Driver {
                                         ABIObjectFactory.createOutputObject(function);
                                 List<String> outputParams =
                                         contractCodecJsonWrapper.decode(
-                                                outputObject,
-                                                Hex.decode(proxyOutput.substring(130)),
-                                                isWasm);
+                                                outputObject, finalOutputBytes, isWasm);
                                 /** decode output from output */
                                 transaction
                                         .getTransactionResponse()
