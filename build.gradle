@@ -109,6 +109,12 @@ sourceSets {
             exclude '**/*.key'
             include 'bcos3_sol/WeCrossProxy.sol'
             include 'bcos3_sol/WeCrossHub.sol'
+            include 'bcos3_liquid/we_cross_proxy/we_cross_proxy.abi'
+            include 'bcos3_liquid/we_cross_proxy/we_cross_proxy.wasm'
+            include 'bcos3_liquid/we_cross_proxy/we_cross_proxy_gm.wasm'
+            include 'bcos3_liquid/we_cross_hub/we_cross_hub.abi'
+            include 'bcos3_liquid/we_cross_hub/we_cross_hub.wasm'
+            include 'bcos3_liquid/we_cross_hub/we_cross_hub_gm.wasm'
         }
     }
 

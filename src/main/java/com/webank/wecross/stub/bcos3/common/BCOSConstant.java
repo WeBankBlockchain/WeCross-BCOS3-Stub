@@ -6,7 +6,18 @@ import com.webank.wecross.stub.StubConstant;
 public interface BCOSConstant {
     String ADMIN_ACCOUNT = "admin";
 
-    String BCOS3 = "bcos3_sol";
+    String BCOS3_SOL_DIR = "bcos3_sol";
+    String BCOS3_LIQUID_DIR = "bcos3_liquid";
+    String BCOS3_HUB_LIQUID_DIR = "we_cross_hub";
+    String BCOS3_PROXY_LIQUID_DIR = "we_cross_proxy";
+    String BCOS3_HUB_SOL_FILE = "WeCrossHub.sol";
+    String BCOS3_PROXY_SOL_FILE = "WeCrossProxy.sol";
+    String BCOS3_HUB_LIQUID_ABI_FILE = "we_cross_hub.abi";
+    String BCOS3_HUB_LIQUID_WASM_FILE = "we_cross_hub.wasm";
+    String BCOS3_HUB_LIQUID_GM_WASM_FILE = "we_cross_hub_gm.wasm";
+    String BCOS3_PROXY_LIQUID_ABI_FILE = "we_cross_proxy.abi";
+    String BCOS3_PROXY_LIQUID_WASM_FILE = "we_cross_proxy.wasm";
+    String BCOS3_PROXY_LIQUID_GM_WASM_FILE = "we_cross_proxy_gm.wasm";
 
     String SECP256K1 = "secp256k1";
     String SM2P256V1 = "sm2p256v1";
