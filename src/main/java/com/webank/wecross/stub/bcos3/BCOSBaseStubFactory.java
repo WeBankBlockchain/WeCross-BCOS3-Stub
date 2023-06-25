@@ -3,6 +3,7 @@ package com.webank.wecross.stub.bcos3;
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
+import com.webank.wecross.stub.StubConstant;
 import com.webank.wecross.stub.StubFactory;
 import com.webank.wecross.stub.WeCrossContext;
 import com.webank.wecross.stub.bcos3.account.BCOSAccountFactory;
@@ -14,7 +15,6 @@ import com.webank.wecross.stub.bcos3.preparation.HubContractDeployment;
 import com.webank.wecross.stub.bcos3.preparation.ProxyContractDeployment;
 import java.io.File;
 import java.io.FileWriter;
-import java.net.URL;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.util.Map;
@@ -280,33 +280,144 @@ public class BCOSBaseStubFactory implements StubFactory {
 
     public void generateProxyContract(String path) {
         try {
-            String proxyPath = "WeCrossProxy.sol";
-            URL proxyDir =
+            // copy proxy sol file
+            FileUtils.copyURLToFile(
                     getClass()
                             .getResource(
                                     File.separator
-                                            + BCOSConstant.BCOS3
+                                            + BCOSConstant.BCOS3_SOL_DIR
                                             + File.separator
-                                            + proxyPath);
-            File dest =
-                    new File(path + File.separator + "WeCrossProxy" + File.separator + proxyPath);
-            FileUtils.copyURLToFile(proxyDir, dest);
+                                            + BCOSConstant.BCOS3_PROXY_SOL_FILE),
+                    new File(
+                            path
+                                    + File.separator
+                                    + StubConstant.PROXY_NAME
+                                    + File.separator
+                                    + BCOSConstant.BCOS3_PROXY_SOL_FILE));
+
+            // copy proxy abi
+            FileUtils.copyURLToFile(
+                    getClass()
+                            .getResource(
+                                    File.separator
+                                            + BCOSConstant.BCOS3_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_PROXY_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_PROXY_LIQUID_ABI_FILE),
+                    new File(
+                            path
+                                    + File.separator
+                                    + StubConstant.PROXY_NAME
+                                    + File.separator
+                                    + BCOSConstant.BCOS3_PROXY_LIQUID_ABI_FILE));
+
+            // copy proxy wasm
+            FileUtils.copyURLToFile(
+                    getClass()
+                            .getResource(
+                                    File.separator
+                                            + BCOSConstant.BCOS3_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_PROXY_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_PROXY_LIQUID_WASM_FILE),
+                    new File(
+                            path
+                                    + File.separator
+                                    + StubConstant.PROXY_NAME
+                                    + File.separator
+                                    + BCOSConstant.BCOS3_PROXY_LIQUID_WASM_FILE));
+
+            // copy proxy gm wasm
+            FileUtils.copyURLToFile(
+                    getClass()
+                            .getResource(
+                                    File.separator
+                                            + BCOSConstant.BCOS3_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_PROXY_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_PROXY_LIQUID_GM_WASM_FILE),
+                    new File(
+                            path
+                                    + File.separator
+                                    + StubConstant.PROXY_NAME
+                                    + File.separator
+                                    + BCOSConstant.BCOS3_PROXY_LIQUID_GM_WASM_FILE));
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Copy proxy failed: ", e);
         }
     }
 
     public void generateHubContract(String path) {
         try {
-            String hubPath = "WeCrossHub.sol";
-            URL hubDir =
+            // copy hub sol
+            FileUtils.copyURLToFile(
                     getClass()
                             .getResource(
-                                    File.separator + BCOSConstant.BCOS3 + File.separator + hubPath);
-            File dest = new File(path + File.separator + "WeCrossHub" + File.separator + hubPath);
-            FileUtils.copyURLToFile(hubDir, dest);
+                                    File.separator
+                                            + BCOSConstant.BCOS3_SOL_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_HUB_SOL_FILE),
+                    new File(
+                            path
+                                    + File.separator
+                                    + StubConstant.HUB_NAME
+                                    + File.separator
+                                    + BCOSConstant.BCOS3_HUB_SOL_FILE));
+            // copy hub abi
+            FileUtils.copyURLToFile(
+                    getClass()
+                            .getResource(
+                                    File.separator
+                                            + BCOSConstant.BCOS3_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_HUB_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_HUB_LIQUID_ABI_FILE),
+                    new File(
+                            path
+                                    + File.separator
+                                    + StubConstant.HUB_NAME
+                                    + File.separator
+                                    + BCOSConstant.BCOS3_HUB_LIQUID_ABI_FILE));
+
+            // copy hub wasm
+            FileUtils.copyURLToFile(
+                    getClass()
+                            .getResource(
+                                    File.separator
+                                            + BCOSConstant.BCOS3_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_HUB_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_HUB_LIQUID_WASM_FILE),
+                    new File(
+                            path
+                                    + File.separator
+                                    + StubConstant.HUB_NAME
+                                    + File.separator
+                                    + BCOSConstant.BCOS3_HUB_LIQUID_WASM_FILE));
+
+            // copy hub gm wasm
+            FileUtils.copyURLToFile(
+                    getClass()
+                            .getResource(
+                                    File.separator
+                                            + BCOSConstant.BCOS3_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_HUB_LIQUID_DIR
+                                            + File.separator
+                                            + BCOSConstant.BCOS3_HUB_LIQUID_GM_WASM_FILE),
+                    new File(
+                            path
+                                    + File.separator
+                                    + StubConstant.HUB_NAME
+                                    + File.separator
+                                    + BCOSConstant.BCOS3_HUB_LIQUID_GM_WASM_FILE));
         } catch (Exception e) {
-            System.out.println(e);
+            logger.error("Copy hub failed: ", e);
         }
     }
 }
