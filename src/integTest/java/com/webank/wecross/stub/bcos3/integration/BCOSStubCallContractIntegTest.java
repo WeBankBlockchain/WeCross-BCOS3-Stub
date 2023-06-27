@@ -443,7 +443,6 @@ public class BCOSStubCallContractIntegTest {
             args = new Object[]{
                     "HelloWorld",
                     abi,
-                    "HelloWorld",
                     wasm,
                     constructorParams
             };
@@ -502,7 +501,6 @@ public class BCOSStubCallContractIntegTest {
             args = new Object[] {
                     "TupleTest",
                     abi,
-                    "TupleTest",
                     wasm,
                     params1,
                     params2,
@@ -571,7 +569,6 @@ public class BCOSStubCallContractIntegTest {
             args = new Object[]{
                     baseName,
                     abi,
-                    baseName,
                     wasm,
                     constructorParams
             };
