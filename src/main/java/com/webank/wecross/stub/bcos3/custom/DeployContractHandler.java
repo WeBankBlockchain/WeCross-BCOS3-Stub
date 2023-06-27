@@ -101,7 +101,12 @@ public class DeployContractHandler implements CommandHandler {
             }
 
             if (logger.isTraceEnabled()) {
-                logger.trace("deploy contract, name: {}, bin: {}, abi:{}, params:{}", bfsName, bin, abi, params);
+                logger.trace(
+                        "deploy contract, name: {}, bin: {}, abi:{}, params:{}",
+                        bfsName,
+                        bin,
+                        abi,
+                        params);
             }
 
             deployLiquidContractAndRegisterLink(
@@ -178,12 +183,17 @@ public class DeployContractHandler implements CommandHandler {
             }
 
             if (logger.isTraceEnabled()) {
-                logger.trace("deploy contract, name: {}, bin: {}, abi:{}", bfsName, metadata.bin, metadata.abi);
+                logger.trace(
+                        "deploy contract, name: {}, bin: {}, abi:{}",
+                        bfsName,
+                        metadata.bin,
+                        metadata.abi);
             }
 
             /* constructor params */
             ABIDefinitionFactory abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
-            ContractABIDefinition contractABIDefinition = abiDefinitionFactory.loadABI(metadata.abi);
+            ContractABIDefinition contractABIDefinition =
+                    abiDefinitionFactory.loadABI(metadata.abi);
             ABIDefinition constructor = contractABIDefinition.getConstructor();
             /* check if solidity constructor needs arguments */
             byte[] paramsABI = new byte[0];
