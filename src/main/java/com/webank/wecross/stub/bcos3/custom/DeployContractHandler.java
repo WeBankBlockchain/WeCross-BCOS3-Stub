@@ -82,37 +82,61 @@ public class DeployContractHandler implements CommandHandler {
 
         BCOSDriver driver = getAsyncBfsService().getBcosDriver();
         boolean isWasm = driver.isWasm();
-        List<String> params = null;
-        String abi;
-        String bin;
-        String className;
-        String bfsName;
 
         if (isWasm) {
-            if (Objects.isNull(args) || args.length < 4) {
+            if (Objects.isNull(args) || args.length < 3) {
                 callback.onResponse(new Exception("incomplete args"), null);
                 return;
             }
-            bfsName = (String) args[0];
-            abi = (String) args[1];
-            className = (String) args[2];
-            bin = (String) args[3];
+            String bfsName = (String) args[0];
+            String abi = (String) args[1];
+            String bin = (String) args[2];
+            List<String> params = null;
 
-            if (args.length > 4) {
+            if (args.length > 3) {
                 params = new ArrayList<>();
-                for (int i = 4; i < args.length; ++i) {
+                for (int i = 3; i < args.length; ++i) {
                     params.add((String) args[i]);
                 }
             }
+
+            if (logger.isTraceEnabled()) {
+                logger.trace(
+                        "deploy contract, name: {}, bin: {}, abi:{}, params:{}",
+                        bfsName,
+                        bin,
+                        abi,
+                        params);
+            }
+
+            deployLiquidContractAndRegisterLink(
+                    path,
+                    bin,
+                    abi,
+                    params,
+                    account,
+                    connection,
+                    blockManager,
+                    (e, address) -> {
+                        if (Objects.nonNull(e)) {
+                            logger.error("deploy failed ", e);
+                            callback.onResponse(e, null);
+                            return;
+                        }
+
+                        logger.info(" address: {}", address);
+                        callback.onResponse(null, address);
+                    });
 
         } else {
             if (Objects.isNull(args) || args.length < 3) {
                 callback.onResponse(new Exception("incomplete args"), null);
                 return;
             }
-            bfsName = (String) args[0];
+            String bfsName = (String) args[0];
             String solidityContent = (String) args[1];
-            className = (String) args[2];
+            String className = (String) args[2];
+            List<String> params = null;
 
             if (args.length > 3) {
                 params = new ArrayList<>();
@@ -152,42 +176,24 @@ public class DeployContractHandler implements CommandHandler {
 
                 CompilationResult result = CompilationResult.parse(res.getOutput());
                 metadata = result.getContract(className);
-                abi = metadata.abi;
-                bin = metadata.bin;
             } catch (Exception e) {
                 logger.error("compiling contract failed, e: ", e);
                 callback.onResponse(new Exception("compiling contract failed"), null);
                 return;
             }
-        }
 
-        if (logger.isTraceEnabled()) {
-            logger.trace("deploy contract, name: {}, bin: {}, abi:{}", bfsName, bin, abi);
-        }
+            if (logger.isTraceEnabled()) {
+                logger.trace(
+                        "deploy contract, name: {}, bin: {}, abi:{}",
+                        bfsName,
+                        metadata.bin,
+                        metadata.abi);
+            }
 
-        if (isWasm) {
-            deployLiquidContractAndRegisterLink(
-                    path,
-                    bin,
-                    abi,
-                    params,
-                    account,
-                    connection,
-                    blockManager,
-                    (e, address) -> {
-                        if (Objects.nonNull(e)) {
-                            logger.error("deploy failed ", e);
-                            callback.onResponse(e, null);
-                            return;
-                        }
-
-                        logger.info(" address: {}", address);
-                        callback.onResponse(null, address);
-                    });
-        } else {
             /* constructor params */
             ABIDefinitionFactory abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
-            ContractABIDefinition contractABIDefinition = abiDefinitionFactory.loadABI(abi);
+            ContractABIDefinition contractABIDefinition =
+                    abiDefinitionFactory.loadABI(metadata.abi);
             ABIDefinition constructor = contractABIDefinition.getConstructor();
             /* check if solidity constructor needs arguments */
             byte[] paramsABI = new byte[0];
@@ -232,8 +238,8 @@ public class DeployContractHandler implements CommandHandler {
 
             deploySolContractAndRegisterLink(
                     path,
-                    bin + Hex.toHexString(paramsABI),
-                    abi,
+                    metadata.bin + Hex.toHexString(paramsABI),
+                    metadata.abi,
                     account,
                     connection,
                     driver,
