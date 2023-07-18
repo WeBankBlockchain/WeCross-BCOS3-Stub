@@ -1,5 +1,6 @@
 package com.webank.wecross.stub.bcos3;
 
+import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_CREATE;
 import static org.fisco.bcos.sdk.v3.client.protocol.model.TransactionAttribute.LIQUID_SCALE_CODEC;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,17 +34,13 @@ import com.webank.wecross.stub.bcos3.verify.MerkleValidation;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.response.Call;
+import org.fisco.bcos.sdk.v3.codec.ContractCodec;
 import org.fisco.bcos.sdk.v3.codec.FunctionEncoderInterface;
 import org.fisco.bcos.sdk.v3.codec.datatypes.Function;
 import org.fisco.bcos.sdk.v3.codec.datatypes.generated.tuples.generated.Tuple2;
@@ -76,6 +73,7 @@ public class BCOSDriver implements Driver {
     private CommandHandlerDispatcher commandHandlerDispatcher;
 
     private final ContractCodecJsonWrapper contractCodecJsonWrapper;
+    private final ContractCodec contractCodec;
     private final CryptoSuite cryptoSuite;
     private final boolean isWasm;
     private final ABIDefinitionFactory abiDefinitionFactory;
@@ -85,6 +83,7 @@ public class BCOSDriver implements Driver {
     public BCOSDriver(CryptoSuite cryptoSuite, boolean isWasm) {
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         this.contractCodecJsonWrapper = new ContractCodecJsonWrapper();
+        this.contractCodec = new ContractCodec(cryptoSuite, isWasm);
         this.cryptoSuite = cryptoSuite;
         this.isWasm = isWasm;
         this.abiDefinitionFactory = new ABIDefinitionFactory(cryptoSuite);
@@ -274,7 +273,11 @@ public class BCOSDriver implements Driver {
             boolean byProxy,
             Connection connection,
             Callback callback) {
-        asyncSendTransactionByProxy(context, request, connection, callback);
+        if (byProxy) {
+            asyncSendTransactionByProxy(context, request, connection, callback);
+        } else {
+            asyncSendTransaction(context, request, connection, callback);
+        }
     }
 
     private void asyncCallByProxy(
@@ -549,13 +552,183 @@ public class BCOSDriver implements Driver {
                                         blockNumber,
                                         credentials,
                                         path,
-                                        name);
+                                        name,
+                                        true);
                             });
 
         } catch (BCOSStubException e) {
             logger.warn(" e: ", e);
             callback.onTransactionResponse(
                     new TransactionException(e.getErrorCode(), e.getMessage()), null);
+        }
+    }
+
+    private void asyncSendTransaction(
+            TransactionContext context,
+            TransactionRequest request,
+            Connection connection,
+            Callback callback) {
+        try {
+            Map<String, String> properties = connection.getProperties();
+
+            // input validation
+            checkTransactionRequest(context, request);
+            checkProperties(properties);
+
+            // groupId
+            String groupId = properties.get(BCOSConstant.BCOS_GROUP_ID);
+            // chainId
+            String chainId = properties.get(BCOSConstant.BCOS_CHAIN_ID);
+            context.getBlockManager()
+                    .asyncGetBlockNumber(
+                            (blockNumberException, blockNumber) -> {
+                                if (Objects.nonNull(blockNumberException)) {
+                                    callback.onTransactionResponse(
+                                            new TransactionException(
+                                                    BCOSStatusCode.HandleGetBlockNumberFailed,
+                                                    blockNumberException.getMessage()),
+                                            null);
+                                    return;
+                                }
+                                // BCOSAccount to get credentials to sign the transaction
+                                BCOSAccount bcosAccount = (BCOSAccount) context.getAccount();
+                                CryptoKeyPair credentials = bcosAccount.getCredentials();
+
+                                Path path = context.getPath();
+                                String name = path.getResource();
+                                if (Objects.equals(
+                                        request.getMethod(), BCOSConstant.CUSTOM_COMMAND_DEPLOY)) {
+                                    // deploy
+                                    deployContract(
+                                            context,
+                                            request,
+                                            connection,
+                                            callback,
+                                            groupId,
+                                            chainId,
+                                            blockNumber,
+                                            credentials,
+                                            path);
+                                } else {
+                                    // query abi
+                                    asyncBfsService.readlink(
+                                            name,
+                                            connection,
+                                            this,
+                                            (Exception e, List<String> bfsInfoList) -> {
+                                                if (Objects.nonNull(e)) {
+                                                    logger.warn(" e: ", e);
+                                                    callback.onTransactionResponse(
+                                                            new TransactionException(
+                                                                    BCOSStatusCode.ABINotExist,
+                                                                    e.getMessage()),
+                                                            null);
+                                                    return;
+                                                }
+                                                if (Objects.isNull(bfsInfoList)
+                                                        || bfsInfoList.isEmpty()) {
+                                                    callback.onTransactionResponse(
+                                                            new TransactionException(
+                                                                    BCOSStatusCode.ABINotExist,
+                                                                    "abi not exist"),
+                                                            null);
+                                                    return;
+                                                }
+                                                String contractAddress = bfsInfoList.get(1);
+                                                String abi = bfsInfoList.get(2);
+                                                sendTxWithAbi(
+                                                        context,
+                                                        request,
+                                                        connection,
+                                                        callback,
+                                                        contractAddress,
+                                                        groupId,
+                                                        chainId,
+                                                        blockNumber,
+                                                        credentials,
+                                                        path,
+                                                        abi,
+                                                        false);
+                                            });
+                                }
+                            });
+        } catch (BCOSStubException e) {
+            logger.warn(" e: ", e);
+            callback.onTransactionResponse(
+                    new TransactionException(e.getErrorCode(), e.getMessage()), null);
+        }
+    }
+
+    private void deployContract(
+            TransactionContext context,
+            TransactionRequest request,
+            Connection connection,
+            Callback callback,
+            String groupId,
+            String chainId,
+            long blockNumber,
+            CryptoKeyPair credentials,
+            Path path) {
+        try {
+            String newPath = request.getArgs()[0];
+            String bin = request.getArgs()[1];
+            String abi = request.getArgs()[2];
+            List<String> deployArgs = null;
+            if (request.getArgs().length > 3) {
+                deployArgs = Arrays.asList(request.getArgs()).subList(3, request.getArgs().length);
+            }
+            ContractABIDefinition contractABIDefinition = abiDefinitionFactory.loadABI(abi);
+            ABIDefinition constructor = contractABIDefinition.getConstructor();
+            if (Objects.isNull(constructor)) {
+                throw new BCOSStubException(
+                        BCOSStatusCode.MethodNotExist, "Constructor not found in abi, method: ");
+            }
+            byte[] encodedArgs = contractCodec.encodeConstructorFromString(abi, bin, deployArgs);
+            int txAttribute = 0;
+            if (this.isWasm) {
+                txAttribute = LIQUID_SCALE_CODEC | LIQUID_CREATE;
+            }
+            // get signed transaction hex string
+            TxPair signedTransaction =
+                    TransactionBuilderJniObj.createSignedTransaction(
+                            credentials.getJniKeyPair(),
+                            groupId,
+                            chainId,
+                            isWasm ? newPath : "",
+                            Hex.toHexString(encodedArgs),
+                            abi,
+                            blockNumber + 1000,
+                            txAttribute);
+            String signTx = signedTransaction.getSignedTx();
+
+            TransactionParams transaction =
+                    new TransactionParams(request, signTx, TransactionParams.SUB_TYPE.SEND_TX);
+
+            transaction.setAbi(abi);
+            Request req =
+                    Request.newRequest(
+                            BCOSRequestType.SEND_TRANSACTION,
+                            objectMapper.writeValueAsBytes(transaction));
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("deploy contract, path: {}, abi: {}", path, abi);
+            }
+            sendTxWithEncodedRequest(
+                    context,
+                    connection,
+                    callback,
+                    Collections.singletonList(constructor),
+                    req,
+                    false);
+        } catch (BCOSStubException e) {
+            logger.warn(" e: ", e);
+            callback.onTransactionResponse(
+                    new TransactionException(e.getErrorCode(), e.getMessage()), null);
+        } catch (Exception e) {
+            logger.warn(" e: ", e);
+            callback.onTransactionResponse(
+                    new TransactionException(BCOSStatusCode.UnclassifiedError, e.getMessage()),
+                    null);
         }
     }
 
@@ -570,7 +743,8 @@ public class BCOSDriver implements Driver {
             long blockNumber,
             CryptoKeyPair credentials,
             Path path,
-            String name) {
+            String name,
+            boolean byProxy) {
         asyncBfsService.queryABI(
                 name,
                 this,
@@ -586,122 +760,154 @@ public class BCOSDriver implements Driver {
                             throw new BCOSStubException(
                                     BCOSStatusCode.ABINotExist, "resource:" + name + " not exist");
                         }
-
-                        // encode
-                        String[] args = request.getArgs();
-                        String method = request.getMethod();
-                        ContractABIDefinition contractABIDefinition =
-                                abiDefinitionFactory.loadABI(abi);
-
-                        List<ABIDefinition> functions =
-                                contractABIDefinition.getFunctions().get(method);
-                        if (Objects.isNull(functions) || functions.isEmpty()) {
-                            throw new BCOSStubException(
-                                    BCOSStatusCode.MethodNotExist,
-                                    "Method not found in abi, method: " + method);
-                        }
-
-                        ABIObject inputObj = ABIObjectFactory.createInputObject(functions.get(0));
-
-                        byte[] encodedArgs = new byte[0];
-                        if (!Objects.isNull(args)) {
-                            ABIObject encodedObj =
-                                    contractCodecJsonWrapper.encode(inputObj, Arrays.asList(args));
-                            encodedArgs = encodedObj.encode(isWasm);
-                        }
-
-                        String uniqueID =
-                                (String)
-                                        request.getOptions()
-                                                .get(StubConstant.TRANSACTION_UNIQUE_ID);
-                        String uid =
-                                Objects.nonNull(uniqueID)
-                                        ? uniqueID
-                                        : UUID.randomUUID().toString().replaceAll("-", "");
-
-                        String transactionID =
-                                (String) request.getOptions().get(StubConstant.XA_TRANSACTION_ID);
-
-                        Long transactionSeq =
-                                (Long) request.getOptions().get(StubConstant.XA_TRANSACTION_SEQ);
-                        Long seq = Objects.isNull(transactionSeq) ? 0L : transactionSeq;
-
-                        Function function;
-                        if (Objects.isNull(transactionID)
-                                || transactionID.isEmpty()
-                                || "0".equals(transactionID)) {
-                            function =
-                                    FunctionUtility.newSendTransactionProxyFunction(
-                                            functionEncoder,
-                                            uid,
-                                            path.getResource(),
-                                            functions.get(0).getMethodSignatureAsString(),
-                                            encodedArgs);
-                        } else {
-                            function =
-                                    FunctionUtility.newSendTransactionProxyFunction(
-                                            uid,
-                                            transactionID,
-                                            seq,
-                                            path.toString(),
-                                            functions.get(0).getMethodSignatureAsString(),
-                                            encodedArgs);
-                        }
-
-                        byte[] encodedAbi = functionEncoder.encode(function);
-
-                        int txAttribute = 0;
-                        if (this.isWasm) {
-                            txAttribute = LIQUID_SCALE_CODEC;
-                        }
-                        // get signed transaction hex string
-                        TxPair signedTransaction =
-                                TransactionBuilderJniObj.createSignedTransaction(
-                                        credentials.getJniKeyPair(),
-                                        groupId,
-                                        chainId,
-                                        contractAddress,
-                                        Hex.toHexString(encodedAbi),
-                                        abi,
-                                        blockNumber + 1000,
-                                        txAttribute);
-                        String signTx = signedTransaction.getSignedTx();
-
-                        TransactionParams transaction =
-                                new TransactionParams(
-                                        request,
-                                        signTx,
-                                        TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY);
-
-                        transaction.setAbi(abi);
-                        Request req =
-                                Request.newRequest(
-                                        BCOSRequestType.SEND_TRANSACTION,
-                                        objectMapper.writeValueAsBytes(transaction));
-
-                        if (logger.isDebugEnabled()) {
-                            logger.debug(
-                                    "asyncSendTransactionByProxy, uid: {}, tid: {}, seq: {}, path: {}, abi: {}",
-                                    uid,
-                                    transactionID,
-                                    seq,
-                                    path,
-                                    abi);
-                        }
-                        sendTxWithEncodedRequest(context, connection, callback, functions, req);
-
                     } catch (BCOSStubException e) {
                         logger.warn(" e: ", e);
                         callback.onTransactionResponse(
                                 new TransactionException(e.getErrorCode(), e.getMessage()), null);
+                        return;
                     } catch (Exception e) {
                         logger.warn(" e: ", e);
                         callback.onTransactionResponse(
                                 new TransactionException(
                                         BCOSStatusCode.UnclassifiedError, e.getMessage()),
                                 null);
+                        return;
                     }
+                    sendTxWithAbi(
+                            context,
+                            request,
+                            connection,
+                            callback,
+                            contractAddress,
+                            groupId,
+                            chainId,
+                            blockNumber,
+                            credentials,
+                            path,
+                            abi,
+                            byProxy);
                 });
+    }
+
+    private void sendTxWithAbi(
+            TransactionContext context,
+            TransactionRequest request,
+            Connection connection,
+            Callback callback,
+            String contractAddress,
+            String groupId,
+            String chainId,
+            long blockNumber,
+            CryptoKeyPair credentials,
+            Path path,
+            String abi,
+            boolean byProxy) {
+        try {
+            // encode
+            String[] args = request.getArgs();
+            String method = request.getMethod();
+            ContractABIDefinition contractABIDefinition = abiDefinitionFactory.loadABI(abi);
+
+            List<ABIDefinition> functions = contractABIDefinition.getFunctions().get(method);
+            if (Objects.isNull(functions) || functions.isEmpty()) {
+                throw new BCOSStubException(
+                        BCOSStatusCode.MethodNotExist,
+                        "Method not found in abi, method: " + method);
+            }
+
+            ABIObject inputObj = ABIObjectFactory.createInputObject(functions.get(0));
+
+            byte[] encodedArgs = new byte[0];
+            if (!Objects.isNull(args)) {
+                ABIObject encodedObj =
+                        contractCodecJsonWrapper.encode(inputObj, Arrays.asList(args));
+                encodedArgs = encodedObj.encode(isWasm);
+            }
+
+            String uniqueID = (String) request.getOptions().get(StubConstant.TRANSACTION_UNIQUE_ID);
+            String uid =
+                    Objects.nonNull(uniqueID)
+                            ? uniqueID
+                            : UUID.randomUUID().toString().replaceAll("-", "");
+
+            String transactionID =
+                    (String) request.getOptions().get(StubConstant.XA_TRANSACTION_ID);
+
+            Long transactionSeq = (Long) request.getOptions().get(StubConstant.XA_TRANSACTION_SEQ);
+            Long seq = Objects.isNull(transactionSeq) ? 0L : transactionSeq;
+
+            Function function;
+            if (Objects.isNull(transactionID)
+                    || transactionID.isEmpty()
+                    || "0".equals(transactionID)) {
+                function =
+                        FunctionUtility.newSendTransactionProxyFunction(
+                                functionEncoder,
+                                uid,
+                                path.getResource(),
+                                functions.get(0).getMethodSignatureAsString(),
+                                encodedArgs);
+            } else {
+                function =
+                        FunctionUtility.newSendTransactionProxyFunction(
+                                uid,
+                                transactionID,
+                                seq,
+                                path.toString(),
+                                functions.get(0).getMethodSignatureAsString(),
+                                encodedArgs);
+            }
+
+            byte[] encodedAbi = functionEncoder.encode(function);
+
+            int txAttribute = 0;
+            if (this.isWasm) {
+                txAttribute = LIQUID_SCALE_CODEC;
+            }
+            // get signed transaction hex string
+            TxPair signedTransaction =
+                    TransactionBuilderJniObj.createSignedTransaction(
+                            credentials.getJniKeyPair(),
+                            groupId,
+                            chainId,
+                            contractAddress,
+                            Hex.toHexString(encodedAbi),
+                            abi,
+                            blockNumber + 1000,
+                            txAttribute);
+            String signTx = signedTransaction.getSignedTx();
+
+            TransactionParams transaction =
+                    new TransactionParams(
+                            request, signTx, TransactionParams.SUB_TYPE.SEND_TX_BY_PROXY);
+
+            transaction.setAbi(abi);
+            Request req =
+                    Request.newRequest(
+                            BCOSRequestType.SEND_TRANSACTION,
+                            objectMapper.writeValueAsBytes(transaction));
+
+            if (logger.isDebugEnabled()) {
+                logger.debug(
+                        "asyncSendTransactionByProxy, uid: {}, tid: {}, seq: {}, path: {}, abi: {}",
+                        uid,
+                        transactionID,
+                        seq,
+                        path,
+                        abi);
+            }
+            sendTxWithEncodedRequest(context, connection, callback, functions, req, byProxy);
+
+        } catch (BCOSStubException e) {
+            logger.warn(" e: ", e);
+            callback.onTransactionResponse(
+                    new TransactionException(e.getErrorCode(), e.getMessage()), null);
+        } catch (Exception e) {
+            logger.warn(" e: ", e);
+            callback.onTransactionResponse(
+                    new TransactionException(BCOSStatusCode.UnclassifiedError, e.getMessage()),
+                    null);
+        }
     }
 
     private void sendTxWithEncodedRequest(
@@ -709,7 +915,8 @@ public class BCOSDriver implements Driver {
             Connection connection,
             Callback callback,
             List<ABIDefinition> functions,
-            Request req) {
+            Request req,
+            boolean byProxy) {
         connection.asyncSend(
                 req,
                 response -> {
@@ -767,7 +974,8 @@ public class BCOSDriver implements Driver {
                                                                     proof,
                                                                     cryptoSuite);
                                                             assembleTransactionResponse(
-                                                                    receipt, callback, functions);
+                                                                    receipt, callback, functions,
+                                                                    byProxy);
                                                         } catch (BCOSStubException e) {
                                                             logger.warn(" e: ", e);
                                                             callback.onTransactionResponse(
@@ -797,7 +1005,8 @@ public class BCOSDriver implements Driver {
                                             }
                                         }
                                         // 3.0 3.1 need not verify
-                                        assembleTransactionResponse(receipt, callback, functions);
+                                        assembleTransactionResponse(
+                                                receipt, callback, functions, byProxy);
                                     });
                         } else {
                             transactionResponse.setErrorCode(
@@ -836,13 +1045,21 @@ public class BCOSDriver implements Driver {
     }
 
     public void assembleTransactionResponse(
-            TransactionReceipt receipt, Callback callback, List<ABIDefinition> functions) {
+            TransactionReceipt receipt,
+            Callback callback,
+            List<ABIDefinition> functions,
+            boolean byProxy) {
         try {
             TransactionResponse transactionResponse = new TransactionResponse();
             transactionResponse.setBlockNumber(receipt.getBlockNumber().longValue());
             transactionResponse.setHash(receipt.getTransactionHash());
-            byte[] outputBytes =
-                    FunctionUtility.decodeProxyBytesOutput(receipt.getOutput(), isWasm);
+            byte[] outputBytes = new byte[0];
+            if (byProxy) {
+
+                outputBytes = FunctionUtility.decodeProxyBytesOutput(receipt.getOutput(), isWasm);
+            } else {
+                outputBytes = Hex.decode(receipt.getOutput());
+            }
 
             ABIObject outputObj = ABIObjectFactory.createOutputObject(functions.get(0));
             transactionResponse.setResult(

@@ -9,9 +9,7 @@ import com.webank.wecross.stub.ResourceInfo;
 import com.webank.wecross.stub.TransactionContext;
 import com.webank.wecross.stub.TransactionRequest;
 import com.webank.wecross.stub.bcos3.AsyncBfsService;
-import com.webank.wecross.stub.bcos3.BCOSConnection;
 import com.webank.wecross.stub.bcos3.BCOSDriver;
-import com.webank.wecross.stub.bcos3.account.BCOSAccount;
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
 import com.webank.wecross.stub.bcos3.common.BCOSStatusCode;
 import java.io.File;
@@ -29,10 +27,6 @@ import org.fisco.bcos.sdk.v3.codec.wrapper.ContractABIDefinition;
 import org.fisco.bcos.sdk.v3.codec.wrapper.ContractCodecJsonWrapper;
 import org.fisco.bcos.sdk.v3.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.v3.model.CryptoType;
-import org.fisco.bcos.sdk.v3.model.TransactionReceiptStatus;
-import org.fisco.bcos.sdk.v3.transaction.manager.AssembleTransactionProcessor;
-import org.fisco.bcos.sdk.v3.transaction.manager.TransactionProcessorFactory;
-import org.fisco.bcos.sdk.v3.transaction.model.dto.TransactionResponse;
 import org.fisco.bcos.sdk.v3.utils.Hex;
 import org.fisco.solc.compiler.CompilationResult;
 import org.fisco.solc.compiler.SolidityCompiler;
@@ -116,6 +110,7 @@ public class DeployContractHandler implements CommandHandler {
                     params,
                     account,
                     connection,
+                    driver,
                     blockManager,
                     (e, address) -> {
                         if (Objects.nonNull(e)) {
@@ -323,64 +318,64 @@ public class DeployContractHandler implements CommandHandler {
             List<String> params,
             Account account,
             Connection connection,
+            Driver driver,
             BlockManager blockManager,
             DeployContractCallback callback) {
-
         try {
-            AssembleTransactionProcessor assembleTransactionProcessor =
-                    TransactionProcessorFactory.createAssembleTransactionProcessor(
-                            ((BCOSConnection) connection).getClientWrapper().getClient(),
-                            ((BCOSAccount) account).getCredentials());
+            List<String> requestParams = new ArrayList<>();
+            String address = path.getResource() + System.currentTimeMillis();
+            requestParams.addAll(Arrays.asList(address, bin, abi));
+            requestParams.addAll(params);
+            TransactionRequest transactionRequest =
+                    new TransactionRequest(
+                            BCOSConstant.CUSTOM_COMMAND_DEPLOY,
+                            requestParams.toArray(new String[0]));
 
-            TransactionResponse transactionResponse =
-                    assembleTransactionProcessor.deployAndGetResponseWithStringParams(
-                            abi, bin, params, path.getResource() + System.currentTimeMillis());
+            TransactionContext transactionContext =
+                    new TransactionContext(account, path, new ResourceInfo(), blockManager);
 
-            if (transactionResponse.getTransactionReceipt().isStatusOK()) {
-                logger.info(
-                        " deploy contract success, contractAddress: {}",
-                        transactionResponse.getTransactionReceipt().getContractAddress());
+            driver.asyncSendTransaction(
+                    transactionContext,
+                    transactionRequest,
+                    false,
+                    connection,
+                    (exception, res) -> {
+                        if (Objects.nonNull(exception)) {
+                            logger.error(" deployAndRegisterLink e: ", exception);
+                            callback.onResponse(exception, null);
+                            return;
+                        }
+                        if (res.getErrorCode() != BCOSStatusCode.Success) {
+                            logger.error(
+                                    " deployAndRegisterLink, error: {}, message: {}",
+                                    res.getErrorCode(),
+                                    res.getMessage());
+                            callback.onResponse(new Exception(res.getMessage()), null);
+                            return;
+                        }
+                        asyncBfsService.linkBFSByProxy(
+                                path,
+                                address,
+                                abi,
+                                account,
+                                blockManager,
+                                connection,
+                                e -> {
+                                    if (Objects.nonNull(e)) {
+                                        logger.warn("registering abi failed", e);
+                                        callback.onResponse(e, null);
+                                        return;
+                                    }
 
-                asyncBfsService.linkBFSByProxy(
-                        path,
-                        transactionResponse.getTransactionReceipt().getContractAddress(),
-                        abi,
-                        account,
-                        blockManager,
-                        connection,
-                        e -> {
-                            if (Objects.nonNull(e)) {
-                                logger.warn("registering abi failed", e);
-                                callback.onResponse(e, null);
-                                return;
-                            }
+                                    logger.info(
+                                            " register bfs successfully path: {}, address: {}, abi: {}",
+                                            path,
+                                            path.getResource(),
+                                            abi);
 
-                            logger.info(
-                                    " register bfs successfully path: {}, address: {}, abi: {}",
-                                    path,
-                                    transactionResponse
-                                            .getTransactionReceipt()
-                                            .getContractAddress(),
-                                    abi);
-
-                            callback.onResponse(
-                                    null,
-                                    transactionResponse
-                                            .getTransactionReceipt()
-                                            .getContractAddress());
-                        });
-            } else {
-                logger.error(
-                        " deploy contract failed, error status: {}, error message: {} ",
-                        transactionResponse.getTransactionReceipt().getStatus(),
-                        TransactionReceiptStatus.getStatusMessage(
-                                        transactionResponse.getTransactionReceipt().getStatus(),
-                                        "Unknown error")
-                                .getMessage());
-                callback.onResponse(
-                        new Exception(transactionResponse.getTransactionReceipt().getMessage()),
-                        null);
-            }
+                                    callback.onResponse(null, path.getResource());
+                                });
+                    });
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             callback.onResponse(e, null);
