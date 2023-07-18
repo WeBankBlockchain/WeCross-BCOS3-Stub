@@ -322,10 +322,17 @@ public class DeployContractHandler implements CommandHandler {
             BlockManager blockManager,
             DeployContractCallback callback) {
         try {
-            List<String> requestParams = new ArrayList<>();
             String address = path.getResource() + System.currentTimeMillis();
-            requestParams.addAll(Arrays.asList(address, bin, abi));
-            requestParams.addAll(params);
+            logger.debug("deployLiquidContractAndRegisterLink, params: {}", params);
+            List<String> requestParams = new ArrayList<>(Arrays.asList(address, bin, abi));
+            if (params != null && !params.isEmpty()) {
+                for (String param : params) {
+                    if (param == null) {
+                        continue;
+                    }
+                    requestParams.add(param);
+                }
+            }
             TransactionRequest transactionRequest =
                     new TransactionRequest(
                             BCOSConstant.CUSTOM_COMMAND_DEPLOY,
