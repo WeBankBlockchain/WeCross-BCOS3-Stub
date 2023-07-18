@@ -673,9 +673,10 @@ public class BCOSDriver implements Driver {
             String newPath = request.getArgs()[0];
             String bin = request.getArgs()[1];
             String abi = request.getArgs()[2];
-            List<String> deployArgs = null;
+            List<String> deployArgs = new ArrayList<>();
             if (request.getArgs().length > 3) {
-                deployArgs = Arrays.asList(request.getArgs()).subList(3, request.getArgs().length);
+                deployArgs.addAll(
+                        Arrays.asList(request.getArgs()).subList(3, request.getArgs().length));
             }
             ContractABIDefinition contractABIDefinition = abiDefinitionFactory.loadABI(abi);
             ABIDefinition constructor = contractABIDefinition.getConstructor();
