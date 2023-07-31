@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.fisco.bcos.sdk.v3.codec.FunctionEncoderInterface;
+import org.fisco.bcos.sdk.v3.codec.FunctionReturnDecoderInterface;
 import org.fisco.bcos.sdk.v3.codec.Utils;
 import org.fisco.bcos.sdk.v3.codec.abi.FunctionReturnDecoder;
 import org.fisco.bcos.sdk.v3.codec.datatypes.DynamicArray;
@@ -200,7 +201,7 @@ public class FunctionUtility {
      * @return
      */
     public static Tuple4<String, String, String, byte[]> getConstantCallProxyFunctionInput(
-            String input) {
+            String input, boolean isWasm) {
         String data = input.substring(Numeric.containsHexPrefix(input) ? 10 : 8);
         final Function function =
                 new Function(
@@ -211,7 +212,7 @@ public class FunctionUtility {
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<DynamicBytes>() {}));
-        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        FunctionReturnDecoderInterface functionReturnDecoder = getFunctionReturnDecoder(isWasm);
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
         return new Tuple4<>(
@@ -227,7 +228,8 @@ public class FunctionUtility {
      * @param input
      * @return
      */
-    public static Tuple2<String, byte[]> getConstantCallFunctionInput(String input) {
+    public static Tuple2<String, byte[]> getConstantCallFunctionInput(
+            String input, boolean isWasm) {
         String data = input.substring(Numeric.containsHexPrefix(input) ? 10 : 8);
         final Function function =
                 new Function(
@@ -236,7 +238,7 @@ public class FunctionUtility {
                         Arrays.asList(
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<DynamicBytes>() {}));
-        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        FunctionReturnDecoderInterface functionReturnDecoder = getFunctionReturnDecoder(isWasm);
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
         return new Tuple2<>((String) results.get(0).getValue(), (byte[]) results.get(1).getValue());
@@ -249,7 +251,7 @@ public class FunctionUtility {
      * @return
      */
     public static Tuple6<String, String, BigInteger, String, String, byte[]>
-            getSendTransactionProxyFunctionInput(String input) {
+            getSendTransactionProxyFunctionInput(String input, boolean isWasm) {
         String data = input.substring(Numeric.containsHexPrefix(input) ? 10 : 8);
 
         final Function function =
@@ -263,7 +265,7 @@ public class FunctionUtility {
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<DynamicBytes>() {}));
-        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        FunctionReturnDecoderInterface functionReturnDecoder = getFunctionReturnDecoder(isWasm);
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
         return new Tuple6<>(
@@ -275,6 +277,15 @@ public class FunctionUtility {
                 (byte[]) results.get(5).getValue());
     }
 
+    public static byte[] decodeProxyBytesOutput(String output, boolean isWasm) {
+        FunctionReturnDecoderInterface functionReturnDecoder = getFunctionReturnDecoder(isWasm);
+        List<TypeReference<?>> outputParameters =
+                Arrays.asList(new TypeReference<DynamicBytes>() {});
+        List<Type> results = functionReturnDecoder.decode(output, Utils.convert(outputParameters));
+
+        return (byte[]) results.get(0).getValue();
+    }
+
     /**
      * decode WeCrossProxy sendTransaction input
      *
@@ -282,7 +293,7 @@ public class FunctionUtility {
      * @return
      */
     public static Tuple3<String, String, byte[]> getSendTransactionProxyWithoutTxIdFunctionInput(
-            String input) {
+            String input, boolean isWasm) {
         String data = input.substring(Numeric.containsHexPrefix(input) ? 10 : 8);
 
         final Function function =
@@ -293,7 +304,7 @@ public class FunctionUtility {
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<Utf8String>() {},
                                 new TypeReference<DynamicBytes>() {}));
-        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        FunctionReturnDecoderInterface functionReturnDecoder = getFunctionReturnDecoder(isWasm);
         List<Type> results = functionReturnDecoder.decode(data, function.getOutputParameters());
 
         return new Tuple3<>(
@@ -320,19 +331,19 @@ public class FunctionUtility {
      * @param receipt
      * @return
      */
-    public static String[] decodeDefaultInput(TransactionReceipt receipt) {
+    public static String[] decodeDefaultInput(TransactionReceipt receipt, boolean isWasm) {
         if (Objects.isNull(receipt) || Objects.isNull(receipt.getInput())) {
             return null;
         }
 
-        return decodeDefaultInput(receipt.getInput());
+        return decodeDefaultInput(receipt.getInput(), isWasm);
     }
 
     /**
      * @param input
      * @return
      */
-    public static String[] decodeDefaultInput(String input) {
+    public static String[] decodeDefaultInput(String input, boolean isWasm) {
         if (Objects.isNull(input) || input.length() < MethodIDLength) {
             return null;
         }
@@ -342,7 +353,7 @@ public class FunctionUtility {
             return new String[0];
         }
 
-        return decodeDefaultOutput(input.substring(MethodIDLength));
+        return decodeDefaultOutput(input.substring(MethodIDLength), isWasm);
     }
 
     /**
@@ -351,12 +362,12 @@ public class FunctionUtility {
      * @param receipt
      * @return
      */
-    public static String[] decodeDefaultOutput(TransactionReceipt receipt) {
+    public static String[] decodeDefaultOutput(TransactionReceipt receipt, boolean isWasm) {
         if (Objects.isNull(receipt) || !receipt.isStatusOK()) {
             return null;
         }
 
-        return decodeDefaultOutput(receipt.getOutput());
+        return decodeDefaultOutput(receipt.getOutput(), isWasm);
     }
 
     /**
@@ -365,12 +376,12 @@ public class FunctionUtility {
      * @param output
      * @return
      */
-    public static String[] decodeDefaultOutput(String output) {
+    public static String[] decodeDefaultOutput(String output, boolean isWasm) {
         if (Objects.isNull(output) || output.length() < MethodIDLength) {
             return null;
         }
 
-        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        FunctionReturnDecoderInterface functionReturnDecoder = getFunctionReturnDecoder(isWasm);
         List<Type> outputTypes =
                 functionReturnDecoder.decode(
                         output, Utils.convert(FunctionUtility.abiTypeReferenceOutputs));
@@ -378,12 +389,12 @@ public class FunctionUtility {
         return outputArgs.toArray(new String[0]);
     }
 
-    public static String decodeOutputAsString(String output) {
+    public static String decodeOutputAsString(String output, boolean isWasm) {
         if (Objects.isNull(output) || output.length() < MethodIDLength) {
             return null;
         }
 
-        FunctionReturnDecoder functionReturnDecoder = new FunctionReturnDecoder();
+        FunctionReturnDecoderInterface functionReturnDecoder = getFunctionReturnDecoder(isWasm);
         List<Type> outputTypes =
                 functionReturnDecoder.decode(
                         output,
@@ -394,5 +405,13 @@ public class FunctionUtility {
         }
 
         return (String) outputTypes.get(0).getValue();
+    }
+
+    public static FunctionReturnDecoderInterface getFunctionReturnDecoder(boolean isWasm) {
+        if (isWasm) {
+            return new org.fisco.bcos.sdk.v3.codec.scale.FunctionReturnDecoder();
+        } else {
+            return new FunctionReturnDecoder();
+        }
     }
 }

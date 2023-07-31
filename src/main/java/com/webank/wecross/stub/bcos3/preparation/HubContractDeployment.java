@@ -1,7 +1,6 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
-import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,9 +128,7 @@ public class HubContractDeployment {
 
     public static void getAddress(String chainPath, String accountName) {
         try {
-            String hubContractFile =
-                    chainPath + File.separator + "WeCrossHub" + File.separator + "WeCrossHub.sol";
-            HubContract hubContract = new HubContract(hubContractFile, chainPath, accountName);
+            HubContract hubContract = new HubContract(chainPath, accountName);
             hubContract.getHubAddress();
         } catch (Exception e) {
             logger.error("getAddress, e: ", e);
@@ -142,9 +139,7 @@ public class HubContractDeployment {
 
     public static void deploy(String chainPath, String accountName) {
         try {
-            String hubContractFile =
-                    chainPath + File.separator + "WeCrossHub" + File.separator + "WeCrossHub.sol";
-            HubContract hubContract = new HubContract(hubContractFile, chainPath, accountName);
+            HubContract hubContract = new HubContract(chainPath, accountName);
             hubContract.deploy();
         } catch (Exception e) {
             logger.error("deploy, e: ", e);
@@ -155,9 +150,7 @@ public class HubContractDeployment {
 
     public static void upgrade(String chainPath, String accountName) {
         try {
-            String hubContractFile =
-                    chainPath + File.separator + "WeCrossHub" + File.separator + "WeCrossHub.sol";
-            HubContract hubContract = new HubContract(hubContractFile, chainPath, accountName);
+            HubContract hubContract = new HubContract(chainPath, accountName);
             hubContract.upgrade();
         } catch (Exception e) {
             logger.error("upgrade, e: ", e);

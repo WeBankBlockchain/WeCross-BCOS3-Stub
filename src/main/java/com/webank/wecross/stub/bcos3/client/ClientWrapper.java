@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlockHeader;
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosGroupInfo;
 import org.fisco.bcos.sdk.v3.client.protocol.response.Call;
 import org.fisco.bcos.sdk.v3.model.TransactionReceipt;
 import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
@@ -32,4 +33,6 @@ public interface ClientWrapper {
 
     Call.CallOutput call(String accountAddress, String contractAddress, byte[] data)
             throws IOException;
+
+    BcosGroupInfo getGroupInfo() throws IOException;
 }

@@ -1,7 +1,6 @@
 package com.webank.wecross.stub.bcos3.preparation;
 
 import com.webank.wecross.stub.bcos3.common.BCOSConstant;
-import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,14 +117,7 @@ public class ProxyContractDeployment {
 
     public static void deploy(String chainPath, String accountName) {
         try {
-            String proxyContractFile =
-                    chainPath
-                            + File.separator
-                            + "WeCrossProxy"
-                            + File.separator
-                            + "WeCrossProxy.sol";
-            ProxyContract proxyContract =
-                    new ProxyContract(proxyContractFile, chainPath, accountName);
+            ProxyContract proxyContract = new ProxyContract(chainPath, accountName);
             proxyContract.deploy();
         } catch (Exception e) {
             logger.error("deploy, e: ", e);
@@ -136,14 +128,7 @@ public class ProxyContractDeployment {
 
     public static void upgrade(String chainPath, String accountName) {
         try {
-            String proxyContractFile =
-                    chainPath
-                            + File.separator
-                            + "WeCrossProxy"
-                            + File.separator
-                            + "WeCrossProxy.sol";
-            ProxyContract proxyContract =
-                    new ProxyContract(proxyContractFile, chainPath, accountName);
+            ProxyContract proxyContract = new ProxyContract(chainPath, accountName);
             proxyContract.upgrade();
         } catch (Exception e) {
             logger.error("upgrade, e: ", e);

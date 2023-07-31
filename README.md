@@ -29,7 +29,7 @@ git clone https://github.com/WeBankBlockchain/WeCross-BCOS3-Stub.git
 cd WeCross-BCOS3-Stub
 ./gradlew assemble
 ```
-如果编译成功，将在当前目录的dist/apps目录下生成两个jar包，分别是国密版和非国密版插件。
+如果编译成功，将在当前目录的dist/apps目录下生成名为bcos3-stub-1.3.*.jar的jar包，同时支持国密版和非国密插件应用。
 
 ## 插件使用
 

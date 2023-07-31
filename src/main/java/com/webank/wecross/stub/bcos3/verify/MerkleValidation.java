@@ -56,13 +56,53 @@ public class MerkleValidation {
     }
 
     /**
+     * @param hash transaction hash
+     * @param transactionProof proof of transaction
+     * @throws BCOSStubException
+     */
+    public static void verifyTransactionProof(
+            String hash,
+            BlockHeader blockHeader,
+            TransactionProof transactionProof,
+            CryptoSuite cryptoSuite)
+            throws BCOSStubException {
+
+        // verify transaction
+        if (!MerkleProofUtility.verifyMerkle(
+                blockHeader.getReceiptRoot(),
+                transactionProof.getReceiptWithProof().getTxReceiptProof(),
+                transactionProof.getReceiptWithProof().getReceiptHash(),
+                cryptoSuite)) {
+            throw new BCOSStubException(
+                    BCOSStatusCode.TransactionReceiptProofVerifyFailed,
+                    BCOSStatusCode.getStatusMessage(
+                                    BCOSStatusCode.TransactionReceiptProofVerifyFailed)
+                            + ", hash="
+                            + hash);
+        }
+
+        // verify transaction
+        if (!MerkleProofUtility.verifyMerkle(
+                blockHeader.getTransactionRoot(),
+                transactionProof.getTransWithProof().getTxProof(),
+                transactionProof.getTransWithProof().getHash(),
+                cryptoSuite)) {
+            throw new BCOSStubException(
+                    BCOSStatusCode.TransactionProofVerifyFailed,
+                    BCOSStatusCode.getStatusMessage(BCOSStatusCode.TransactionProofVerifyFailed)
+                            + ", hash="
+                            + hash);
+        }
+    }
+
+    /**
      * @param blockNumber
      * @param hash transaction hash
      * @param blockManager
      * @param transactionProof proof of transaction
      * @param callback
      */
-    public static void verifyTransactionProof(
+    public static void verifyTransactionProofWithCallback(
             long blockNumber,
             String hash,
             BlockManager blockManager,

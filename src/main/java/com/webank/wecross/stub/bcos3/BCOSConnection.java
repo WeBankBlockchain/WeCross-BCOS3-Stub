@@ -184,7 +184,9 @@ public class BCOSConnection implements Connection {
 
             if (Objects.equals(
                     TransactionReceiptStatus.Success.getCode(), callOutput.getStatus())) {
-                String[] paths = FunctionUtility.decodeDefaultOutput(callOutput.getOutput());
+                String[] paths =
+                        FunctionUtility.decodeDefaultOutput(
+                                callOutput.getOutput(), clientWrapper.getClient().isWASM());
                 Set<String> set = new LinkedHashSet<>();
                 if (Objects.nonNull(paths) && paths.length != 0) {
                     for (int i = paths.length - 1; i >= 0; i--) {
