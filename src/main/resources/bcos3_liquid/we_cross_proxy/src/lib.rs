@@ -499,7 +499,14 @@ mod we_cross_proxy {
             _size:u256
         ) -> String {
             let len = self.xaTransactionIDs.len();
-            let index = if "-1".to_string() == _index {len - 1} else {_index.parse().unwrap()};
+            let index = if "-1".to_string() == _index {
+                if len == 0 { 0 } else { len - 1 }
+            } else { 
+                match _index.parse() {
+                    Ok(number) => number,
+                    Err(_) => 0,
+                }
+            };
 
             if len == 0 || len <= index {
                 return "{\"tota\":0,\"xaTransactions\":[]}".to_string();
@@ -1338,6 +1345,8 @@ mod we_cross_proxy {
         fn test_listXATransactions() {
             let mut proxy = WeCrossProxy::new();
             assert_eq!(proxy.listXATransactions("0".to_string(), 10.into()), "{\"tota\":0,\"xaTransactions\":[]}");
+            assert_eq!(proxy.listXATransactions("-1".to_string(), 10.into()), "{\"tota\":0,\"xaTransactions\":[]}");
+            assert_eq!(proxy.listXATransactions("-2".to_string(), 10.into()), "{\"tota\":0,\"xaTransactions\":[]}");
 
             let accounts: test::DefaultAccounts = test::default_accounts();
 
