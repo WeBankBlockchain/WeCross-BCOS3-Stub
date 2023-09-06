@@ -1303,7 +1303,6 @@ public class BCOSDriver implements Driver {
             String finalMethodId = methodId;
             String finalInput = input;
             byte[] finalOutputBytes = FunctionUtility.decodeProxyBytesOutput(proxyOutput, isWasm);
-            ;
             asyncBfsService.queryABI(
                     resource,
                     this,
@@ -1368,6 +1367,7 @@ public class BCOSDriver implements Driver {
                         } catch (ClassNotFoundException e) {
                             logger.error("CodecJsonWrapper e:", e);
                             callback.onResponse(e, null);
+                            return;
                         }
 
                         transaction.getTransactionResponse().setErrorCode(receipt.getStatus());

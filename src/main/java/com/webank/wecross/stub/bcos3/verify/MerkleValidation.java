@@ -109,7 +109,6 @@ public class MerkleValidation {
             TransactionProof transactionProof,
             VerifyCallback callback,
             CryptoSuite cryptoSuite) {
-        callback.onResponse(null);
         blockManager.asyncGetBlock(
                 blockNumber,
                 (blockHeaderException, block) -> {
