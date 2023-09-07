@@ -38,6 +38,7 @@ public class BlockUtility {
         blockHeader.setReceiptRoot(block.getReceiptsRoot());
         blockHeader.setStateRoot(block.getStateRoot());
         blockHeader.setTransactionRoot(block.getTransactionsRoot());
+        blockHeader.setTimestamp(block.getTimestamp());
         return blockHeader;
     }
 
@@ -66,6 +67,7 @@ public class BlockUtility {
         stubBlockHeader.setTransactionRoot(bcosHeader.getTransactionsRoot());
         stubBlockHeader.setSealerList(bcosHeader.getSealerList());
         stubBlockHeader.setSignatureList(bcosHeader.getSignatureList());
+        stubBlockHeader.setTimestamp(bcosHeader.getTimestamp());
         return stubBlockHeader;
     }
 

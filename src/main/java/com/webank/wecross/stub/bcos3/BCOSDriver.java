@@ -1241,6 +1241,9 @@ public class BCOSDriver implements Driver {
             transaction
                     .getTransactionResponse()
                     .setBlockNumber(receipt.getBlockNumber().longValue());
+            transaction
+                    .getTransactionResponse()
+                    .setTimestamp(jsonTransactionResponse.getImportTime());
 
             String proxyInput = receipt.getInput();
             String proxyOutput = receipt.getOutput();
