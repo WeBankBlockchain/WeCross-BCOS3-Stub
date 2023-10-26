@@ -532,11 +532,13 @@ contract WeCrossProxy {
     function listXATransactions(string memory _index, uint256 _size) public view
     returns (string memory) {
         uint256 len = xaTransactionIDs.length;
-        uint256 index = sameString("-1", _index)
-        ? (len - 1)
-        : stringToUint256(_index);
+        if (len == 0) {
+            return '{"total":0,"xaTransactions":[]}';
+        }
 
-        if (len == 0 || len <= index) {
+        uint256 index = sameString("-1", _index) ? (len - 1) : stringToUint256(_index);
+
+        if (len <= index) {
             return '{"total":0,"xaTransactions":[]}';
         }
 
