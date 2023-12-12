@@ -12,7 +12,8 @@ import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
 public class ClientWrapperWithExceptionMock extends ClientWrapperImplMock {
 
     @Override
-    public BcosBlock.Block getBlockByNumber(long blockNumber) throws IOException {
+    public BcosBlock.Block getBlockByNumber(long blockNumber, boolean onlyTxHash)
+            throws IOException {
         throw new IOException(" IOException");
     }
 

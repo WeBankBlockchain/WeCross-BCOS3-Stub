@@ -85,7 +85,7 @@ public class BlockUtility {
 
         /** tx list */
         List<String> txs = new ArrayList<>();
-        if (!onlyHeader) {
+        if (!onlyHeader && !block.getTransactionHashes().isEmpty()) {
             for (int i = 0; i < block.getTransactions().size(); i++) {
                 BcosBlock.TransactionHash transactionHash =
                         (BcosBlock.TransactionHash) block.getTransactions().get(i);
