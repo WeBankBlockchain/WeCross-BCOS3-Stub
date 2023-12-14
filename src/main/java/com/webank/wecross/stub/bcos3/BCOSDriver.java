@@ -35,6 +35,8 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidParameterException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
@@ -1288,6 +1290,7 @@ public class BCOSDriver implements Driver {
         transaction.setResource(resource);
         // query ABI
         String finalMethodId = methodId;
+        CompletableFuture<String> future = new CompletableFuture<>();
         asyncBfsService.queryABI(
                 resource,
                 this,
@@ -1298,28 +1301,35 @@ public class BCOSDriver implements Driver {
                                 "Query abi failed, transactionHash: {}, e: ",
                                 transactionHash,
                                 queryABIException);
-                        block.getTransactionsWithDetail().add(transaction);
-                        return;
+                        future.completeExceptionally(queryABIException);
                     }
-
-                    ABIDefinition function =
-                            abiDefinitionFactory
-                                    .loadABI(abi)
-                                    .getMethodIDToFunctions()
-                                    .get(ByteBuffer.wrap(Hex.decode(finalMethodId)));
-                    if (Objects.isNull(function)) {
-                        logger.warn(
-                                "Maybe abi is upgraded, Load function failed, methodId: {}",
-                                finalMethodId);
-                        block.getTransactionsWithDetail().add(transaction);
-                        return;
-                    }
-                    transaction.getTransactionRequest().setMethod(function.getName());
-                    block.getTransactionsWithDetail().add(transaction);
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("blockNumber: {}, block: {}", blockNumber, block);
-                    }
+                    future.complete(abi);
                 });
+        try {
+            String abi = future.get(10, TimeUnit.SECONDS);
+            ABIDefinition function =
+                    abiDefinitionFactory
+                            .loadABI(abi)
+                            .getMethodIDToFunctions()
+                            .get(ByteBuffer.wrap(Hex.decode(finalMethodId)));
+            if (Objects.isNull(function)) {
+                logger.warn(
+                        "Maybe abi is upgraded, Load function failed, methodId: {}", finalMethodId);
+            } else {
+                transaction.getTransactionRequest().setMethod(function.getName());
+            }
+        } catch (Exception e) {
+            logger.error(
+                    "Maybe Query abi failed, transactionHash: {},resource:{} MethodId: {},e:",
+                    transactionHash,
+                    resource,
+                    finalMethodId,
+                    e);
+        }
+        block.getTransactionsWithDetail().add(transaction);
+        if (logger.isTraceEnabled()) {
+            logger.trace("blockNumber: {}, block: {}", blockNumber, block);
+        }
     }
 
     private void assembleTransaction(
