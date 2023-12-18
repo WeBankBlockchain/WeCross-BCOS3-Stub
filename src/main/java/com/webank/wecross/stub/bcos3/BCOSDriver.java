@@ -35,10 +35,13 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidParameterException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.fisco.bcos.sdk.jni.utilities.tx.TransactionBuilderJniObj;
 import org.fisco.bcos.sdk.jni.utilities.tx.TxPair;
 import org.fisco.bcos.sdk.v3.client.protocol.model.JsonTransactionResponse;
+import org.fisco.bcos.sdk.v3.client.protocol.response.BcosBlock;
 import org.fisco.bcos.sdk.v3.client.protocol.response.Call;
 import org.fisco.bcos.sdk.v3.codec.ContractCodec;
 import org.fisco.bcos.sdk.v3.codec.FunctionEncoderInterface;
@@ -1133,7 +1136,21 @@ public class BCOSDriver implements Driver {
                         callback.onResponse(new Exception(response.getErrorMessage()), null);
                     } else {
                         try {
-                            Block block = BlockUtility.convertToBlock(response.getData(), false);
+                            Block block =
+                                    BlockUtility.convertToBlock(response.getData(), onlyHeader);
+                            if (block.getTransactionsHashes().isEmpty()) {
+                                BcosBlock.Block bcosBlock =
+                                        ObjectMapperFactory.getObjectMapper()
+                                                .readValue(
+                                                        response.getData(), BcosBlock.Block.class);
+                                for (int i = 0; i < bcosBlock.getTransactionObject().size(); i++) {
+                                    BcosBlock.TransactionObject transactionObject =
+                                            (BcosBlock.TransactionObject)
+                                                    bcosBlock.getTransactions().get(i);
+                                    assembleJsonTransactionResponse(
+                                            blockNumber, transactionObject, connection, block);
+                                }
+                            }
                             if (blockVerifierString != null && blockNumber != 0) {
                                 BCOSBlockHeader bcosBlockHeader =
                                         (BCOSBlockHeader) block.blockHeader;
@@ -1209,6 +1226,110 @@ public class BCOSDriver implements Driver {
                                 callback);
                     }
                 });
+    }
+
+    private void assembleJsonTransactionResponse(
+            long blockNumber,
+            JsonTransactionResponse jsonTransactionResponse,
+            Connection connection,
+            Block block)
+            throws Exception {
+        byte[] txBytes =
+                ObjectMapperFactory.getObjectMapper().writeValueAsBytes(jsonTransactionResponse);
+
+        String methodId;
+        String input;
+        String path;
+        String resource;
+        String xaTransactionID = "0";
+        String transactionHash = jsonTransactionResponse.getHash();
+        Transaction transaction = new Transaction();
+        transaction.setTxBytes(txBytes);
+        transaction.setAccountIdentity(jsonTransactionResponse.getFrom());
+        transaction.setTransactionByProxy(true);
+        transaction.getTransactionResponse().setHash(transactionHash);
+        transaction.getTransactionResponse().setBlockNumber(blockNumber);
+        transaction.getTransactionResponse().setTimestamp(jsonTransactionResponse.getImportTime());
+        String proxyInput = jsonTransactionResponse.getInput();
+        if (proxyInput.startsWith(
+                Hex.toHexStringWithPrefix(
+                        functionEncoder.buildMethodId(FunctionUtility.ProxySendTXMethod)))) {
+            Tuple3<String, String, byte[]> proxyResult =
+                    FunctionUtility.getSendTransactionProxyWithoutTxIdFunctionInput(
+                            proxyInput, isWasm);
+            resource = proxyResult.getValue2();
+            input = Numeric.toHexString(proxyResult.getValue3());
+            methodId = input.substring(0, FunctionUtility.MethodIDWithHexPrefixLength);
+            if (logger.isDebugEnabled()) {
+                logger.debug("  resource: {}, methodId: {}", resource, methodId);
+            }
+        } else if (proxyInput.startsWith(
+                Hex.toHexStringWithPrefix(
+                        functionEncoder.buildMethodId(
+                                FunctionUtility.ProxySendTransactionTXMethod)))) {
+            Tuple6<String, String, BigInteger, String, String, byte[]> proxyInputResult =
+                    FunctionUtility.getSendTransactionProxyFunctionInput(proxyInput, isWasm);
+            xaTransactionID = proxyInputResult.getValue2();
+            path = proxyInputResult.getValue4();
+            resource = Path.decode(path).getResource();
+            String methodSig = proxyInputResult.getValue5();
+            methodId = Hex.toHexString(functionEncoder.buildMethodId(methodSig));
+            if (logger.isDebugEnabled()) {
+                logger.debug("path: {}, methodSig: {}, methodId: {}", path, methodSig, methodId);
+            }
+        } else {
+            // transaction not send by proxy
+            transaction.setTransactionByProxy(false);
+            block.getTransactionsWithDetail().add(transaction);
+            return;
+        }
+        transaction
+                .getTransactionRequest()
+                .getOptions()
+                .put(StubConstant.XA_TRANSACTION_ID, xaTransactionID);
+        transaction.setResource(resource);
+        // query ABI
+        String finalMethodId = methodId;
+        CompletableFuture<String> future = new CompletableFuture<>();
+        asyncBfsService.queryABI(
+                resource,
+                this,
+                connection,
+                (queryABIException, abi) -> {
+                    if (Objects.nonNull(queryABIException)) {
+                        logger.error(
+                                "Query abi failed, transactionHash: {}, e: ",
+                                transactionHash,
+                                queryABIException);
+                        future.completeExceptionally(queryABIException);
+                    }
+                    future.complete(abi);
+                });
+        try {
+            String abi = future.get(10, TimeUnit.SECONDS);
+            ABIDefinition function =
+                    abiDefinitionFactory
+                            .loadABI(abi)
+                            .getMethodIDToFunctions()
+                            .get(ByteBuffer.wrap(Hex.decode(finalMethodId)));
+            if (Objects.isNull(function)) {
+                logger.warn(
+                        "Maybe abi is upgraded, Load function failed, methodId: {}", finalMethodId);
+            } else {
+                transaction.getTransactionRequest().setMethod(function.getName());
+            }
+        } catch (Exception e) {
+            logger.error(
+                    "Maybe Query abi failed, transactionHash: {},resource:{} MethodId: {},e:",
+                    transactionHash,
+                    resource,
+                    finalMethodId,
+                    e);
+        }
+        block.getTransactionsWithDetail().add(transaction);
+        if (logger.isTraceEnabled()) {
+            logger.trace("blockNumber: {}, block: {}", blockNumber, block);
+        }
     }
 
     private void assembleTransaction(
