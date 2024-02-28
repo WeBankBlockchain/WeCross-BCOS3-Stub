@@ -79,18 +79,24 @@ dependencies {
         exclude group: 'org.fisco-bcos', module: 'tcnative'
     }
 
-    implementation 'com.moandjiezana.toml:toml4j:0.7.2'
     implementation 'com.google.guava:guava:32.0.1-jre'
 
     implementation ('org.fisco-bcos.java-sdk:fisco-bcos-java-sdk:3.6.0')
     implementation 'commons-io:commons-io:2.8.0'
 
-    implementation 'org.fisco-bcos:solcJ:0.5.2.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.3'
+    implementation ('org.fisco-bcos:solcJ:0.5.2.0'){
+        exclude group: 'com.fasterxml.jackson.core'
+    }
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.slf4j:slf4j-log4j12:2.0.5'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.18'
+    testImplementation ('org.springframework.boot:spring-boot-starter-test:2.7.18'){
+        exclude group: 'org.yaml', module: 'snakeyaml'
+    }
+    testImplementation 'net.minidev:json-smart:2.4.9'
+    testImplementation 'com.jayway.jsonpath:json-path:2.9.0'
 
     integTestImplementation 'junit:junit:4.13.2'
     integTestImplementation 'org.slf4j:slf4j-log4j12:2.0.5'
