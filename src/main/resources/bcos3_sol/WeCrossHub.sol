@@ -11,6 +11,10 @@ pragma experimental ABIEncoderV2;
 contract WeCrossHub {
     // string constant EVENT_TYPE = "INTERCHAIN";
 
+    uint256 increment;     // 默认初始化为0
+ 
+    uint256 currentIndex;  // 默认初始化为0
+
     string constant NULL_FLAG = "null";
 
     string constant VERSION = "v1.0.0";
@@ -18,10 +22,6 @@ contract WeCrossHub {
     string constant CALL_TYPE_QUERY = "0";
 
     string constant CALL_TYPE_INVOKE = "1";
-
-    uint256 increment = 0;
-
-    uint256 currentIndex = 0;
 
     mapping(uint256 => string) requests;
 
@@ -69,16 +69,19 @@ contract WeCrossHub {
 
     function getInterchainRequests(uint256 _num) public view
     returns (string memory) {
+        
         if (currentIndex == increment) {
             return NULL_FLAG;
         }
+        // uint256 num = _num < (increment - currentIndex) ? _num : (increment - currentIndex);
+        uint256 m = increment - currentIndex;
+       
+        if(_num < m){
+           m = _num;
+        }
 
-        uint256 num = _num < (increment - currentIndex)
-        ? _num
-        : (increment - currentIndex);
-
-        string[] memory tempRequests = new string[](num);
-        for (uint256 i = 0; i < num; i++) {
+        string[] memory tempRequests = new string[](m);
+        for (uint256 i = 0; i < m; i++) {
             tempRequests[i] = requests[currentIndex + i + 1];
         }
 
@@ -104,91 +107,78 @@ contract WeCrossHub {
 
     function serializeStringArray(string[] memory _arr) internal pure
     returns (string memory jsonStr) {
-        uint256 len = _arr.length;
-        if (len == 0) {
+        // uint256 len = _arr.length;
+        if (_arr.length == 0) {
             return "[]";
         }
 
         jsonStr = "[";
-        for (uint256 i = 0; i < len - 1; i++) {
+        for (uint256 i = 0; i < _arr.length - 1; i++) {
             jsonStr = string(abi.encodePacked(jsonStr, '"'));
             jsonStr = string(abi.encodePacked(jsonStr, jsonEscape(_arr[i])));
             jsonStr = string(abi.encodePacked(jsonStr, '",'));
         }
 
         jsonStr = string(abi.encodePacked(jsonStr, '"'));
-        jsonStr = string(abi.encodePacked(jsonStr, jsonEscape(_arr[len - 1])));
+        jsonStr = string(abi.encodePacked(jsonStr, jsonEscape(_arr[_arr.length - 1])));
         jsonStr = string(abi.encodePacked(jsonStr, '"'));
         jsonStr = string(abi.encodePacked(jsonStr, "]"));
     }
+
+    
 
     function jsonEscape(string memory _str) internal pure
     returns (string memory) {
         bytes memory bts = bytes(_str);
         uint256 len = bts.length;
-        bytes memory temp = new bytes(len * 2);
-        uint256 i = 0;
         uint256 j = 0;
         for (; j < len; j++) {
             if (bts[j] == "\\" || bts[j] == '"') {
-                temp[i++] = "\\";
+                bts[j] = "\\";
             }
-            temp[i++] = bts[j];
         }
-
-        bytes memory res = new bytes(i);
-        for (j = 0; j < i; j++) {
-            res[j] = temp[j];
-        }
-        return string(res);
+        return string(bts);
     }
 
-    function uint256ToString(uint256 _value) internal pure
-    returns (string memory) {
-        bytes32 result;
-        if (_value == 0) {
-            return "0";
-        }
+    function addressToString(address addr) internal pure returns(string memory){
+        //Convert addr to bytes
+        bytes20 value = bytes20(uint160(addr));
+        bytes memory strBytes = new bytes(42);
+        strBytes[0] = '0';
+        strBytes[1] = 'x';
 
-        while (_value > 0) {
-            result = bytes32(uint256(result) / (2**8));
-            result |= bytes32(((_value % 10) + 48) * 2**(8 * 31));
-            _value /= 10;
+        for(uint i = 0; i < 20; i++){
+            uint8 byteValue = uint8(value[i]);
+            strBytes[2 + (i<<1)] = encode((byteValue >> 4) & 0x0f);
+            strBytes[3 + (i<<1)] = encode(byteValue & 0x0f);
         }
-        return bytes32ToString(result);
+        return string(strBytes);
     }
 
-    function bytes32ToString(bytes32 _bts32) internal pure
-    returns (string memory) {
-        bytes memory result = new bytes(_bts32.length);
-
-        uint256 len = _bts32.length;
-        for (uint256 i = 0; i < len; i++) {
-            result[i] = _bts32[i];
+    function encode(uint8 num) internal pure returns(bytes1){
+        //0-9 -> 0-9
+        if(num >= 0 && num <= 9){
+            return bytes1(num + 48);
         }
-
-        return string(result);
+        //10-15 -> a-f
+        return bytes1(num + 87);
     }
 
-    function addressToString(address _addr) internal pure
-    returns (string memory) {
-        bytes memory result = new bytes(40);
-        for (uint256 i = 0; i < 20; i++) {
-            bytes1 temp = bytes1(uint8(uint160(_addr) / (2**(8 * (19 - i)))));
-            bytes1 b1 = bytes1(uint8(temp) / 16);
-            bytes1 b2 = bytes1(uint8(temp) - 16 * uint8(b1));
-            result[2 * i] = convert(b1);
-            result[2 * i + 1] = convert(b2);
-        }
-        return string(abi.encodePacked("0x", string(result)));
+    function uint256ToString(uint256 _value) internal pure returns (string memory) {
+        bytes memory reversed = new bytes(32);
+        uint i = 0; 
+        while (_value != 0) { 
+            uint8 remainder = uint8(_value % 10); 
+            _value = _value / 10; 
+            reversed[i % 32] = bytes1(48 + remainder); 
+            i++;
+        } 
+        // bytes memory s = new bytes(i + 1); 
+        bytes memory s = new bytes(32); 
+        for (uint j = 1; j <= i % 32; j++) { 
+            s[j-1] = reversed[i - j];
+        } 
+        return string(s);
     }
-
-    function convert(bytes1 _b) internal pure
-    returns (bytes1) {
-        if (uint8(_b) < 10) {
-            return bytes1(uint8(_b) + 0x30);
-        } else {
-            return bytes1(uint8(_b) + 0x57);
-        }
-    }
+    
 }
