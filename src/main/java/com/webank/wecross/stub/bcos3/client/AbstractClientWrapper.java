@@ -29,9 +29,10 @@ public abstract class AbstractClientWrapper implements ClientWrapper {
     }
 
     @Override
-    public BcosBlock.Block getBlockByNumber(long blockNumber) throws IOException {
+    public BcosBlock.Block getBlockByNumber(long blockNumber, boolean onlyTxHash)
+            throws IOException {
         BcosBlock blockByNumber =
-                getClient().getBlockByNumber(BigInteger.valueOf(blockNumber), false, true);
+                getClient().getBlockByNumber(BigInteger.valueOf(blockNumber), false, onlyTxHash);
         return blockByNumber.getBlock();
     }
 

@@ -15,6 +15,7 @@ mod we_cross_hub {
     const VERSION: &str = "v1.0.0";
     const CALL_TYPE_QUERY: &str = "0";
     const CALL_TYPE_INVOKE: &str = "1";
+    const CALL_TYPE_GET_BLOCK: &str = "2";
 
     /// Defines the state variables
     #[liquid(storage)]
@@ -61,6 +62,16 @@ mod we_cross_hub {
             _callbackMethod: String) -> String {
 
             return self.handle_request(CALL_TYPE_QUERY.to_string(), _path, _method, _args, _callbackPath, _callbackMethod);
+        }
+
+        pub fn interchainGetBlock(&mut self,
+            _path: String,
+            _method: String,
+            _args: Vec<String>,
+            _callbackPath: String,
+            _callbackMethod: String) -> String {
+
+            return self.handle_request(CALL_TYPE_GET_BLOCK.to_string(), _path, _method, _args, _callbackPath, _callbackMethod);
         }
 
         fn handle_request(&mut self,

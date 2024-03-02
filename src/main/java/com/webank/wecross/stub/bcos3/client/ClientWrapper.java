@@ -12,7 +12,7 @@ import org.fisco.bcos.sdk.v3.model.callback.TransactionCallback;
 
 /** Wrapper interface for JavaSDK */
 public interface ClientWrapper {
-    BcosBlock.Block getBlockByNumber(long blockNumber) throws IOException;
+    BcosBlock.Block getBlockByNumber(long blockNumber, boolean onlyTxHash) throws IOException;
 
     BcosBlockHeader.BlockHeader getBlockHeaderByNumber(long blockNumber) throws IOException;
 
