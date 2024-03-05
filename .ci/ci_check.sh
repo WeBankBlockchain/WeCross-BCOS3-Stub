@@ -105,6 +105,9 @@ check_ecdsa_evm_node()
   ## run integration test
   bash gradlew test --info
   bash gradlew integTest --info
+  if [ $? -ne 0 ];then
+      cat hs_err_pid*.log
+  fi
   bash nodes/127.0.0.1/stop_all.sh
   rm -rf nodes
 }
@@ -116,6 +119,9 @@ check_sm_evm_node()
   ## run integration test
   bash gradlew test --info
   bash gradlew integTest --info
+  if [ $? -ne 0 ];then
+      cat hs_err_pid*.log
+  fi
   bash nodes/127.0.0.1/stop_all.sh
   rm -rf nodes
 }
@@ -127,6 +133,9 @@ check_ecdsa_wasm_node()
   ## run integration test
   bash gradlew test --info
   bash gradlew integTest --info
+  if [ $? -ne 0 ];then
+      cat hs_err_pid*.log
+  fi
   bash nodes/127.0.0.1/stop_all.sh
   rm -rf nodes
 }
@@ -138,6 +147,9 @@ check_sm_wasm_node()
   ## run integration test
   bash gradlew test --info
   bash gradlew integTest --info
+  if [ $? -ne 0 ];then
+      cat hs_err_pid*.log
+  fi
   bash nodes/127.0.0.1/stop_all.sh
   rm -rf nodes
 }
@@ -156,28 +168,11 @@ LOG_INFO "------ check_basic---------"
 check_basic
 LOG_INFO "------ check_ecdsa_evm_node---------"
 check_ecdsa_evm_node
-
-# if $? error check hs_error log exist
-if [ $? -ne 0 ];then
-    cat hs_err_pid*.log
-fi
 LOG_INFO "------ check_sm_evm_node---------"
 check_sm_evm_node
-# if $? error check hs_error log exist
-if [ $? -ne 0 ];then
-    cat hs_err_pid*.log
-fi
 LOG_INFO "------ check_ecdsa_wasm_node---------"
 check_ecdsa_wasm_node
-# if $? error check hs_error log exist
-if [ $? -ne 0 ];then
-    cat hs_err_pid*.log
-fi
 LOG_INFO "------ check_sm_wasm_node---------"
 check_sm_wasm_node
-# if $? error check hs_error log exist
-if [ $? -ne 0 ];then
-    cat hs_err_pid*.log
-fi
 
 bash <(curl -s https://codecov.io/bash)
